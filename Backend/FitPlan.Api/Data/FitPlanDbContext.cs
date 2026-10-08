@@ -13,4 +13,6 @@ public class FitPlanDbContext : DbContext
     public DbSet<User> Users => Set<User>();
 
     public DbSet<WorkoutPlan> WorkoutPlans => Set<WorkoutPlan>(); 
+
+    public DbSet<Exercise> Exercises => Set<Exercise>();
 }
