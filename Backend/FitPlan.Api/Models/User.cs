@@ -12,6 +12,8 @@ public class User
 
     public string? Bio { get; set; }
 
+    public ICollection<WorkoutPlan> WorkoutPlans { get; set; } = [];
+
     public string? ProfilePictureUrl { get; set; }
 
     public required DateTime CreatedAt { get; set; }
