@@ -1,4 +1,3 @@
-using System;
 using FitPlan.Api.Models;
 using Microsoft.EntityFrameworkCore;
 namespace FitPlan.Api.Data;
@@ -12,4 +11,6 @@ public class FitPlanDbContext : DbContext
     }
 
     public DbSet<User> Users => Set<User>();
+
+    public DbSet<WorkoutPlan> WorkoutPlans => Set<WorkoutPlan>(); 
 }
