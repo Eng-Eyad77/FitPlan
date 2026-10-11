@@ -7,14 +7,23 @@ public class FitPlanDbContext : DbContext
     public FitPlanDbContext(DbContextOptions<FitPlanDbContext> options)
         : base(options)
     {
-        
+
     }
 
     public DbSet<User> Users => Set<User>();
 
-    public DbSet<WorkoutPlan> WorkoutPlans => Set<WorkoutPlan>(); 
+    public DbSet<WorkoutPlan> WorkoutPlans => Set<WorkoutPlan>();
 
     public DbSet<Exercise> Exercises => Set<Exercise>();
 
     public DbSet<WorkoutPlanExercise> WorkoutPlanExercises => Set<WorkoutPlanExercise>();
+
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.ApplyConfigurationsFromAssembly(
+            typeof(FitPlanDbContext).Assembly);
+    }
 }

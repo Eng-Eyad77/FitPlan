@@ -14,4 +14,9 @@ public class WorkoutPlanExercise
       public int Reps { get; set; }
 
       public int Order { get; set; }
+      
+      public WorkoutPlan WorkoutPlan { get; set; } = null!;
+
+      public Exercise Exercise { get; set; } = null!;
+
 }
