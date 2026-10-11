@@ -38,7 +38,8 @@ public class WorkoutPlanExerciseConfiguration :IEntityTypeConfiguration<WorkoutP
 
         builder.HasOne(p => p.Exercise)
                 .WithMany()
-                .HasForeignKey(p => p.ExerciseId);
+                .HasForeignKey(p => p.ExerciseId)
+                .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(p => new { p.WorkoutPlanId, p.ExerciseId })
                 .IsUnique();
