@@ -1,2 +1,9 @@
 @FitPlan.Api_HostAddress = http://localhost:5264
 
+POST http://localhost:5264/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "eyad",
+  "password": "TestPass123"
+}
