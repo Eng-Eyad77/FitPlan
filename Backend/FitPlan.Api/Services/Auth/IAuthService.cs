@@ -5,6 +5,6 @@ namespace FitPlan.Api.Services.Auth;
 
 public interface IAuthService
 {
-    Task<RegisterResult> RegisterAsync(RegisterRequestDto request);
+    Task<AuthResult> RegisterAsync(RegisterRequestDto request);
 
 }

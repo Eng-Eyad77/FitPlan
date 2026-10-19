@@ -61,14 +61,14 @@ public class AuthService(FitPlanDbContext context, IConfiguration configuration)
 
 
 
-    public async Task<RegisterResult> RegisterAsync(RegisterRequestDto request)
+    public async Task<AuthResult> RegisterAsync(RegisterRequestDto request)
     {
 
 
         if (await context.Users.AnyAsync(u => u.Username == request.Username))
         {
 
-            var result = new RegisterResult(
+            var result = new AuthResult(
                  false,
                  null,
                 "UsernameAlreadyExists"
@@ -106,7 +106,7 @@ public class AuthService(FitPlanDbContext context, IConfiguration configuration)
             accessToken
         );
 
-        return new RegisterResult(true, authResponse , null);
+        return new AuthResult(true, authResponse , null);
 
 
 
