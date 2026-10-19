@@ -39,5 +39,22 @@ public class AuthController : ControllerBase
     }
 
 
+    [HttpPost("login")]
+
+    public async Task<ActionResult> Login(LoginRequestDto newLogin)
+    {
+        var newLoginAttempt = await authService.LoginAsync(newLogin);
+
+        if (!newLoginAttempt.Succeeded)
+        {
+            return Unauthorized(new
+            {
+                newLoginAttempt.ErrorCode
+            }); 
+        }
+
+        return Ok(newLoginAttempt.Data);
+    }
+
 
 }
