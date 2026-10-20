@@ -21,3 +21,20 @@ Content-Type: application/json
   "username": "eyad",
   "password": "TestPass123"
 }
+
+
+### Get My Profile
+GET http://localhost:5264/api/profile/me
+Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjNjYzU2ZDdkLTM1ODUtNDg1ZS1iYWM0LTM4NWFhZmVkOTQ3ZiIsImV4cCI6MTc5MjQxNTQ3NywiaXNzIjoiRml0UGxhbi5BcGkiLCJhdWQiOiJGaXRQbGFuLkNsaWVudCJ9.vnnPEivEFU7JE1B75RclhEBEI4S5ddvTL4M2WrDkZSuyUWaMlbx0c-HAPluuW_WHqfwpSYrrjO6VLNS5rKToOw
+
+
+
+
+### Update Profile
+PUT http://localhost:5264/api/profile/me
+Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjNjYzU2ZDdkLTM1ODUtNDg1ZS1iYWM0LTM4NWFhZmVkOTQ3ZiIsImV4cCI6MTc5MjQ4NzM3NywiaXNzIjoiRml0UGxhbi5BcGkiLCJhdWQiOiJGaXRQbGFuLkNsaWVudCJ9.e06e5uZ-8zasbSgESnkS52n1bbIwZVkwmIDZsteOLn-AqsroOxHlzSuNaPfXPZ1aRT6zSmwAw4_iUfc6dbK-zA
+Content-Type: application/json
+
+{
+  "bio": "Software Engineer passionate about backend development."
+}
