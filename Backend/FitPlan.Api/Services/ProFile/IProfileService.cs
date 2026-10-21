@@ -12,8 +12,7 @@ public interface IProfileService
         Guid userId,
         UpdateBioRequestDto request);
 
-    Task<ProfileOperationResult<ProfileDto>>
-    UploadProfilePictureAsync(Guid userId, IFormFile file);
+    Task<ProfileOperationResult<ProfileDto>> UploadProfilePictureAsync(Guid userId, IFormFile file);
 
     Task<ProfileOperationResult<ProfileDto>> DeleteProfilePictureAsync(Guid userId);
 }

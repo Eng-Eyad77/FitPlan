@@ -93,4 +93,34 @@ public class ProfileController(IProfileService profileService) : ControllerBase
     }
 
 
+
+    [HttpDelete("me/picture")]
+    public async Task<IActionResult> DeleteProfilePicture()
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+
+         if (!Guid.TryParse(userId, out var result))
+        {
+            return Unauthorized();
+        }
+
+        var deleteResult = await profileService.DeleteProfilePictureAsync(result);
+
+
+        if(!deleteResult.Succeeded)
+        {
+            return deleteResult.ErrorCode switch
+            {
+                "UserNotFound" => NotFound(),
+                _ => StatusCode(500)
+            };
+        }
+
+
+        return Ok(deleteResult.Data);
+
+    }
+
+
 }

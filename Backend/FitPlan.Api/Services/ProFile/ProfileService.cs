@@ -209,6 +209,55 @@ public class ProfileService(FitPlanDbContext context, IWebHostEnvironment webHos
 
     public async Task<ProfileOperationResult<ProfileDto>> DeleteProfilePictureAsync(Guid userId)
     {
-        throw new NotImplementedException();
+        var user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        if (user is null)
+        {
+            return new ProfileOperationResult<ProfileDto>
+            (
+                false,
+                null,
+                "UserNotFound"
+            );
+
+        }
+
+        var pictureWantToDelete = user.ProfilePictureUrl;
+
+
+        user.ProfilePictureUrl = null;
+        user.UpdatedAt = DateTime.UtcNow;
+        await context.SaveChangesAsync();
+
+        if (!string.IsNullOrWhiteSpace(pictureWantToDelete))
+        {
+            var oldFileName = Path.GetFileName(pictureWantToDelete);
+
+            var oldFilePath = Path.Combine(
+                webHost.ContentRootPath,
+                "wwwroot",
+                "uploads",
+                "profile-pictures",
+                oldFileName
+            );
+
+            if (System.IO.File.Exists(oldFilePath))
+            {
+                System.IO.File.Delete(oldFilePath);
+            }
+        }
+
+        var profileDto = new ProfileDto
+        {
+            Id = user.Id,
+            Username = user.Username,
+            Bio = user.Bio,
+            ProfilePictureUrl = user.ProfilePictureUrl,
+            CreatedAt = user.CreatedAt,
+            UpdatedAt = user.UpdatedAt
+        };
+
+        return new ProfileOperationResult<ProfileDto>(true,profileDto,null); 
+
+
     }
 }
