@@ -25,7 +25,7 @@ Content-Type: application/json
 
 ### Get My Profile
 GET http://localhost:5264/api/profile/me
-Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjNjYzU2ZDdkLTM1ODUtNDg1ZS1iYWM0LTM4NWFhZmVkOTQ3ZiIsImV4cCI6MTc5MjQxNTQ3NywiaXNzIjoiRml0UGxhbi5BcGkiLCJhdWQiOiJGaXRQbGFuLkNsaWVudCJ9.vnnPEivEFU7JE1B75RclhEBEI4S5ddvTL4M2WrDkZSuyUWaMlbx0c-HAPluuW_WHqfwpSYrrjO6VLNS5rKToOw
+Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjNjYzU2ZDdkLTM1ODUtNDg1ZS1iYWM0LTM4NWFhZmVkOTQ3ZiIsImV4cCI6MTc5MjU4NjU0OCwiaXNzIjoiRml0UGxhbi5BcGkiLCJhdWQiOiJGaXRQbGFuLkNsaWVudCJ9.JSc76n6R7uSht3n8b1GJ04HFOhMu3Z3glA2GyuD-RHi4QdrrV98lN5CRdpDx2vx_hIlIUWfStxEp8AeN3fkWpA
 
 
 
@@ -38,3 +38,16 @@ Content-Type: application/json
 {
   "bio": "Software Engineer passionate about backend development."
 }
+
+
+### upload Profile Picture
+POST http://localhost:5264/api/profile/me/picture
+Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjNjYzU2ZDdkLTM1ODUtNDg1ZS1iYWM0LTM4NWFhZmVkOTQ3ZiIsImV4cCI6MTc5MjU4NjU0OCwiaXNzIjoiRml0UGxhbi5BcGkiLCJhdWQiOiJGaXRQbGFuLkNsaWVudCJ9.JSc76n6R7uSht3n8b1GJ04HFOhMu3Z3glA2GyuD-RHi4QdrrV98lN5CRdpDx2vx_hIlIUWfStxEp8AeN3fkWpA
+Content-Type: multipart/form-data; boundary=FitPlanBoundary
+
+--FitPlanBoundary
+Content-Disposition: form-data; name="file"; filename="profile.jpg"
+Content-Type: image/jpeg
+
+< C:\Users\Eyadm\Downloads\testpic2.jpg
+--FitPlanBoundary--

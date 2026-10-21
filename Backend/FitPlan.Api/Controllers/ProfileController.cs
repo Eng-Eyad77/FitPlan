@@ -1,9 +1,9 @@
 using System.Security.Claims;
-using FitPlan.Api.Data;
 using FitPlan.Api.DTOs.Profile;
+using FitPlan.Api.Services.Profile;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+
 
 
 namespace FitPlan.Api.Controllers;
@@ -11,7 +11,7 @@ namespace FitPlan.Api.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/profile")]
-public class ProfileController(FitPlanDbContext context) : ControllerBase
+public class ProfileController(IProfileService profileService) : ControllerBase
 {
 
     [HttpGet("me")]
@@ -21,29 +21,20 @@ public class ProfileController(FitPlanDbContext context) : ControllerBase
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
 
-        if (Guid.TryParse(userId, out var result))
-        {
-            var user = await context.Users.FirstOrDefaultAsync(u => u.Id == result);
-            if (user is null)
-            {
-                return Unauthorized();
-            }
-
-            return Ok(new ProfileDto
-            {
-                Id = user.Id,
-                Username = user.Username,
-                Bio = user.Bio,
-                ProfilePictureUrl = user.ProfilePictureUrl,
-                CreatedAt = user.CreatedAt,
-                UpdatedAt = user.UpdatedAt
-            }
-            );
-        }
-        else
-        {
+        if (!Guid.TryParse(userId, out var result))
+        {   
             return Unauthorized();
         }
+
+          var userProfile = await profileService.GetUserProfileAsync(result);
+          
+            if (userProfile is null)
+            {
+                return NotFound();
+            }
+
+            return Ok(userProfile);
+
 
     }
 
@@ -51,49 +42,55 @@ public class ProfileController(FitPlanDbContext context) : ControllerBase
 
 
     [HttpPut("me")]
-    public async Task<IActionResult> UpdateProfile(UpdateProfileRequestDto updateProfileRequest)
+    public async Task<IActionResult> UpdateProfile(UpdateBioRequestDto updateProfileRequest)
     {
-
-
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
 
-        if (Guid.TryParse(userId, out var result))
-        {
-            var user = await context.Users.FirstOrDefaultAsync(u => u.Id == result);
-            if (user is null)
-            {
-                return Unauthorized();
-            }
-
-            if (updateProfileRequest.Bio != user.Bio)
-            {
-
-                user.Bio = updateProfileRequest.Bio;
-                user.UpdatedAt = DateTime.UtcNow;
-                await context.SaveChangesAsync();
-
-            }
-
-
-
-            return Ok(new ProfileDto
-            {
-                Id = user.Id,
-                Username = user.Username,
-                Bio = user.Bio,
-                ProfilePictureUrl = user.ProfilePictureUrl,
-                CreatedAt = user.CreatedAt,
-                UpdatedAt = user.UpdatedAt
-            });
-        }
-        else
+        if (!Guid.TryParse(userId, out var result))
         {
             return Unauthorized();
         }
+
+
+
+         var updatedUserProfile = await profileService.UpdateBioAsync(result, updateProfileRequest );
+            if (updatedUserProfile is null)
+            {
+                return NotFound();
+            }
+
+              return Ok(updatedUserProfile);
+        
     }
 
 
+    [HttpPost("me/picture")]
+    public async Task<IActionResult> uploadProfilePicture(IFormFile file)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (!Guid.TryParse(userId, out var result))
+        {
+            return Unauthorized();
+        }
+
+        var userUploadedPicture = await profileService.UploadProfilePictureAsync(result,file);
+
+        if(!userUploadedPicture.Succeeded)
+        {
+            return userUploadedPicture.ErrorCode switch 
+            {
+                "InvalidFile"   => BadRequest("The uploaded file is invalid or corrupted."),
+                "FileTooLarge"  => StatusCode(413, "The file size exceeds the allowed limit."),
+                "UserNotFound"  => NotFound("The specified user could not be found."),
+                              _ => StatusCode(500, "An unexpected internal server error occurred.")
+            };
+        }
+
+        return Ok(userUploadedPicture.Data);
+
+    }
 
 
 }

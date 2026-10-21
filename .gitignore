@@ -11,3 +11,6 @@ obj/
 # User-specific files
 *.user
 *.suo
+
+
+# Backend/FitPlan.Api/wwwroot/uploads/profile-pictures/*
