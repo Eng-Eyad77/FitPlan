@@ -1,6 +1,6 @@
 
 using FitPlan.Api.Data;
-using FitPlan.Api.Models;
+using FitPlan.Api.DTOs.Exercises;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,9 +13,18 @@ public class ExercisesController(FitPlanDbContext context) : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAllExercises()
     {
-        var allExercises = await context.Exercises.ToListAsync();
+        List<ExerciseDto> allExercises;
+      allExercises = await context.Exercises.Select(item => new  ExerciseDto{
+          Id = item.Id,
+          Name =  item.Name,
+           BodyPart =  item.BodyPart,
+           GifUrl = item.GifUrl,
+           Instructions = item.Instructions
+    }).ToListAsync();
 
-        return Ok(allExercises);
-        
+
+      return Ok(allExercises);
+            
+
     }
 }

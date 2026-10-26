@@ -10,5 +10,5 @@ public record class ExerciseDto
 
     public  required string BodyPart { get; set; }
 
-    public required string[] Instructions { get; set; }
+    public required List<string> Instructions { get; set; }
 }

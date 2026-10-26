@@ -7,6 +7,8 @@ using System.Text;
 using FitPlan.Api.Services.Profile;
 using Microsoft.EntityFrameworkCore.Storage;
 using FitPlan.Api.Services.Exercises;
+using Microsoft.OpenApi;
+using System.Reflection.Metadata;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,6 +31,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 } );
 
 builder.Services.AddControllers();
+builder.Services.AddAuthorization();
 
 
 builder.Services.AddDbContext<FitPlanDbContext>(options =>
@@ -52,7 +55,33 @@ builder.Services.AddHttpClient("ExerciseDB", client =>
 });
 
 
+
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+    {
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Name = "Authorization",
+        Description = "Enter your JWT token"
+    });
+    
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    {
+        [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+    });
+});
+
+
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
