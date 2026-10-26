@@ -58,3 +58,24 @@ Content-Type: image/jpeg
 ### Delete Profile Picture
 DELETE http://localhost:5264/api/profile/me/picture
 Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjNjYzU2ZDdkLTM1ODUtNDg1ZS1iYWM0LTM4NWFhZmVkOTQ3ZiIsImV4cCI6MTc5MjU4ODcyMSwiaXNzIjoiRml0UGxhbi5BcGkiLCJhdWQiOiJGaXRQbGFuLkNsaWVudCJ9.Gd-TyaG-Txsw10jp8EXmuRY4KxjUMrJg9COmoKjlwFipUVCxzstN4sYXrgXAbrqn3B9Y7PZtC8ilajz_aUUUdA
+
+
+
+
+### Test ExerciseDB
+GET https://oss.exercisedb.dev/api/v1/exercises
+Accept: application/json
+
+
+
+### Test ExerciseDB - Next Page
+GET https://oss.exercisedb.dev/api/v1/exercises?after=0JtKWum
+Accept: application/json
+
+
+
+
+### Get All Exercises from database
+GET http://localhost:5264/api/exercises
+Accept: application/json
+

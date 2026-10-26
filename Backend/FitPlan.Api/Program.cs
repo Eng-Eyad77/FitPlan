@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using FitPlan.Api.Services.Profile;
+using Microsoft.EntityFrameworkCore.Storage;
+using FitPlan.Api.Services.Exercises;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,6 +42,16 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
+builder.Services.AddScoped<IExerciseImportService, ExerciseImportService>();
+
+
+builder.Services.AddHttpClient("ExerciseDB", client =>
+{
+    client.BaseAddress = new Uri("https://oss.exercisedb.dev/");
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
