@@ -46,6 +46,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IExerciseImportService, ExerciseImportService>();
+builder.Services.AddScoped<IExerciseService, ExerciseService>();
 
 
 builder.Services.AddHttpClient("ExerciseDB", client =>

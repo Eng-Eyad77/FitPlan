@@ -1,32 +1,29 @@
 
-using FitPlan.Api.Data;
 using FitPlan.Api.DTOs.Exercises;
-using FitPlan.Api.Models;
+using FitPlan.Api.Services.Exercises;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace FitPlan.Api.Controllers;
 
 [ApiController]
 [Route("api/exercises")]
-public class ExercisesController(FitPlanDbContext context) : ControllerBase
+public class ExercisesController(IExerciseService exerciseService) : ControllerBase
 {
   [HttpGet]
-  public async Task<IActionResult> GetAllExercises()
+  public async Task<IActionResult> GetAllExercises
+  (int page = 1, // to point on 1 page
+   int pageSize = 10, // to know how many exercises in the page 
+   string? bodyPart = null, // wish body part
+    string? search = null) // to search with exercise name
   {
-    List<ExerciseDto> allExercises;
-    allExercises = await context.Exercises.Select(item => new ExerciseDto
+
+    if (page < 1 || pageSize < 1 || pageSize > 100)
     {
-      Id = item.Id,
-      Name = item.Name,
-      BodyPart = item.BodyPart,
-      GifUrl = item.GifUrl,
-      Instructions = item.Instructions
-    }).ToListAsync();
+      return BadRequest("Page must be at least 1, and pageSize must be between 1 and 100.");
+    }
 
-
-    return Ok(allExercises);
-
+    return Ok(await exerciseService.GetAllExercisesAsync(page, pageSize, bodyPart, search));
+    
 
   }
 
@@ -35,20 +32,13 @@ public class ExercisesController(FitPlanDbContext context) : ControllerBase
   [HttpGet("{id}")]
   public async Task<IActionResult> GetExerciseById(string id)
   {
-    var exercise = await context.Exercises.FindAsync(id);
+    var exercise = await exerciseService.GetExerciseByIdAsync(id);
 
     if (exercise is null)
     {
       return NotFound();
     }
 
-    return Ok(new ExerciseDto
-    {
-      Id = exercise.Id,
-      Name = exercise.Name,
-      BodyPart = exercise.BodyPart,
-      GifUrl = exercise.GifUrl,
-      Instructions = exercise.Instructions
-    });
+    return Ok(exercise);
   }
 }
