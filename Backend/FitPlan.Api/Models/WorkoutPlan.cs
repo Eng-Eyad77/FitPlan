@@ -16,4 +16,6 @@ public class WorkoutPlan
 
     public required DateTime UpdatedAt { get; set; }
 
+    public ICollection<WorkoutPlanExercise> Exercises { get; set; } = [];
+
 }
