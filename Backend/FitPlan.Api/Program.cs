@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using FitPlan.Api.Services.Exercises;
 using Microsoft.OpenApi;
 using System.Reflection.Metadata;
+using FitPlan.Api.Services.WorkoutPlans;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,6 +48,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IExerciseImportService, ExerciseImportService>();
 builder.Services.AddScoped<IExerciseService, ExerciseService>();
+builder.Services.AddScoped<IWorkoutPlanService, WorkoutPlanService>();
 
 
 builder.Services.AddHttpClient("ExerciseDB", client =>
