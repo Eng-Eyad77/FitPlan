@@ -97,7 +97,46 @@ public class WorkoutPlanExerciseService(FitPlanDbContext context) : IWorkoutPlan
     }
 
 
-    public Task<Result<WorkoutPlanExerciseResponseDto[]>> GetPlanExercisesAsync(Guid userId, Guid planId)
+    public async Task<Result<WorkoutPlanExerciseResponseDto[]>> GetPlanExercisesAsync(Guid userId, Guid planId)
+    {
+        var planExists = await context.WorkoutPlans
+        .AnyAsync(p => p.Id == planId && p.UserId == userId);
+
+        if (!planExists)
+        {
+            return Result<WorkoutPlanExerciseResponseDto[]>.Failure(
+                "Workout plan not found.",
+                ErrorCodes.WorkoutPlanNotFound);
+        }
+
+        var bringWorkoutPlanExercise = await context.WorkoutPlanExercises
+        .AsNoTracking()
+        .Where(p => p.WorkoutPlanId == planId)
+        .OrderBy(item => item.Order)
+        .ThenBy(item => item.Id)
+        .Select(item => new WorkoutPlanExerciseResponseDto
+        {
+            Id = item.Id,
+            ExerciseId = item.ExerciseId,
+            Name = item.Exercise.Name,
+            GifUrl = item.Exercise.GifUrl,
+            BodyPart = item.Exercise.BodyPart,
+            Instructions = item.Exercise.Instructions,
+            Sets = item.Sets,
+            Reps = item.Reps,
+            Order = item.Order
+
+        }).ToArrayAsync();
+
+
+   
+        return Result<WorkoutPlanExerciseResponseDto[]>.Success(bringWorkoutPlanExercise);
+
+
+    }
+
+
+ public Task<Result<WorkoutPlanExerciseResponseDto>> UpdatePlanExerciseAsync(Guid userId, Guid planId, Guid id, UpdateWorkoutPlanExerciseDto UpdateWorkoutPlanExercise)
     {
         throw new NotImplementedException();
     }
@@ -107,8 +146,5 @@ public class WorkoutPlanExerciseService(FitPlanDbContext context) : IWorkoutPlan
         throw new NotImplementedException();
     }
 
-    public Task<Result<WorkoutPlanExerciseResponseDto>> UpdatePlanExerciseAsync(Guid userId, Guid planId, Guid id, UpdateWorkoutPlanExerciseDto UpdateWorkoutPlanExercise)
-    {
-        throw new NotImplementedException();
-    }
+   
 }
