@@ -58,6 +58,31 @@ public class WorkoutPlanExercisesController(IWorkoutPlanExerciseService workoutP
 
     }
 
+    [HttpGet]
+    public async Task<IActionResult> GetWorkoutPlanExercises(Guid planId)
+    {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
+        if (!Guid.TryParse(userIdClaim, out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await workoutPlanExerciseService.GetPlanExercisesAsync
+        (
+         userId,
+          planId
+         );
+
+         if(!result.IsSuccess)
+        {
+              if (result.ErrorCode == ErrorCodes.WorkoutPlanNotFound)
+            {
+                return NotFound(result.Error);
+            }
+        }
+
+        return Ok(result.Data);
+    }
     
 }
