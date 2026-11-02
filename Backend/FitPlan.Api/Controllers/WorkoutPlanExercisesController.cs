@@ -84,5 +84,47 @@ public class WorkoutPlanExercisesController(IWorkoutPlanExerciseService workoutP
 
         return Ok(result.Data);
     }
+
+
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> UpdateWorkoutPlanExercise
+    (
+        Guid planId,
+        Guid id,
+        UpdateWorkoutPlanExerciseDto updateWorkoutPlanExercise
+    )
+    {
+         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!Guid.TryParse(userIdClaim, out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await workoutPlanExerciseService.UpdatePlanExerciseAsync
+        (
+         userId,
+          planId,
+          id,
+          updateWorkoutPlanExercise
+         );
+
+            if(!result.IsSuccess)
+        {
+             if (result.ErrorCode == ErrorCodes.WorkoutPlanNotFound)
+            {
+                return NotFound(result.Error);
+            }
+
+            if(result.ErrorCode == ErrorCodes.WorkoutPlanExerciseNotFound)
+            {
+                return NotFound(result.Error);
+            }
+        }
+
+
+        return Ok(result.Data);
+
+    }
     
 }
