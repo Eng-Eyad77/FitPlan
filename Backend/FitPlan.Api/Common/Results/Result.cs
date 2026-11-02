@@ -32,5 +32,4 @@ public static Result<T> Failure(string error, string errorCode)
 }
 
 
-
 }

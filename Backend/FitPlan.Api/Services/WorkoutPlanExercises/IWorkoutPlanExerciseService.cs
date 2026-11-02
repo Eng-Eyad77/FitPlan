@@ -18,7 +18,7 @@ public interface IWorkoutPlanExerciseService
         Guid userId,
         Guid planId,
         Guid id,
-        UpdateWorkoutPlanExerciseDto UpdateWorkoutPlanExercise);
+        UpdateWorkoutPlanExerciseDto dto);
 
     Task<Result<bool>> RemoveExerciseFromPlanAsync(
         Guid userId,
