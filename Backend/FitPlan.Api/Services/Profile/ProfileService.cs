@@ -2,12 +2,16 @@ using FitPlan.Api.Common.Results;
 using FitPlan.Api.Data;
 using FitPlan.Api.DTOs.Profile;
 using FitPlan.Api.Models;
+using FitPlan.Api.Services.BodyWeight;
 using Microsoft.EntityFrameworkCore;
 
 
 namespace FitPlan.Api.Services.Profile;
 
-public class ProfileService(FitPlanDbContext context, IWebHostEnvironment webHost) : IProfileService
+public class ProfileService(
+    FitPlanDbContext context,
+    IWebHostEnvironment webHost,
+    IBodyWeightService bodyWeightService) : IProfileService
 {
     private const long MaxFileSize = 5 * 1024 * 1024; // 5 MB in bytes
 
@@ -24,7 +28,7 @@ public class ProfileService(FitPlanDbContext context, IWebHostEnvironment webHos
             return Result<ProfileDto>.Failure(Errors.UserNotFound);
         }
 
-        return Result<ProfileDto>.Success(ToProfileDto(user));
+        return Result<ProfileDto>.Success(await ToProfileDtoAsync(user));
     }
 
 
@@ -44,7 +48,7 @@ public class ProfileService(FitPlanDbContext context, IWebHostEnvironment webHos
             await context.SaveChangesAsync();
         }
 
-        return Result<ProfileDto>.Success(ToProfileDto(user));
+        return Result<ProfileDto>.Success(await ToProfileDtoAsync(user));
     }
 
 
@@ -93,7 +97,7 @@ public class ProfileService(FitPlanDbContext context, IWebHostEnvironment webHos
 
         DeletePictureFile(oldPictureUrl);
 
-        return Result<ProfileDto>.Success(ToProfileDto(user));
+        return Result<ProfileDto>.Success(await ToProfileDtoAsync(user));
     }
 
 
@@ -114,7 +118,7 @@ public class ProfileService(FitPlanDbContext context, IWebHostEnvironment webHos
 
         DeletePictureFile(pictureWantToDelete);
 
-        return Result<ProfileDto>.Success(ToProfileDto(user));
+        return Result<ProfileDto>.Success(await ToProfileDtoAsync(user));
     }
 
 
@@ -136,12 +140,13 @@ public class ProfileService(FitPlanDbContext context, IWebHostEnvironment webHos
         }
     }
 
-    private static ProfileDto ToProfileDto(User user) => new()
+    private async Task<ProfileDto> ToProfileDtoAsync(User user) => new()
     {
         Id = user.Id,
         Username = user.Username,
         Bio = user.Bio,
         ProfilePictureUrl = user.ProfilePictureUrl,
+        CurrentWeightKg = await bodyWeightService.GetCurrentWeightAsync(user.Id),
         CreatedAt = user.CreatedAt,
         UpdatedAt = user.UpdatedAt
     };

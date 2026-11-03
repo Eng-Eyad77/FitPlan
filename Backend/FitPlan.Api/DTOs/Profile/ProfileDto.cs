@@ -11,6 +11,9 @@ public class ProfileDto
 
     public string? ProfilePictureUrl { get; set; }
 
+    // latest body weight entry, null if the user never recorded one
+    public decimal? CurrentWeightKg { get; set; }
+
     public DateTime CreatedAt { get; set; }
 
     public DateTime UpdatedAt { get; set; }
