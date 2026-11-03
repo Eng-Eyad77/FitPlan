@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../auth/application/auth_controller.dart';
 import '../../history/application/history_controller.dart';
+import '../../progress/application/progress_providers.dart';
 import '../data/sessions_repository.dart';
 import '../domain/workout_session.dart';
 
@@ -41,7 +42,9 @@ class ActiveSessionController extends AsyncNotifier<WorkoutSession?> {
   Future<SessionSummary> finish({String? notes}) async {
     final summary = await _repository.complete(_session.id, notes: notes);
     state = const AsyncData(null);
-    ref.invalidate(historyControllerProvider); // the new workout shows up in History and Home
+    // the new workout shows up in History, Home and Progress
+    ref.invalidate(historyControllerProvider);
+    invalidateWorkoutStats(ref.invalidate);
     return summary;
   }
 

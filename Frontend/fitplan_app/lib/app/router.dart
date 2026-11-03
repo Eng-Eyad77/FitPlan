@@ -12,10 +12,10 @@ import '../features/home/presentation/home_screen.dart';
 import '../features/plans/presentation/plan_detail_screen.dart';
 import '../features/plans/presentation/plans_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
+import '../features/progress/presentation/progress_screen.dart';
 import '../features/session/domain/workout_session.dart';
 import '../features/session/presentation/session_screen.dart';
 import '../features/session/presentation/summary_screen.dart';
-import '../shared/widgets/coming_soon_screen.dart';
 import 'main_shell.dart';
 import 'splash_screen.dart';
 
@@ -121,7 +121,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(routes: [
             GoRoute(
               path: Routes.progress,
-              builder: (_, _) => const ComingSoonScreen(title: 'Progress'),
+              builder: (_, _) => const ProgressScreen(),
             ),
           ]),
         ],

@@ -27,6 +27,14 @@ class ProfileRepository {
     return Profile.fromJson(response.data!);
   }
 
+  /// [goal] null removes it.
+  Future<Profile> updateWeeklyGoal(int? goal) async {
+    final response = await apiCall(
+      () => _dio.put<Map<String, dynamic>>('/api/profile/me/weekly-goal', data: {'weeklyGoal': goal}),
+    );
+    return Profile.fromJson(response.data!);
+  }
+
   Future<Profile> uploadPicture(XFile image) async {
     // bytes (not a file path) so the same code works on the web too
     final bytes = await image.readAsBytes();

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../auth/application/auth_controller.dart';
+import '../../progress/application/progress_providers.dart';
 import '../data/profile_repository.dart';
 import '../domain/profile.dart';
 
@@ -26,6 +27,11 @@ class ProfileController extends AsyncNotifier<Profile> {
     state = AsyncData(await _repository.updateBio(trimmed.isEmpty ? null : trimmed));
   }
 
+  Future<void> setWeeklyGoal(int? goal) async {
+    state = AsyncData(await _repository.updateWeeklyGoal(goal));
+    ref.invalidate(statsOverviewProvider); // the streak depends on the goal
+  }
+
   Future<void> uploadPicture(XFile image) async {
     state = AsyncData(await _repository.uploadPicture(image));
   }
@@ -36,6 +42,7 @@ class ProfileController extends AsyncNotifier<Profile> {
 
   Future<void> addBodyWeight(double weightKg) async {
     await _repository.addBodyWeight(weightKg);
+    ref.invalidate(bodyWeightHistoryProvider);
     // the profile carries currentWeightKg, reload it
     state = AsyncData(await _repository.getProfile());
   }

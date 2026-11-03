@@ -10,6 +10,7 @@ import '../../../shared/format.dart';
 import '../../../shared/widgets/feedback.dart';
 import '../../exercises/presentation/exercise_details_sheet.dart';
 import '../../exercises/presentation/widgets/exercise_thumb.dart';
+import '../../progress/presentation/widgets/comparison_section.dart';
 import '../../session/domain/workout_session.dart';
 import '../../session/presentation/cardio_sheet.dart';
 import '../application/history_controller.dart';
@@ -115,6 +116,7 @@ class _Body extends StatelessWidget {
             ],
           ],
         ),
+        ComparisonSection(sessionId: session.id, sessionName: session.name),
         if (session.notes != null) ...[
           const SizedBox(height: AppSpacing.lg),
           Container(

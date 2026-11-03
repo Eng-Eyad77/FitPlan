@@ -263,17 +263,23 @@ class _WeightCard extends ConsumerWidget {
           const SizedBox(width: AppSpacing.md),
           FilledButton(
             style: FilledButton.styleFrom(minimumSize: const Size(96, 48)),
-            onPressed: () => showModalBottomSheet<void>(
-              context: context,
-              isScrollControlled: true,
-              builder: (_) => _WeightSheet(current: weightKg),
-            ),
+            onPressed: () => showWeightSheet(context, current: weightKg),
             child: Text(weightKg == null ? 'Add' : 'Update'),
           ),
         ],
       ),
     );
   }
+}
+
+/// Add today's body weight (also used by the Progress tab).
+Future<void> showWeightSheet(BuildContext context, {double? current}) {
+  return showModalBottomSheet<void>(
+    context: context,
+    useRootNavigator: true,
+    isScrollControlled: true,
+    builder: (_) => _WeightSheet(current: current),
+  );
 }
 
 class _WeightSheet extends ConsumerStatefulWidget {

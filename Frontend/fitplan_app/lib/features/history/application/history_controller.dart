@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../auth/application/auth_controller.dart';
+import '../../progress/application/progress_providers.dart';
 import '../../session/data/sessions_repository.dart';
 import '../../session/domain/workout_session.dart';
 
@@ -48,6 +49,7 @@ class HistoryController extends AsyncNotifier<HistoryState> {
 
   Future<void> delete(String id) async {
     await _repository.delete(id);
+    invalidateWorkoutStats(ref.invalidate);
     final current = state.value;
     if (current == null) return;
     state = AsyncData(HistoryState(

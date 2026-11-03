@@ -16,6 +16,7 @@ abstract class Profile with _$Profile {
     String? bio,
     String? profilePictureUrl,
     double? currentWeightKg,
+    int? weeklyGoal,
     required DateTime createdAt,
     required DateTime updatedAt,
   }) = _Profile;

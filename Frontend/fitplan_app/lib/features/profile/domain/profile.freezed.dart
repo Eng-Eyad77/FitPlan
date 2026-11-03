@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Profile {
 
- String get id; String get username; String? get bio; String? get profilePictureUrl; double? get currentWeightKg; DateTime get createdAt; DateTime get updatedAt;
+ String get id; String get username; String? get bio; String? get profilePictureUrl; double? get currentWeightKg; int? get weeklyGoal; DateTime get createdAt; DateTime get updatedAt;
 /// Create a copy of Profile
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,20 +30,20 @@ $ProfileCopyWith<Profile> get copyWith => _$ProfileCopyWithImpl<Profile>(this as
 @override
 bool operator ==(Object other) {
   final _this = this as Profile;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Profile&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.username, _this.username) || other.username == _this.username)&&(identical(other.bio, _this.bio) || other.bio == _this.bio)&&(identical(other.profilePictureUrl, _this.profilePictureUrl) || other.profilePictureUrl == _this.profilePictureUrl)&&(identical(other.currentWeightKg, _this.currentWeightKg) || other.currentWeightKg == _this.currentWeightKg)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Profile&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.username, _this.username) || other.username == _this.username)&&(identical(other.bio, _this.bio) || other.bio == _this.bio)&&(identical(other.profilePictureUrl, _this.profilePictureUrl) || other.profilePictureUrl == _this.profilePictureUrl)&&(identical(other.currentWeightKg, _this.currentWeightKg) || other.currentWeightKg == _this.currentWeightKg)&&(identical(other.weeklyGoal, _this.weeklyGoal) || other.weeklyGoal == _this.weeklyGoal)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as Profile;
-  return Object.hash(runtimeType,_this.id,_this.username,_this.bio,_this.profilePictureUrl,_this.currentWeightKg,_this.createdAt,_this.updatedAt);
+  return Object.hash(runtimeType,_this.id,_this.username,_this.bio,_this.profilePictureUrl,_this.currentWeightKg,_this.weeklyGoal,_this.createdAt,_this.updatedAt);
 }
 
 @override
 String toString() {
   final _this = this as Profile;
-  return 'Profile(id: ${_this.id}, username: ${_this.username}, bio: ${_this.bio}, profilePictureUrl: ${_this.profilePictureUrl}, currentWeightKg: ${_this.currentWeightKg}, createdAt: ${_this.createdAt}, updatedAt: ${_this.updatedAt})';
+  return 'Profile(id: ${_this.id}, username: ${_this.username}, bio: ${_this.bio}, profilePictureUrl: ${_this.profilePictureUrl}, currentWeightKg: ${_this.currentWeightKg}, weeklyGoal: ${_this.weeklyGoal}, createdAt: ${_this.createdAt}, updatedAt: ${_this.updatedAt})';
 }
 
 
@@ -54,7 +54,7 @@ abstract mixin class $ProfileCopyWith<$Res>  {
   factory $ProfileCopyWith(Profile value, $Res Function(Profile) _then) = _$ProfileCopyWithImpl;
 @useResult
 $Res call({
- String id, String username, String? bio, String? profilePictureUrl, double? currentWeightKg, DateTime createdAt, DateTime updatedAt
+ String id, String username, String? bio, String? profilePictureUrl, double? currentWeightKg, int? weeklyGoal, DateTime createdAt, DateTime updatedAt
 });
 
 
@@ -71,14 +71,15 @@ class _$ProfileCopyWithImpl<$Res>
 
 /// Create a copy of Profile
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? username = null,Object? bio = freezed,Object? profilePictureUrl = freezed,Object? currentWeightKg = freezed,Object? createdAt = null,Object? updatedAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? username = null,Object? bio = freezed,Object? profilePictureUrl = freezed,Object? currentWeightKg = freezed,Object? weeklyGoal = freezed,Object? createdAt = null,Object? updatedAt = null,}) {
   return _then(Profile(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
 as String,bio: freezed == bio ? _self.bio : bio // ignore: cast_nullable_to_non_nullable
 as String?,profilePictureUrl: freezed == profilePictureUrl ? _self.profilePictureUrl : profilePictureUrl // ignore: cast_nullable_to_non_nullable
 as String?,currentWeightKg: freezed == currentWeightKg ? _self.currentWeightKg : currentWeightKg // ignore: cast_nullable_to_non_nullable
-as double?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as double?,weeklyGoal: freezed == weeklyGoal ? _self.weeklyGoal : weeklyGoal // ignore: cast_nullable_to_non_nullable
+as int?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,
   ));
@@ -165,10 +166,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String username,  String? bio,  String? profilePictureUrl,  double? currentWeightKg,  DateTime createdAt,  DateTime updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String username,  String? bio,  String? profilePictureUrl,  double? currentWeightKg,  int? weeklyGoal,  DateTime createdAt,  DateTime updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Profile() when $default != null:
-return $default(_that.id,_that.username,_that.bio,_that.profilePictureUrl,_that.currentWeightKg,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.username,_that.bio,_that.profilePictureUrl,_that.currentWeightKg,_that.weeklyGoal,_that.createdAt,_that.updatedAt);case _:
   return orElse();
 
 }
@@ -186,10 +187,10 @@ return $default(_that.id,_that.username,_that.bio,_that.profilePictureUrl,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String username,  String? bio,  String? profilePictureUrl,  double? currentWeightKg,  DateTime createdAt,  DateTime updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String username,  String? bio,  String? profilePictureUrl,  double? currentWeightKg,  int? weeklyGoal,  DateTime createdAt,  DateTime updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _Profile():
-return $default(_that.id,_that.username,_that.bio,_that.profilePictureUrl,_that.currentWeightKg,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.username,_that.bio,_that.profilePictureUrl,_that.currentWeightKg,_that.weeklyGoal,_that.createdAt,_that.updatedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -206,10 +207,10 @@ return $default(_that.id,_that.username,_that.bio,_that.profilePictureUrl,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String username,  String? bio,  String? profilePictureUrl,  double? currentWeightKg,  DateTime createdAt,  DateTime updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String username,  String? bio,  String? profilePictureUrl,  double? currentWeightKg,  int? weeklyGoal,  DateTime createdAt,  DateTime updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Profile() when $default != null:
-return $default(_that.id,_that.username,_that.bio,_that.profilePictureUrl,_that.currentWeightKg,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.username,_that.bio,_that.profilePictureUrl,_that.currentWeightKg,_that.weeklyGoal,_that.createdAt,_that.updatedAt);case _:
   return null;
 
 }
@@ -221,7 +222,7 @@ return $default(_that.id,_that.username,_that.bio,_that.profilePictureUrl,_that.
 @JsonSerializable()
 
 class _Profile extends Profile {
-  const _Profile({required this.id, required this.username, this.bio, this.profilePictureUrl, this.currentWeightKg, required this.createdAt, required this.updatedAt}): super._();
+  const _Profile({required this.id, required this.username, this.bio, this.profilePictureUrl, this.currentWeightKg, this.weeklyGoal, required this.createdAt, required this.updatedAt}): super._();
   factory _Profile.fromJson(Map<String, dynamic> json) => _$ProfileFromJson(json);
 
 @override final  String id;
@@ -229,6 +230,7 @@ class _Profile extends Profile {
 @override final  String? bio;
 @override final  String? profilePictureUrl;
 @override final  double? currentWeightKg;
+@override final  int? weeklyGoal;
 @override final  DateTime createdAt;
 @override final  DateTime updatedAt;
 
@@ -245,18 +247,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Profile&&(identical(other.id, id) || other.id == id)&&(identical(other.username, username) || other.username == username)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.profilePictureUrl, profilePictureUrl) || other.profilePictureUrl == profilePictureUrl)&&(identical(other.currentWeightKg, currentWeightKg) || other.currentWeightKg == currentWeightKg)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Profile&&(identical(other.id, id) || other.id == id)&&(identical(other.username, username) || other.username == username)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.profilePictureUrl, profilePictureUrl) || other.profilePictureUrl == profilePictureUrl)&&(identical(other.currentWeightKg, currentWeightKg) || other.currentWeightKg == currentWeightKg)&&(identical(other.weeklyGoal, weeklyGoal) || other.weeklyGoal == weeklyGoal)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,username,bio,profilePictureUrl,currentWeightKg,createdAt,updatedAt);
+    return Object.hash(runtimeType,id,username,bio,profilePictureUrl,currentWeightKg,weeklyGoal,createdAt,updatedAt);
 }
 
 @override
 String toString() {
-    return 'Profile(id: $id, username: $username, bio: $bio, profilePictureUrl: $profilePictureUrl, currentWeightKg: $currentWeightKg, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'Profile(id: $id, username: $username, bio: $bio, profilePictureUrl: $profilePictureUrl, currentWeightKg: $currentWeightKg, weeklyGoal: $weeklyGoal, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -267,7 +269,7 @@ abstract mixin class _$ProfileCopyWith<$Res> implements $ProfileCopyWith<$Res> {
   factory _$ProfileCopyWith(_Profile value, $Res Function(_Profile) _then) = __$ProfileCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String username, String? bio, String? profilePictureUrl, double? currentWeightKg, DateTime createdAt, DateTime updatedAt
+ String id, String username, String? bio, String? profilePictureUrl, double? currentWeightKg, int? weeklyGoal, DateTime createdAt, DateTime updatedAt
 });
 
 
@@ -284,14 +286,15 @@ class __$ProfileCopyWithImpl<$Res>
 
 /// Create a copy of Profile
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? username = null,Object? bio = freezed,Object? profilePictureUrl = freezed,Object? currentWeightKg = freezed,Object? createdAt = null,Object? updatedAt = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? username = null,Object? bio = freezed,Object? profilePictureUrl = freezed,Object? currentWeightKg = freezed,Object? weeklyGoal = freezed,Object? createdAt = null,Object? updatedAt = null,}) {
   return _then(_Profile(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
 as String,bio: freezed == bio ? _self.bio : bio // ignore: cast_nullable_to_non_nullable
 as String?,profilePictureUrl: freezed == profilePictureUrl ? _self.profilePictureUrl : profilePictureUrl // ignore: cast_nullable_to_non_nullable
 as String?,currentWeightKg: freezed == currentWeightKg ? _self.currentWeightKg : currentWeightKg // ignore: cast_nullable_to_non_nullable
-as double?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as double?,weeklyGoal: freezed == weeklyGoal ? _self.weeklyGoal : weeklyGoal // ignore: cast_nullable_to_non_nullable
+as int?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,
   ));

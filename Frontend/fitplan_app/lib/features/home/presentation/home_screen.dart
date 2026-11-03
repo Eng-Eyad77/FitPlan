@@ -10,6 +10,7 @@ import '../../../core/theme/app_text.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../history/application/history_controller.dart';
 import '../../history/presentation/history_screen.dart';
+import '../../progress/application/progress_providers.dart';
 import '../../plans/application/plans_controller.dart';
 import '../../profile/application/profile_controller.dart';
 import '../../profile/presentation/widgets/profile_avatar.dart';
@@ -213,15 +214,14 @@ class _WeekCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final sessions = ref.watch(historyControllerProvider).value?.items ?? const [];
     final localizations = MaterialLocalizations.of(context);
-    // Material counts from Sunday = 0; DateTime counts Monday = 1 ... Sunday = 7
-    final firstIndex = localizations.firstDayOfWeekIndex;
-    final firstDay = firstIndex == 0 ? DateTime.sunday : firstIndex;
+    final firstDay = weekStartOf(context);
 
     final now = DateTime.now();
     final counts = sessionsPerDay(sessions, now, firstDayOfWeek: firstDay);
     final todayIndex = (now.weekday - firstDay) % 7;
     final total = counts.fold(0, (a, b) => a + b);
     final trainedDays = counts.where((c) => c > 0).length;
+    final goal = ref.watch(profileControllerProvider).value?.weeklyGoal;
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -238,8 +238,14 @@ class _WeekCard extends ConsumerWidget {
               const Text('This week', style: AppText.heading),
               const Spacer(),
               Text(
-                total == 0 ? 'No workouts yet' : '$total ${total == 1 ? 'workout' : 'workouts'}',
-                style: AppText.secondary.copyWith(color: total == 0 ? AppColors.textTertiary : AppColors.accent),
+                goal != null
+                    ? '$total of $goal workouts'
+                    : total == 0
+                        ? 'No workouts yet'
+                        : '$total ${total == 1 ? 'workout' : 'workouts'}',
+                style: AppText.secondary.copyWith(
+                  color: total == 0 && goal == null ? AppColors.textTertiary : AppColors.accent,
+                ),
               ),
             ],
           ),
@@ -253,7 +259,7 @@ class _WeekCard extends ConsumerWidget {
                 for (var i = 0; i < 7; i++)
                   _DayDot(
                     // narrowWeekdays starts at Sunday
-                    label: localizations.narrowWeekdays[(firstIndex + i) % 7],
+                    label: localizations.narrowWeekdays[(firstDay + i) % 7],
                     trained: counts[i] > 0,
                     today: i == todayIndex,
                     future: i > todayIndex,

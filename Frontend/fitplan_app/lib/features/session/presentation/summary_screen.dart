@@ -8,6 +8,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_text.dart';
 import '../../../shared/format.dart';
+import '../../progress/presentation/widgets/comparison_section.dart';
 import '../domain/workout_session.dart';
 
 /// Shown right after finishing a workout.
@@ -65,6 +66,7 @@ class SummaryScreen extends StatelessWidget {
               childAspectRatio: 1.55,
               children: tiles.animate(interval: 60.ms).fadeIn(duration: 260.ms).slideY(begin: 0.1, end: 0),
             ),
+            ComparisonSection(sessionId: summary.id, sessionName: summary.name),
             const SizedBox(height: AppSpacing.xxxl),
             FilledButton(onPressed: () => context.go(Routes.home), child: const Text('Done')),
           ],
