@@ -10,7 +10,12 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
     public void Configure(EntityTypeBuilder<User> builder)
     {
         //to link it to the table
-       builder.ToTable("Users");
+       builder.ToTable("Users", table =>
+       {
+           table.HasCheckConstraint(
+               "CK_Users_WeeklyGoal",
+               "[WeeklyGoal] IS NULL OR ([WeeklyGoal] >= 1 AND [WeeklyGoal] <= 7)");
+       });
 
 
        //define the primary key

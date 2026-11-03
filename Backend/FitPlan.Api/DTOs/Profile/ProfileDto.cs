@@ -14,6 +14,9 @@ public class ProfileDto
     // latest body weight entry, null if the user never recorded one
     public decimal? CurrentWeightKg { get; set; }
 
+    // workouts per week the user aims for, null if not set
+    public int? WeeklyGoal { get; set; }
+
     public DateTime CreatedAt { get; set; }
 
     public DateTime UpdatedAt { get; set; }

@@ -226,12 +226,18 @@ namespace FitPlan.Api.Migrations
                         .HasColumnType("nvarchar(50)")
                         .UseCollation("SQL_Latin1_General_CP1_CI_AS");
 
+                    b.Property<int?>("WeeklyGoal")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Username")
                         .IsUnique();
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Users_WeeklyGoal", "[WeeklyGoal] IS NULL OR ([WeeklyGoal] >= 1 AND [WeeklyGoal] <= 7)");
+                        });
                 });
 
             modelBuilder.Entity("FitPlan.Api.Models.WorkoutPlan", b =>

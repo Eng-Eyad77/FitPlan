@@ -16,6 +16,9 @@ public class User
 
     public string? ProfilePictureUrl { get; set; }
 
+    // Workouts per week the user aims for (1-7). null = no goal set.
+    public int? WeeklyGoal { get; set; }
+
     public required DateTime CreatedAt { get; set; }
 
     public required DateTime UpdatedAt { get; set; }

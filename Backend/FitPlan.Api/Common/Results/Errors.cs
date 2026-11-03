@@ -70,6 +70,10 @@ public static class Errors
         new("CardioEntryNotFound", "Cardio entry not found.", ErrorType.NotFound);
 
     // Body Weight
+    public static readonly Error SessionNotCompleted =
+        new("SessionNotCompleted", "This workout session is still in progress.", ErrorType.Conflict);
+    public static readonly Error NoExerciseHistory =
+        new("NoExerciseHistory", "You have not done this exercise in a finished workout yet.", ErrorType.NotFound);
     public static readonly Error BodyWeightEntryNotFound =
         new("BodyWeightEntryNotFound", "Body weight entry not found.", ErrorType.NotFound);
 }

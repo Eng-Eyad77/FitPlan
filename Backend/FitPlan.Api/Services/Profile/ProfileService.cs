@@ -52,6 +52,26 @@ public class ProfileService(
     }
 
 
+    public async Task<Result<ProfileDto>> UpdateWeeklyGoalAsync(Guid userId, UpdateWeeklyGoalDto request)
+    {
+        var user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user is null)
+        {
+            return Result<ProfileDto>.Failure(Errors.UserNotFound);
+        }
+
+        if (request.WeeklyGoal != user.WeeklyGoal)
+        {
+            user.WeeklyGoal = request.WeeklyGoal;
+            user.UpdatedAt = DateTime.UtcNow;
+            await context.SaveChangesAsync();
+        }
+
+        return Result<ProfileDto>.Success(await ToProfileDtoAsync(user));
+    }
+
+
     public async Task<Result<ProfileDto>> UploadProfilePictureAsync(Guid userId, IFormFile file)
     {
         if (file == null || file.Length <= 0)
@@ -147,6 +167,7 @@ public class ProfileService(
         Bio = user.Bio,
         ProfilePictureUrl = user.ProfilePictureUrl,
         CurrentWeightKg = await bodyWeightService.GetCurrentWeightAsync(user.Id),
+        WeeklyGoal = user.WeeklyGoal,
         CreatedAt = user.CreatedAt,
         UpdatedAt = user.UpdatedAt
     };

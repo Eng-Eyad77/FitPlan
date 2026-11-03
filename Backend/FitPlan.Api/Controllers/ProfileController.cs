@@ -37,6 +37,20 @@ public class ProfileController(IProfileService profileService) : ApiControllerBa
     }
 
 
+    [HttpPut("me/weekly-goal")]
+    public async Task<IActionResult> UpdateWeeklyGoal(UpdateWeeklyGoalDto updateWeeklyGoalRequest)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await profileService.UpdateWeeklyGoalAsync(userId, updateWeeklyGoalRequest);
+
+        return result.IsSuccess ? Ok(result.Data) : Problem(result.Error);
+    }
+
+
     [HttpPost("me/picture")]
     public async Task<IActionResult> UploadProfilePicture(IFormFile file)
     {

@@ -1,4 +1,3 @@
-
 using FitPlan.Api.Services.Auth;
 using FitPlan.Api.Services.Profile;
 using FitPlan.Api.Services.Exercises;
@@ -8,6 +7,7 @@ using FitPlan.Api.Services.WorkoutSessions;
 using FitPlan.Api.Services.SessionExercises;
 using FitPlan.Api.Services.CardioEntries;
 using FitPlan.Api.Services.BodyWeight;
+using FitPlan.Api.Services.Stats;
 
 namespace FitPlan.Api.Extensions;
 
@@ -35,6 +35,9 @@ public static class ServicesExtensions
 
         // Body Weight
         services.AddScoped<IBodyWeightService, BodyWeightService>();
+
+        // Stats
+        services.AddScoped<IStatsService, StatsService>();
 
         // External HTTP Client
         services.AddHttpClient("ExerciseDB", client =>
