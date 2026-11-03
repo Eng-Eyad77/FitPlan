@@ -6,6 +6,7 @@ import '../features/auth/application/auth_controller.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
 import '../features/home/presentation/home_screen.dart';
+import '../features/profile/presentation/profile_screen.dart';
 import '../shared/widgets/coming_soon_screen.dart';
 import 'main_shell.dart';
 import 'splash_screen.dart';
@@ -18,6 +19,7 @@ abstract final class Routes {
   static const plans = '/plans';
   static const history = '/history';
   static const progress = '/progress';
+  static const profile = '/profile';
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -48,6 +50,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: Routes.splash, builder: (_, _) => const SplashScreen()),
       GoRoute(path: Routes.login, builder: (_, _) => const LoginScreen()),
       GoRoute(path: Routes.register, builder: (_, _) => const RegisterScreen()),
+      // outside the tab shell: covers the tab bar, with a back button
+      GoRoute(path: Routes.profile, builder: (_, _) => const ProfileScreen()),
 
       // the 4 tabs; each keeps its own navigation stack
       StatefulShellRoute.indexedStack(

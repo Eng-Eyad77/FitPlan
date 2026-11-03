@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../app/router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_text.dart';
 import '../../auth/application/auth_controller.dart';
+import '../../profile/application/profile_controller.dart';
+import '../../profile/presentation/widgets/profile_avatar.dart';
 
-/// Home. For now: greeting + account menu.
+/// Home. For now: greeting + profile shortcut.
 /// The "Up next" card, week strip and last session come with the sessions step.
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -21,6 +25,7 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final username = ref.watch(authControllerProvider).value?.username ?? '';
+    final profile = ref.watch(profileControllerProvider).value;
 
     return Scaffold(
       body: SafeArea(
@@ -39,68 +44,26 @@ class HomeScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-                _ProfileButton(
-                  initial: username.isEmpty ? '?' : username[0].toUpperCase(),
-                  onPressed: () => _showAccountSheet(context, ref, username),
+                Tooltip(
+                  message: 'Profile',
+                  child: Semantics(
+                    button: true,
+                    label: 'Open profile',
+                    child: GestureDetector(
+                      onTap: () => context.push(Routes.profile),
+                      child: ProfileAvatar(
+                        initial: username.isEmpty ? '?' : username[0].toUpperCase(),
+                        imageUrl: profile?.pictureFullUrl,
+                        size: AppSpacing.minTouch,
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: AppSpacing.xxl),
             const _NextStepCard(),
           ].animate(interval: 50.ms).fadeIn(duration: 280.ms).slideY(begin: 0.06, end: 0),
-        ),
-      ),
-    );
-  }
-
-  void _showAccountSheet(BuildContext context, WidgetRef ref, String username) {
-    showModalBottomSheet<void>(
-      context: context,
-      builder: (sheetContext) => SafeArea(
-        child: Padding(
-          padding: AppSpacing.screen.copyWith(bottom: AppSpacing.lg),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(username, style: AppText.heading),
-              const SizedBox(height: AppSpacing.xl),
-              OutlinedButton.icon(
-                onPressed: () {
-                  Navigator.of(sheetContext).pop();
-                  ref.read(authControllerProvider.notifier).logout();
-                },
-                icon: const Icon(Icons.logout_rounded, color: AppColors.danger),
-                label: const Text('Log out'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ProfileButton extends StatelessWidget {
-  const _ProfileButton({required this.initial, required this.onPressed});
-
-  final String initial;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: 'Account',
-      child: Material(
-        color: AppColors.surface,
-        shape: const CircleBorder(side: BorderSide(color: AppColors.border)),
-        child: InkWell(
-          customBorder: const CircleBorder(),
-          onTap: onPressed,
-          child: SizedBox.square(
-            dimension: AppSpacing.minTouch,
-            child: Center(child: Text(initial, style: AppText.bodyStrong)),
-          ),
         ),
       ),
     );
