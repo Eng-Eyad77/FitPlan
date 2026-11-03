@@ -4,7 +4,6 @@ using FitPlan.Api.Common.Results;
 using FitPlan.Api.Data;
 using FitPlan.Api.DTOs.WorkoutPlanExercises;
 using FitPlan.Api.Models;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 namespace FitPlan.Api.Services.WorkoutPlanExercises;
@@ -58,9 +57,7 @@ public class WorkoutPlanExerciseService(FitPlanDbContext context) : IWorkoutPlan
         {
             await context.SaveChangesAsync();
         }
-        catch (DbUpdateException ex) when (
-            ex.InnerException is SqlException sqlException &&
-            (sqlException.Number == 2601 || sqlException.Number == 2627))
+        catch (DbUpdateException ex) when (ex.IsUniqueConstraintViolation())
         {
             return Result<WorkoutPlanExerciseResponseDto>.Failure(Errors.ExerciseAlreadyExists);
         }

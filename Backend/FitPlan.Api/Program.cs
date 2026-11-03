@@ -1,4 +1,5 @@
 
+using System.Text.Json.Serialization;
 using FitPlan.Api.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,7 +12,10 @@ builder.Services
     .AddApplicationServices()
     .AddSwaggerDocumentation();
 
-builder.Services.AddControllers();
+// enums travel as text in the JSON ("Treadmill" instead of 1)
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 var app = builder.Build();
 

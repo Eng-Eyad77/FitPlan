@@ -35,4 +35,41 @@ public static class Errors
 
     public static readonly Error WorkoutPlanExerciseNotFound =
         new("WorkoutPlanExerciseNotFound", "Workout plan exercise not found.", ErrorType.NotFound);
+
+    // Workout Sessions
+    public static readonly Error WorkoutSessionNotFound =
+        new("WorkoutSessionNotFound", "Workout session not found.", ErrorType.NotFound);
+
+    public static readonly Error NoActiveSession =
+        new("NoActiveSession", "There is no workout session in progress.", ErrorType.NotFound);
+
+    public static readonly Error ActiveSessionExists =
+        new("ActiveSessionExists", "You already have a workout session in progress.", ErrorType.Conflict);
+
+    public static readonly Error SessionNotActive =
+        new("SessionNotActive", "This workout session is already completed and cannot be changed.", ErrorType.Conflict);
+
+    public static readonly Error EmptySession =
+        new("EmptySession", "Log at least one set or cardio entry before finishing, or cancel the session.", ErrorType.Validation);
+
+    // Session Exercises & Sets
+    public static readonly Error SessionExerciseNotFound =
+        new("SessionExerciseNotFound", "Exercise not found in this workout session.", ErrorType.NotFound);
+
+    public static readonly Error ExerciseAlreadyInSession =
+        new("ExerciseAlreadyInSession", "Exercise already exists in this workout session.", ErrorType.Conflict);
+
+    public static readonly Error SetLimitReached =
+        new("SetLimitReached", "An exercise can have at most 10 sets in one session.", ErrorType.Validation);
+
+    public static readonly Error SessionSetNotFound =
+        new("SessionSetNotFound", "Set not found.", ErrorType.NotFound);
+
+    // Cardio
+    public static readonly Error CardioEntryNotFound =
+        new("CardioEntryNotFound", "Cardio entry not found.", ErrorType.NotFound);
+
+    // Body Weight
+    public static readonly Error BodyWeightEntryNotFound =
+        new("BodyWeightEntryNotFound", "Body weight entry not found.", ErrorType.NotFound);
 }

@@ -4,7 +4,6 @@ using FitPlan.Api.Data;
 using FitPlan.Api.DTOs.Auth;
 using FitPlan.Api.Models;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -74,9 +73,7 @@ public class AuthService(FitPlanDbContext context, IConfiguration configuration)
         {
             await context.SaveChangesAsync();
         }
-        catch (DbUpdateException ex) when (
-            ex.InnerException is SqlException sqlException &&
-            (sqlException.Number == 2601 || sqlException.Number == 2627))
+        catch (DbUpdateException ex) when (ex.IsUniqueConstraintViolation())
         {
             return Result<AuthResponseDto>.Failure(Errors.UsernameAlreadyExists);
         }

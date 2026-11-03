@@ -22,6 +22,85 @@ namespace FitPlan.Api.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("FitPlan.Api.Models.BodyWeightEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("RecordedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("WeightKg")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "RecordedAt");
+
+                    b.ToTable("BodyWeightEntries", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_BodyWeightEntries_WeightKg", "[WeightKg] >= 20 AND [WeightKg] <= 400");
+                        });
+                });
+
+            modelBuilder.Entity("FitPlan.Api.Models.CardioEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("DistanceKm")
+                        .HasPrecision(6, 2)
+                        .HasColumnType("decimal(6,2)");
+
+                    b.Property<int>("DurationSeconds")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("EstimatedCalories")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("InclinePercent")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<string>("Machine")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("RecordedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("SpeedKmh")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<Guid>("WorkoutSessionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WorkoutSessionId");
+
+                    b.ToTable("CardioEntries", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_CardioEntries_DistanceKm", "[DistanceKm] > 0 AND [DistanceKm] <= 100");
+
+                            t.HasCheckConstraint("CK_CardioEntries_DurationSeconds", "[DurationSeconds] >= 1 AND [DurationSeconds] <= 18000");
+
+                            t.HasCheckConstraint("CK_CardioEntries_EstimatedCalories", "[EstimatedCalories] >= 0");
+
+                            t.HasCheckConstraint("CK_CardioEntries_InclinePercent", "[InclinePercent] >= 0 AND [InclinePercent] <= 40");
+
+                            t.HasCheckConstraint("CK_CardioEntries_SpeedKmh", "[SpeedKmh] > 0 AND [SpeedKmh] <= 30");
+                        });
+                });
+
             modelBuilder.Entity("FitPlan.Api.Models.Exercise", b =>
                 {
                     b.Property<string>("Id")
@@ -47,6 +126,74 @@ namespace FitPlan.Api.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Exercises", (string)null);
+                });
+
+            modelBuilder.Entity("FitPlan.Api.Models.SessionExercise", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ExerciseId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TargetReps")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TargetSets")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("WorkoutSessionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExerciseId");
+
+                    b.HasIndex("WorkoutSessionId", "ExerciseId")
+                        .IsUnique();
+
+                    b.ToTable("SessionExercises", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_SessionExercises_Order", "[Order] > 0");
+                        });
+                });
+
+            modelBuilder.Entity("FitPlan.Api.Models.SessionSet", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Reps")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("SessionExerciseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("SetNumber")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("WeightKg")
+                        .HasPrecision(6, 2)
+                        .HasColumnType("decimal(6,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SessionExerciseId");
+
+                    b.ToTable("SessionSets", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_SessionSets_Reps", "[Reps] >= 1 AND [Reps] <= 100");
+
+                            t.HasCheckConstraint("CK_SessionSets_SetNumber", "[SetNumber] > 0");
+
+                            t.HasCheckConstraint("CK_SessionSets_WeightKg", "[WeightKg] >= 0 AND [WeightKg] <= 500");
+                        });
                 });
 
             modelBuilder.Entity("FitPlan.Api.Models.User", b =>
@@ -157,6 +304,98 @@ namespace FitPlan.Api.Migrations
                         });
                 });
 
+            modelBuilder.Entity("FitPlan.Api.Models.WorkoutSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("WorkoutPlanId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WorkoutPlanId");
+
+                    b.HasIndex("UserId", "CompletedAt");
+
+                    b.HasIndex(new[] { "UserId" }, "IX_WorkoutSessions_OneActivePerUser")
+                        .IsUnique()
+                        .HasFilter("[CompletedAt] IS NULL");
+
+                    b.ToTable("WorkoutSessions", (string)null);
+                });
+
+            modelBuilder.Entity("FitPlan.Api.Models.BodyWeightEntry", b =>
+                {
+                    b.HasOne("FitPlan.Api.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("FitPlan.Api.Models.CardioEntry", b =>
+                {
+                    b.HasOne("FitPlan.Api.Models.WorkoutSession", "WorkoutSession")
+                        .WithMany("CardioEntries")
+                        .HasForeignKey("WorkoutSessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("WorkoutSession");
+                });
+
+            modelBuilder.Entity("FitPlan.Api.Models.SessionExercise", b =>
+                {
+                    b.HasOne("FitPlan.Api.Models.Exercise", "Exercise")
+                        .WithMany()
+                        .HasForeignKey("ExerciseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("FitPlan.Api.Models.WorkoutSession", "WorkoutSession")
+                        .WithMany("Exercises")
+                        .HasForeignKey("WorkoutSessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Exercise");
+
+                    b.Navigation("WorkoutSession");
+                });
+
+            modelBuilder.Entity("FitPlan.Api.Models.SessionSet", b =>
+                {
+                    b.HasOne("FitPlan.Api.Models.SessionExercise", "SessionExercise")
+                        .WithMany("Sets")
+                        .HasForeignKey("SessionExerciseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SessionExercise");
+                });
+
             modelBuilder.Entity("FitPlan.Api.Models.WorkoutPlan", b =>
                 {
                     b.HasOne("FitPlan.Api.Models.User", "User")
@@ -177,7 +416,7 @@ namespace FitPlan.Api.Migrations
                         .IsRequired();
 
                     b.HasOne("FitPlan.Api.Models.WorkoutPlan", "WorkoutPlan")
-                        .WithMany()
+                        .WithMany("Exercises")
                         .HasForeignKey("WorkoutPlanId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -187,9 +426,44 @@ namespace FitPlan.Api.Migrations
                     b.Navigation("WorkoutPlan");
                 });
 
+            modelBuilder.Entity("FitPlan.Api.Models.WorkoutSession", b =>
+                {
+                    b.HasOne("FitPlan.Api.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("FitPlan.Api.Models.WorkoutPlan", "WorkoutPlan")
+                        .WithMany()
+                        .HasForeignKey("WorkoutPlanId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("User");
+
+                    b.Navigation("WorkoutPlan");
+                });
+
+            modelBuilder.Entity("FitPlan.Api.Models.SessionExercise", b =>
+                {
+                    b.Navigation("Sets");
+                });
+
             modelBuilder.Entity("FitPlan.Api.Models.User", b =>
                 {
                     b.Navigation("WorkoutPlans");
+                });
+
+            modelBuilder.Entity("FitPlan.Api.Models.WorkoutPlan", b =>
+                {
+                    b.Navigation("Exercises");
+                });
+
+            modelBuilder.Entity("FitPlan.Api.Models.WorkoutSession", b =>
+                {
+                    b.Navigation("CardioEntries");
+
+                    b.Navigation("Exercises");
                 });
 #pragma warning restore 612, 618
         }
