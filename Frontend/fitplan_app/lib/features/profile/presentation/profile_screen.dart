@@ -10,6 +10,8 @@ import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_text.dart';
+import '../../../shared/format.dart';
+import '../../../shared/widgets/feedback.dart';
 import '../../../shared/widgets/loading_button.dart';
 import '../../auth/application/auth_controller.dart';
 import '../application/profile_controller.dart';
@@ -29,7 +31,7 @@ class ProfileScreen extends ConsumerWidget {
         child: profile.when(
           data: (profile) => _ProfileBody(profile: profile),
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => _LoadError(
+          error: (error, _) => LoadError(
             message: error is ApiException ? error.message : 'Could not load your profile.',
             onRetry: () => ref.invalidate(profileControllerProvider),
           ),
@@ -38,16 +40,6 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 }
-
-/// Shows the API error message in a snackbar.
-void _showError(BuildContext context, Object error) {
-  final message = error is ApiException ? error.message : 'Something went wrong. Please try again.';
-  ScaffoldMessenger.of(context)
-    ..hideCurrentSnackBar()
-    ..showSnackBar(SnackBar(content: Text(message)));
-}
-
-String formatKg(double kg) => kg == kg.roundToDouble() ? kg.toStringAsFixed(0) : '$kg';
 
 class _ProfileBody extends ConsumerWidget {
   const _ProfileBody({required this.profile});
@@ -94,7 +86,7 @@ class _HeaderState extends ConsumerState<_Header> {
     try {
       await action();
     } catch (error) {
-      if (mounted) _showError(context, error);
+      if (mounted) showError(context, error);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -326,7 +318,7 @@ class _WeightSheetState extends ConsumerState<_WeightSheet> {
       await ref.read(profileControllerProvider.notifier).addBodyWeight(weight);
       if (mounted) Navigator.of(context).pop();
     } catch (error) {
-      if (mounted) _showError(context, error);
+      if (mounted) showError(context, error);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -413,7 +405,7 @@ class _BioCardState extends ConsumerState<_BioCard> {
           ..showSnackBar(const SnackBar(content: Text('Bio saved')));
       }
     } catch (error) {
-      if (mounted) _showError(context, error);
+      if (mounted) showError(context, error);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -473,32 +465,6 @@ class _Card extends StatelessWidget {
         border: Border.all(color: AppColors.border),
       ),
       child: child,
-    );
-  }
-}
-
-class _LoadError extends StatelessWidget {
-  const _LoadError({required this.message, required this.onRetry});
-
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: AppSpacing.screen,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.cloud_off_rounded, color: AppColors.textTertiary, size: 40),
-            const SizedBox(height: AppSpacing.md),
-            Text(message, style: AppText.secondary, textAlign: TextAlign.center),
-            const SizedBox(height: AppSpacing.lg),
-            TextButton(onPressed: onRetry, child: const Text('Try again')),
-          ],
-        ),
-      ),
     );
   }
 }

@@ -5,8 +5,14 @@ import 'package:go_router/go_router.dart';
 import '../features/auth/application/auth_controller.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
+import '../features/exercises/presentation/exercise_picker_screen.dart';
 import '../features/home/presentation/home_screen.dart';
+import '../features/plans/presentation/plan_detail_screen.dart';
+import '../features/plans/presentation/plans_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
+import '../features/session/domain/workout_session.dart';
+import '../features/session/presentation/session_screen.dart';
+import '../features/session/presentation/summary_screen.dart';
 import '../shared/widgets/coming_soon_screen.dart';
 import 'main_shell.dart';
 import 'splash_screen.dart';
@@ -20,6 +26,14 @@ abstract final class Routes {
   static const history = '/history';
   static const progress = '/progress';
   static const profile = '/profile';
+  static String planDetail(String id) => '/plans/$id';
+
+  /// Pops with the chosen Exercise. extra: `Set<String>` of exercise ids already added.
+  static const exercisePicker = '/exercises/pick';
+  static const session = '/session';
+
+  /// extra: the SessionSummary returned when finishing.
+  static const sessionSummary = '/session/summary';
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -52,6 +66,23 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: Routes.register, builder: (_, _) => const RegisterScreen()),
       // outside the tab shell: covers the tab bar, with a back button
       GoRoute(path: Routes.profile, builder: (_, _) => const ProfileScreen()),
+      GoRoute(
+        path: Routes.exercisePicker,
+        builder: (_, state) =>
+            ExercisePickerScreen(excludedIds: state.extra as Set<String>? ?? const {}),
+      ),
+      GoRoute(
+        path: Routes.session,
+        builder: (_, _) => const SessionScreen(),
+        routes: [
+          GoRoute(
+            path: 'summary',
+            // without the summary (e.g. the page was reloaded) there is nothing to show
+            redirect: (_, state) => state.extra is SessionSummary ? null : Routes.home,
+            builder: (_, state) => SummaryScreen(summary: state.extra! as SessionSummary),
+          ),
+        ],
+      ),
 
       // the 4 tabs; each keeps its own navigation stack
       StatefulShellRoute.indexedStack(
@@ -63,7 +94,13 @@ final routerProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(routes: [
             GoRoute(
               path: Routes.plans,
-              builder: (_, _) => const ComingSoonScreen(title: 'Plans'),
+              builder: (_, _) => const PlansScreen(),
+              routes: [
+                GoRoute(
+                  path: ':id',
+                  builder: (_, state) => PlanDetailScreen(planId: state.pathParameters['id']!),
+                ),
+              ],
             ),
           ]),
           StatefulShellBranch(routes: [
