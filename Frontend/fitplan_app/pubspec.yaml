@@ -1,5 +1,5 @@
 name: fitplan_app
-description: "A new Flutter project."
+description: "FitPlan: plan workouts, log every set, track your progress."
 publish_to: 'none'
 version: 0.1.0+1
 
@@ -29,3 +29,16 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  # Readex Pro (SIL Open Font License, see assets/fonts/OFL.txt): Latin + Arabic
+  fonts:
+    - family: ReadexPro
+      fonts:
+        - asset: assets/fonts/ReadexPro-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/ReadexPro-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/ReadexPro-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/ReadexPro-Bold.ttf
+          weight: 700
