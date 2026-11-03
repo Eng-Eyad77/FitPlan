@@ -107,7 +107,7 @@ class _Body extends StatelessWidget {
           children: [
             _Stat(label: 'Time', value: formatDuration(end.difference(started).inSeconds)),
             const SizedBox(width: AppSpacing.sm),
-            _Stat(label: 'Volume', value: '${NumberFormat.decimalPattern().format(volume.round())} kg'),
+            _Stat(label: 'Volume', value: formatVolume(volume)),
             const SizedBox(width: AppSpacing.sm),
             _Stat(label: 'Sets', value: '${session.setCount}'),
             if (calories > 0) ...[

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import '../../../app/router.dart';
 import '../../../core/theme/app_colors.dart';
@@ -19,16 +18,17 @@ class SummaryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final volume = NumberFormat.decimalPattern().format(summary.totalVolumeKg.round());
-
     final tiles = [
       _Stat(label: 'Duration', value: formatDuration(summary.durationSeconds)),
-      _Stat(label: 'Volume', value: '$volume kg'),
+      _Stat(label: 'Volume', value: formatVolume(summary.totalVolumeKg)),
       _Stat(label: 'Exercises', value: '${summary.exerciseCount}'),
       _Stat(label: 'Sets', value: '${summary.setCount}'),
       if (summary.cardioDurationSeconds > 0) ...[
         _Stat(label: 'Cardio', value: formatDuration(summary.cardioDurationSeconds)),
-        _Stat(label: 'Calories (estimated)', value: '≈ ${summary.estimatedCalories} kcal'),
+        // 0 = no body weight on the profile, so nothing to estimate from
+        summary.estimatedCalories > 0
+            ? _Stat(label: 'Calories (estimated)', value: '≈ ${summary.estimatedCalories} kcal')
+            : const _Stat(label: 'Calories', value: 'Add weight in Profile'),
       ],
     ];
 

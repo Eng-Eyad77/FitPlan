@@ -65,6 +65,15 @@ class _NewRecords extends StatelessWidget {
         _ => '${formatKg(double.parse(value.toStringAsFixed(1)))} kg',
       };
 
+  /// Records of the same exercise together, in the order the API sent them.
+  List<List<NewRecord>> get _byExercise {
+    final groups = <String, List<NewRecord>>{};
+    for (final record in records) {
+      groups.putIfAbsent(record.exerciseId, () => []).add(record);
+    }
+    return groups.values.toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -87,35 +96,31 @@ class _NewRecords extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.md),
-          for (final record in records)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(capitalize(record.name), style: AppText.bodyStrong, maxLines: 1, overflow: TextOverflow.ellipsis),
-                        Text(record.type.label, style: AppText.caption),
-                      ],
-                    ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(_format(record.type, record.value), style: AppText.bodyStrong),
-                      // the gain under the value, never on top of it
-                      Text(
+          const SizedBox(height: AppSpacing.xs),
+          // grouped by exercise: the name once, then each record it broke
+          for (final group in _byExercise) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(capitalize(group.first.name), style: AppText.bodyStrong, maxLines: 1, overflow: TextOverflow.ellipsis),
+            for (final record in group)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Row(
+                  children: [
+                    Expanded(child: Text(record.type.label, style: AppText.secondary)),
+                    Text(_format(record.type, record.value), style: AppText.bodyStrong),
+                    const SizedBox(width: AppSpacing.sm),
+                    SizedBox(
+                      width: 64,
+                      child: Text(
                         '+${_format(record.type, record.value - record.previousBest)}',
+                        textAlign: TextAlign.end,
                         style: AppText.caption.copyWith(color: AppColors.success, fontWeight: FontWeight.w600),
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
-            ),
+          ],
         ],
       ),
     ).animate().fadeIn(duration: 300.ms).scaleXY(begin: 0.96, end: 1, curve: Curves.easeOutBack);

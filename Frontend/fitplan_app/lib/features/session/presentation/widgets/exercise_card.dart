@@ -288,7 +288,7 @@ class _SuggestionLine extends StatelessWidget {
                         TextSpan(text: target, style: const TextStyle(color: AppColors.textPrimary)),
                         if (change != 0)
                           TextSpan(
-                            text: '  ${change > 0 ? '+' : '−'}${formatKg(change.abs().toDouble())}',
+                            text: '  ${change > 0 ? '+' : '−'}${formatKg(change.abs().toDouble())} kg',
                             style: const TextStyle(color: AppColors.accent),
                           ),
                       ],

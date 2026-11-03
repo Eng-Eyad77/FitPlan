@@ -32,9 +32,16 @@ public class ExerciseService(FitPlanDbContext context) : IExerciseService
         //to calculate the exercises so i can divided on pages
         var totalCount = await query.CountAsync();
 
+        // with a search: the exact name first, then names that start with it, then the rest (shorter names first)
+        var ordered = string.IsNullOrWhiteSpace(search)
+            ? query.OrderBy(o => o.Id)
+            : query
+                .OrderBy(e => e.Name == search ? 0 : e.Name.StartsWith(search) ? 1 : 2)
+                .ThenBy(e => e.Name.Length)
+                .ThenBy(e => e.Id);
+
         // this is for put the exercises in pages
-        var exercises = await query
-            .OrderBy(o => o.Id)
+        var exercises = await ordered
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(item => new ExerciseDto

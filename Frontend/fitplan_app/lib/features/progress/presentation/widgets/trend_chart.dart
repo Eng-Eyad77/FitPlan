@@ -34,7 +34,10 @@ class TrendChart extends StatelessWidget {
     }
 
     final first = points.first.date;
-    double x(DateTime d) => d.difference(first).inHours / 24; // days since the first point
+    // days since the first point; all within one day (two workouts today) would stack on one spot,
+    // so then the points are simply spread out in order
+    final sameDay = points.last.date.difference(first).inHours < 24;
+    double x(int i) => sameDay ? i.toDouble() : points[i].date.difference(first).inHours / 24;
 
     final values = points.map((p) => p.value);
     final min = values.reduce((a, b) => a < b ? a : b);
@@ -42,7 +45,7 @@ class TrendChart extends StatelessWidget {
     // some air above and below, and never a flat line glued to an edge
     final pad = ((max - min) * 0.25).clamp(1.0, double.infinity);
 
-    final spots = [for (final p in points) FlSpot(x(p.date), p.value)];
+    final spots = [for (var i = 0; i < points.length; i++) FlSpot(x(i), points[i].value)];
     final dateFormat = DateFormat('d MMM');
 
     return Semantics(
@@ -74,6 +77,10 @@ class TrendChart extends StatelessWidget {
                   // only the first and the last date
                   getTitlesWidget: (value, meta) {
                     final date = value == 0 ? points.first.date : points.last.date;
+                    // all on one day: a single date, not "3 Nov … 3 Nov"
+                    if (DateUtils.isSameDay(points.first.date.toLocal(), points.last.date.toLocal()) && value != 0) {
+                      return const SizedBox.shrink();
+                    }
                     return SideTitleWidget(
                       meta: meta,
                       // keep the first and last labels inside the card

@@ -127,7 +127,6 @@ class SessionSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final local = summary.completedAt.toLocal();
     final date = '${DateFormat('EEE, d MMM').format(local)} · ${DateFormat.jm().format(local)}';
-    final volume = NumberFormat.decimalPattern().format(summary.totalVolumeKg.round());
 
     return Material(
       color: AppColors.surface,
@@ -169,11 +168,13 @@ class SessionSummaryCard extends StatelessWidget {
               Row(
                 children: [
                   _Figure(value: formatDuration(summary.durationSeconds), label: 'Time'),
-                  _Figure(value: '$volume kg', label: 'Volume'),
+                  _Figure(value: formatVolume(summary.totalVolumeKg), label: 'Volume'),
                   _Figure(value: '${summary.setCount}', label: 'Sets'),
                   // always 4 columns, so the numbers line up from card to card
-                  if (summary.cardioDurationSeconds > 0)
+                  if (summary.estimatedCalories > 0)
                     _Figure(value: '≈ ${summary.estimatedCalories}', label: 'kcal')
+                  else if (summary.cardioDurationSeconds > 0)
+                    _Figure(value: formatDuration(summary.cardioDurationSeconds), label: 'Cardio')
                   else
                     const Spacer(),
                 ],

@@ -55,19 +55,32 @@ class LoggedSetRow extends StatelessWidget {
   final SessionSet? previous;
   final VoidCallback onTap;
 
-  String? get _gain {
+  /// Heavier than last time: "+2.5 kg" under the weight.
+  String? get _kgGain {
     final before = previous;
     if (before == null) return null;
     final kgDiff = (set.weightKg ?? 0) - (before.weightKg ?? 0);
-    if (kgDiff > 0) return '+${formatKg(kgDiff)} kg';
-    if (kgDiff == 0 && set.reps > before.reps) return '+${set.reps - before.reps} reps';
-    return null;
+    return kgDiff > 0 ? '+${formatKg(kgDiff)} kg' : null;
   }
+
+  /// Same weight, more reps: "+2 reps" under the reps.
+  String? get _repsGain {
+    final before = previous;
+    if (before == null || (set.weightKg ?? 0) != (before.weightKg ?? 0)) return null;
+    return set.reps > before.reps ? '+${set.reps - before.reps}' : null;
+  }
+
+  Widget _value(String value, String? gain) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(value, style: AppText.number.copyWith(fontSize: 20)),
+          if (gain != null)
+            Text(gain, style: AppText.caption.copyWith(color: AppColors.success, fontWeight: FontWeight.w600)),
+        ],
+      );
 
   @override
   Widget build(BuildContext context) {
-    final gain = _gain;
-
     return Semantics(
       button: true,
       label: 'Set ${set.setNumber}: ${set.weightKg == null ? 'bodyweight' : '${formatKg(set.weightKg!)} kilograms'}, '
@@ -89,32 +102,8 @@ class LoggedSetRow extends StatelessWidget {
                     width: SetColumns.set,
                     child: Text('${set.setNumber}', style: AppText.bodyStrong.copyWith(color: AppColors.textSecondary)),
                   ),
-                  Expanded(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          set.weightKg == null ? 'BW' : formatKg(set.weightKg!),
-                          style: AppText.number.copyWith(fontSize: 20),
-                        ),
-                        if (gain != null)
-                          Text(
-                            gain,
-                            style: AppText.caption.copyWith(
-                              color: AppColors.success,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      '${set.reps}',
-                      style: AppText.number.copyWith(fontSize: 20),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
+                  Expanded(child: _value(set.weightKg == null ? 'BW' : formatKg(set.weightKg!), _kgGain)),
+                  Expanded(child: _value('${set.reps}', _repsGain)),
                   const SizedBox(
                     width: SetColumns.done,
                     child: Icon(Icons.check_circle_rounded, color: AppColors.accent, size: 30),

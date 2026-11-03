@@ -101,7 +101,7 @@ class _RecordLine extends StatelessWidget {
       RecordType.mostReps => '${set.value.round()} reps',
       RecordType.bestSetVolume => '${NumberFormat.decimalPattern().format(set.value.round())} kg',
     };
-    final from = set.weightKg == null ? '${set.reps} reps' : '${set.reps} × ${formatKg(set.weightKg!)} kg';
+    final from = formatSet(set.weightKg, set.reps);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),

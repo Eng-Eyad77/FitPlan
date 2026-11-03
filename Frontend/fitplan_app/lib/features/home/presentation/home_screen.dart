@@ -239,7 +239,9 @@ class _WeekCard extends ConsumerWidget {
               const Spacer(),
               Text(
                 goal != null
-                    ? '$total of $goal workouts'
+                    ? total >= goal
+                        ? '$total workouts · goal met'
+                        : '$total of $goal workouts'
                     : total == 0
                         ? 'No workouts yet'
                         : '$total ${total == 1 ? 'workout' : 'workouts'}',

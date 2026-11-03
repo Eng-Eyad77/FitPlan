@@ -104,8 +104,8 @@ class _StreakCard extends StatelessWidget {
     final subtitle = goal == null
         ? 'A week counts when you train at least once. Set a goal to aim higher.'
         : done >= goal
-            ? 'Goal reached this week: $done of $goal. Nice.'
-            : '$done of $goal this week, ${goal - done} to go.';
+        ? '$done workouts this week, goal of $goal reached. Nice.'
+        : '$done of $goal this week, ${goal - done} to go.';
 
     return Material(
       color: AppColors.surface,
@@ -139,10 +139,7 @@ class _StreakCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      streak == 0 ? 'No streak yet' : '$streak-week streak',
-                      style: AppText.heading,
-                    ),
+                    Text(streak == 0 ? 'No streak yet' : '$streak-week streak', style: AppText.heading),
                     const SizedBox(height: 2),
                     Text(subtitle, style: AppText.secondary),
                   ],
@@ -174,26 +171,48 @@ class _WeekCompare extends StatelessWidget {
   Widget build(BuildContext context) {
     final now = overview.thisWeek;
     final last = overview.lastWeek;
-    final tonnes = NumberFormat('0.0');
+    final showDiff = now.workouts + last.workouts > 0;
 
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _Delta(label: 'Workouts', value: '${now.workouts}', diff: (now.workouts - last.workouts).toDouble()),
-        const SizedBox(width: AppSpacing.sm),
-        _Delta(
-          label: 'Volume',
-          value: '${tonnes.format(now.volumeKg / 1000)} t',
-          diff: (now.volumeKg - last.volumeKg) / 1000,
-          diffText: (d) => '${tonnes.format(d.abs())} t',
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            const Expanded(child: Text('This week', style: AppText.heading)),
+            Text('▲ vs last week', style: AppText.caption),
+          ],
         ),
-        const SizedBox(width: AppSpacing.sm),
-        _Delta(label: 'Sets', value: '${now.sets}', diff: (now.sets - last.sets).toDouble()),
-        const SizedBox(width: AppSpacing.sm),
-        _Delta(
-          label: 'Cardio',
-          value: '${(now.cardioSeconds / 60).round()}m',
-          diff: (now.cardioSeconds - last.cardioSeconds) / 60,
-          diffText: (d) => '${d.abs().round()}m',
+        const SizedBox(height: AppSpacing.md),
+        Row(
+          children: [
+            _Delta(
+              showDiff: showDiff,
+              label: 'Workouts',
+              value: '${now.workouts}',
+              diff: (now.workouts - last.workouts).toDouble(),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            _Delta(
+              showDiff: showDiff,
+              // the unit in the label, so the number fits a quarter of the width
+              label: 'Kg lifted',
+              value: formatVolumeNumber(now.volumeKg),
+              diff: now.volumeKg - last.volumeKg,
+              diffText: (d) => formatVolumeNumber(d.abs()),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            _Delta(showDiff: showDiff, label: 'Sets', value: '${now.sets}', diff: (now.sets - last.sets).toDouble()),
+            const SizedBox(width: AppSpacing.sm),
+            _Delta(
+              showDiff: showDiff,
+              label: 'Cardio',
+              value: '${(now.cardioSeconds / 60).round()}m',
+              diff: (now.cardioSeconds - last.cardioSeconds) / 60,
+              diffText: (d) => '${d.abs().round()}m',
+            ),
+          ],
         ),
       ],
     );
@@ -202,12 +221,15 @@ class _WeekCompare extends StatelessWidget {
 
 /// A number of this week, with how it moved since last week underneath.
 class _Delta extends StatelessWidget {
-  const _Delta({required this.label, required this.value, required this.diff, this.diffText});
+  const _Delta({required this.label, required this.value, required this.diff, this.diffText, this.showDiff = true});
 
   final String label;
   final String value;
   final double diff;
   final String Function(double diff)? diffText;
+
+  /// Off when neither week has a workout: "same" under every zero says nothing.
+  final bool showDiff;
 
   @override
   Widget build(BuildContext context) {
@@ -231,7 +253,13 @@ class _Delta extends StatelessWidget {
             const SizedBox(height: 2),
             // a drop is shown calmly (grey), never in red: a light week is not a failure
             Text(
-              up ? '▲ $text' : down ? '▼ $text' : 'same',
+              !showDiff
+                  ? ' '
+                  : up
+                  ? '▲ $text'
+                  : down
+                  ? '▼ $text'
+                  : 'same',
               style: AppText.caption.copyWith(
                 color: up ? AppColors.accent : AppColors.textTertiary,
                 fontWeight: up ? FontWeight.w600 : FontWeight.w400,
@@ -328,10 +356,7 @@ class _Headline extends StatelessWidget {
               ),
           ],
         ),
-        if (caption != null) ...[
-          const SizedBox(height: AppSpacing.xs),
-          Text(caption!, style: AppText.caption),
-        ],
+        if (caption != null) ...[const SizedBox(height: AppSpacing.xs), Text(caption!, style: AppText.caption)],
         const SizedBox(height: AppSpacing.lg),
       ],
     );
@@ -360,7 +385,10 @@ class _StrengthTrend extends ConsumerWidget {
                 contentPadding: EdgeInsets.zero,
                 leading: ExerciseThumb(url: r.gifUrl, size: 44),
                 title: Text(capitalize(r.name), style: AppText.bodyStrong),
-                subtitle: Text('${r.sessionCount} ${r.sessionCount == 1 ? 'workout' : 'workouts'}', style: AppText.caption),
+                subtitle: Text(
+                  '${r.sessionCount} ${r.sessionCount == 1 ? 'workout' : 'workouts'}',
+                  style: AppText.caption,
+                ),
                 onTap: () => Navigator.pop(context, r.exerciseId),
               ),
           ],
@@ -418,7 +446,10 @@ class _StrengthTrend extends ConsumerWidget {
         );
 
         return progress.when(
-          loading: () => SizedBox(height: 240, child: Align(alignment: Alignment.topLeft, child: title)),
+          loading: () => SizedBox(
+            height: 240,
+            child: Align(alignment: Alignment.topLeft, child: title),
+          ),
           error: (error, _) => Text(errorMessage(error), style: AppText.secondary),
           data: (progress) {
             final trend = _strengthPoints(progress);
@@ -441,7 +472,7 @@ class _StrengthTrend extends ConsumerWidget {
                   caption: best == null
                       ? 'From your last ${trend.points.length} ${trend.points.length == 1 ? 'workout' : 'workouts'}'
                       // the headline is the latest workout; the caption names the all-time best
-                      : 'Latest workout · best ${formatKg(best.value)} kg from ${best.reps} × ${formatKg(best.weightKg!)} kg',
+                      : 'Latest workout · best ${formatKg(best.value)} kg from ${formatSet(best.weightKg, best.reps)}',
                 ),
                 TrendChart(points: trend.points, unit: trend.unit),
               ],
@@ -528,10 +559,7 @@ class _BodyTrend extends ConsumerWidget {
               delta: recent.length < 2 ? null : latest.weightKg - recent.first.weightKg,
               caption: 'Latest weigh-in, ${formatDaysAgo(latest.recordedAt)}',
             ),
-            TrendChart(
-              points: [for (final e in recent) (date: e.recordedAt, value: e.weightKg)],
-              unit: 'kg',
-            ),
+            TrendChart(points: [for (final e in recent) (date: e.recordedAt, value: e.weightKg)], unit: 'kg'),
           ],
         );
       },
@@ -550,9 +578,12 @@ class _RecentRecords extends ConsumerWidget {
     if (records.isEmpty) return const SizedBox.shrink();
 
     // per exercise, the record set most recently (on a tie: heaviest, 1RM, reps, volume), newest first
-    RecordSet latest(ExerciseRecords r) => [r.heaviestWeight, r.bestEstimated1Rm, r.mostReps, r.bestSetVolume]
-        .whereType<RecordSet>()
-        .reduce((a, b) => b.achievedAt.isAfter(a.achievedAt) ? b : a);
+    RecordSet latest(ExerciseRecords r) => [
+      r.heaviestWeight,
+      r.bestEstimated1Rm,
+      r.mostReps,
+      r.bestSetVolume,
+    ].whereType<RecordSet>().reduce((a, b) => b.achievedAt.isAfter(a.achievedAt) ? b : a);
 
     final best = [for (final r in records) (exercise: r, set: latest(r))]
       ..sort((a, b) => b.set.achievedAt.compareTo(a.set.achievedAt));
@@ -571,11 +602,7 @@ class _RecentRecords extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.sm),
           for (final item in best.take(5))
-            _RecordRow(
-              records: item.exercise,
-              set: item.set,
-              onTap: () => showRecordsSheet(context, item.exercise),
-            ),
+            _RecordRow(records: item.exercise, set: item.set, onTap: () => showRecordsSheet(context, item.exercise)),
         ],
       ),
     );
@@ -609,13 +636,18 @@ class _RecordRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(capitalize(records.name), style: AppText.bodyStrong, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  Text(
+                    capitalize(records.name),
+                    style: AppText.bodyStrong,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   Text(capitalize(formatDaysAgo(set.achievedAt)), style: AppText.caption),
                 ],
               ),
             ),
             Text(
-              set.weightKg == null ? '${set.reps} reps' : '${set.reps} × ${formatKg(set.weightKg!)}',
+              formatSet(set.weightKg, set.reps),
               style: AppText.bodyStrong.copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
             ),
           ],
@@ -634,8 +666,6 @@ class _WeeklyVolume extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tonnes = NumberFormat('0.0');
-
     return _Card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -645,14 +675,14 @@ class _WeeklyVolume extends StatelessWidget {
             textBaseline: TextBaseline.alphabetic,
             children: [
               const Expanded(child: Text('Weekly volume', style: AppText.heading)),
-              Text('tonnes lifted', style: AppText.caption),
+              Text('kg lifted', style: AppText.caption),
             ],
           ),
           const SizedBox(height: AppSpacing.lg),
           WeeklyBars(
             weeks: [for (final w in overview.weeks) w.weekStart],
-            values: [for (final w in overview.weeks) w.volumeKg / 1000],
-            format: (t) => '${tonnes.format(t)} t',
+            values: [for (final w in overview.weeks) w.volumeKg],
+            format: formatVolume,
           ),
         ],
       ),
