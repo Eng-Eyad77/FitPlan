@@ -319,7 +319,7 @@ as List<CardioEntry>,
 /// @nodoc
 mixin _$SessionExercise {
 
- String get id; String get exerciseId; String get name; String get gifUrl; String get bodyPart; int get order; int? get targetSets; int? get targetReps; List<SessionSet> get sets; LastPerformance? get lastPerformance;
+ String get id; String get exerciseId; String get name; String get gifUrl; String get bodyPart; int get order; int? get targetSets; int? get targetReps; List<SessionSet> get sets; LastPerformance? get lastPerformance; Suggestion? get suggestion;
 /// Create a copy of SessionExercise
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -333,20 +333,20 @@ $SessionExerciseCopyWith<SessionExercise> get copyWith => _$SessionExerciseCopyW
 @override
 bool operator ==(Object other) {
   final _this = this as SessionExercise;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SessionExercise&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.exerciseId, _this.exerciseId) || other.exerciseId == _this.exerciseId)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.gifUrl, _this.gifUrl) || other.gifUrl == _this.gifUrl)&&(identical(other.bodyPart, _this.bodyPart) || other.bodyPart == _this.bodyPart)&&(identical(other.order, _this.order) || other.order == _this.order)&&(identical(other.targetSets, _this.targetSets) || other.targetSets == _this.targetSets)&&(identical(other.targetReps, _this.targetReps) || other.targetReps == _this.targetReps)&&const DeepCollectionEquality().equals(other.sets, _this.sets)&&(identical(other.lastPerformance, _this.lastPerformance) || other.lastPerformance == _this.lastPerformance));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SessionExercise&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.exerciseId, _this.exerciseId) || other.exerciseId == _this.exerciseId)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.gifUrl, _this.gifUrl) || other.gifUrl == _this.gifUrl)&&(identical(other.bodyPart, _this.bodyPart) || other.bodyPart == _this.bodyPart)&&(identical(other.order, _this.order) || other.order == _this.order)&&(identical(other.targetSets, _this.targetSets) || other.targetSets == _this.targetSets)&&(identical(other.targetReps, _this.targetReps) || other.targetReps == _this.targetReps)&&const DeepCollectionEquality().equals(other.sets, _this.sets)&&(identical(other.lastPerformance, _this.lastPerformance) || other.lastPerformance == _this.lastPerformance)&&(identical(other.suggestion, _this.suggestion) || other.suggestion == _this.suggestion));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as SessionExercise;
-  return Object.hash(runtimeType,_this.id,_this.exerciseId,_this.name,_this.gifUrl,_this.bodyPart,_this.order,_this.targetSets,_this.targetReps,const DeepCollectionEquality().hash(_this.sets),_this.lastPerformance);
+  return Object.hash(runtimeType,_this.id,_this.exerciseId,_this.name,_this.gifUrl,_this.bodyPart,_this.order,_this.targetSets,_this.targetReps,const DeepCollectionEquality().hash(_this.sets),_this.lastPerformance,_this.suggestion);
 }
 
 @override
 String toString() {
   final _this = this as SessionExercise;
-  return 'SessionExercise(id: ${_this.id}, exerciseId: ${_this.exerciseId}, name: ${_this.name}, gifUrl: ${_this.gifUrl}, bodyPart: ${_this.bodyPart}, order: ${_this.order}, targetSets: ${_this.targetSets}, targetReps: ${_this.targetReps}, sets: ${_this.sets}, lastPerformance: ${_this.lastPerformance})';
+  return 'SessionExercise(id: ${_this.id}, exerciseId: ${_this.exerciseId}, name: ${_this.name}, gifUrl: ${_this.gifUrl}, bodyPart: ${_this.bodyPart}, order: ${_this.order}, targetSets: ${_this.targetSets}, targetReps: ${_this.targetReps}, sets: ${_this.sets}, lastPerformance: ${_this.lastPerformance}, suggestion: ${_this.suggestion})';
 }
 
 
@@ -357,11 +357,11 @@ abstract mixin class $SessionExerciseCopyWith<$Res>  {
   factory $SessionExerciseCopyWith(SessionExercise value, $Res Function(SessionExercise) _then) = _$SessionExerciseCopyWithImpl;
 @useResult
 $Res call({
- String id, String exerciseId, String name, String gifUrl, String bodyPart, int order, int? targetSets, int? targetReps, List<SessionSet> sets, LastPerformance? lastPerformance
+ String id, String exerciseId, String name, String gifUrl, String bodyPart, int order, int? targetSets, int? targetReps, List<SessionSet> sets, LastPerformance? lastPerformance, Suggestion? suggestion
 });
 
 
-$LastPerformanceCopyWith<$Res>? get lastPerformance;
+$LastPerformanceCopyWith<$Res>? get lastPerformance;$SuggestionCopyWith<$Res>? get suggestion;
 
 }
 /// @nodoc
@@ -374,7 +374,7 @@ class _$SessionExerciseCopyWithImpl<$Res>
 
 /// Create a copy of SessionExercise
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? exerciseId = null,Object? name = null,Object? gifUrl = null,Object? bodyPart = null,Object? order = null,Object? targetSets = freezed,Object? targetReps = freezed,Object? sets = null,Object? lastPerformance = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? exerciseId = null,Object? name = null,Object? gifUrl = null,Object? bodyPart = null,Object? order = null,Object? targetSets = freezed,Object? targetReps = freezed,Object? sets = null,Object? lastPerformance = freezed,Object? suggestion = freezed,}) {
   return _then(SessionExercise(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,exerciseId: null == exerciseId ? _self.exerciseId : exerciseId // ignore: cast_nullable_to_non_nullable
@@ -386,7 +386,8 @@ as int,targetSets: freezed == targetSets ? _self.targetSets : targetSets // igno
 as int?,targetReps: freezed == targetReps ? _self.targetReps : targetReps // ignore: cast_nullable_to_non_nullable
 as int?,sets: null == sets ? _self.sets : sets // ignore: cast_nullable_to_non_nullable
 as List<SessionSet>,lastPerformance: freezed == lastPerformance ? _self.lastPerformance : lastPerformance // ignore: cast_nullable_to_non_nullable
-as LastPerformance?,
+as LastPerformance?,suggestion: freezed == suggestion ? _self.suggestion : suggestion // ignore: cast_nullable_to_non_nullable
+as Suggestion?,
   ));
 }
 /// Create a copy of SessionExercise
@@ -400,6 +401,18 @@ $LastPerformanceCopyWith<$Res>? get lastPerformance {
 
   return $LastPerformanceCopyWith<$Res>(_self.lastPerformance!, (value) {
     return _then(_self.copyWith(lastPerformance: value));
+  });
+}/// Create a copy of SessionExercise
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SuggestionCopyWith<$Res>? get suggestion {
+    if (_self.suggestion == null) {
+    return null;
+  }
+
+  return $SuggestionCopyWith<$Res>(_self.suggestion!, (value) {
+    return _then(_self.copyWith(suggestion: value));
   });
 }
 }
@@ -483,10 +496,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String exerciseId,  String name,  String gifUrl,  String bodyPart,  int order,  int? targetSets,  int? targetReps,  List<SessionSet> sets,  LastPerformance? lastPerformance)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String exerciseId,  String name,  String gifUrl,  String bodyPart,  int order,  int? targetSets,  int? targetReps,  List<SessionSet> sets,  LastPerformance? lastPerformance,  Suggestion? suggestion)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SessionExercise() when $default != null:
-return $default(_that.id,_that.exerciseId,_that.name,_that.gifUrl,_that.bodyPart,_that.order,_that.targetSets,_that.targetReps,_that.sets,_that.lastPerformance);case _:
+return $default(_that.id,_that.exerciseId,_that.name,_that.gifUrl,_that.bodyPart,_that.order,_that.targetSets,_that.targetReps,_that.sets,_that.lastPerformance,_that.suggestion);case _:
   return orElse();
 
 }
@@ -504,10 +517,10 @@ return $default(_that.id,_that.exerciseId,_that.name,_that.gifUrl,_that.bodyPart
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String exerciseId,  String name,  String gifUrl,  String bodyPart,  int order,  int? targetSets,  int? targetReps,  List<SessionSet> sets,  LastPerformance? lastPerformance)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String exerciseId,  String name,  String gifUrl,  String bodyPart,  int order,  int? targetSets,  int? targetReps,  List<SessionSet> sets,  LastPerformance? lastPerformance,  Suggestion? suggestion)  $default,) {final _that = this;
 switch (_that) {
 case _SessionExercise():
-return $default(_that.id,_that.exerciseId,_that.name,_that.gifUrl,_that.bodyPart,_that.order,_that.targetSets,_that.targetReps,_that.sets,_that.lastPerformance);case _:
+return $default(_that.id,_that.exerciseId,_that.name,_that.gifUrl,_that.bodyPart,_that.order,_that.targetSets,_that.targetReps,_that.sets,_that.lastPerformance,_that.suggestion);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -524,10 +537,10 @@ return $default(_that.id,_that.exerciseId,_that.name,_that.gifUrl,_that.bodyPart
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String exerciseId,  String name,  String gifUrl,  String bodyPart,  int order,  int? targetSets,  int? targetReps,  List<SessionSet> sets,  LastPerformance? lastPerformance)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String exerciseId,  String name,  String gifUrl,  String bodyPart,  int order,  int? targetSets,  int? targetReps,  List<SessionSet> sets,  LastPerformance? lastPerformance,  Suggestion? suggestion)?  $default,) {final _that = this;
 switch (_that) {
 case _SessionExercise() when $default != null:
-return $default(_that.id,_that.exerciseId,_that.name,_that.gifUrl,_that.bodyPart,_that.order,_that.targetSets,_that.targetReps,_that.sets,_that.lastPerformance);case _:
+return $default(_that.id,_that.exerciseId,_that.name,_that.gifUrl,_that.bodyPart,_that.order,_that.targetSets,_that.targetReps,_that.sets,_that.lastPerformance,_that.suggestion);case _:
   return null;
 
 }
@@ -539,7 +552,7 @@ return $default(_that.id,_that.exerciseId,_that.name,_that.gifUrl,_that.bodyPart
 @JsonSerializable()
 
 class _SessionExercise extends SessionExercise {
-  const _SessionExercise({required this.id, required this.exerciseId, required this.name, required this.gifUrl, required this.bodyPart, required this.order, this.targetSets, this.targetReps,  List<SessionSet> sets = const [], this.lastPerformance}): _sets = sets,super._();
+  const _SessionExercise({required this.id, required this.exerciseId, required this.name, required this.gifUrl, required this.bodyPart, required this.order, this.targetSets, this.targetReps,  List<SessionSet> sets = const [], this.lastPerformance, this.suggestion}): _sets = sets,super._();
   factory _SessionExercise.fromJson(Map<String, dynamic> json) => _$SessionExerciseFromJson(json);
 
 @override final  String id;
@@ -558,6 +571,7 @@ class _SessionExercise extends SessionExercise {
 }
 
 @override final  LastPerformance? lastPerformance;
+@override final  Suggestion? suggestion;
 
 /// Create a copy of SessionExercise
 /// with the given fields replaced by the non-null parameter values.
@@ -572,18 +586,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SessionExercise&&(identical(other.id, id) || other.id == id)&&(identical(other.exerciseId, exerciseId) || other.exerciseId == exerciseId)&&(identical(other.name, name) || other.name == name)&&(identical(other.gifUrl, gifUrl) || other.gifUrl == gifUrl)&&(identical(other.bodyPart, bodyPart) || other.bodyPart == bodyPart)&&(identical(other.order, order) || other.order == order)&&(identical(other.targetSets, targetSets) || other.targetSets == targetSets)&&(identical(other.targetReps, targetReps) || other.targetReps == targetReps)&&const DeepCollectionEquality().equals(other.sets, _sets)&&(identical(other.lastPerformance, lastPerformance) || other.lastPerformance == lastPerformance));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SessionExercise&&(identical(other.id, id) || other.id == id)&&(identical(other.exerciseId, exerciseId) || other.exerciseId == exerciseId)&&(identical(other.name, name) || other.name == name)&&(identical(other.gifUrl, gifUrl) || other.gifUrl == gifUrl)&&(identical(other.bodyPart, bodyPart) || other.bodyPart == bodyPart)&&(identical(other.order, order) || other.order == order)&&(identical(other.targetSets, targetSets) || other.targetSets == targetSets)&&(identical(other.targetReps, targetReps) || other.targetReps == targetReps)&&const DeepCollectionEquality().equals(other.sets, _sets)&&(identical(other.lastPerformance, lastPerformance) || other.lastPerformance == lastPerformance)&&(identical(other.suggestion, suggestion) || other.suggestion == suggestion));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,exerciseId,name,gifUrl,bodyPart,order,targetSets,targetReps,const DeepCollectionEquality().hash(_sets),lastPerformance);
+    return Object.hash(runtimeType,id,exerciseId,name,gifUrl,bodyPart,order,targetSets,targetReps,const DeepCollectionEquality().hash(_sets),lastPerformance,suggestion);
 }
 
 @override
 String toString() {
-    return 'SessionExercise(id: $id, exerciseId: $exerciseId, name: $name, gifUrl: $gifUrl, bodyPart: $bodyPart, order: $order, targetSets: $targetSets, targetReps: $targetReps, sets: $sets, lastPerformance: $lastPerformance)';
+    return 'SessionExercise(id: $id, exerciseId: $exerciseId, name: $name, gifUrl: $gifUrl, bodyPart: $bodyPart, order: $order, targetSets: $targetSets, targetReps: $targetReps, sets: $sets, lastPerformance: $lastPerformance, suggestion: $suggestion)';
 }
 
 
@@ -594,11 +608,11 @@ abstract mixin class _$SessionExerciseCopyWith<$Res> implements $SessionExercise
   factory _$SessionExerciseCopyWith(_SessionExercise value, $Res Function(_SessionExercise) _then) = __$SessionExerciseCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String exerciseId, String name, String gifUrl, String bodyPart, int order, int? targetSets, int? targetReps, List<SessionSet> sets, LastPerformance? lastPerformance
+ String id, String exerciseId, String name, String gifUrl, String bodyPart, int order, int? targetSets, int? targetReps, List<SessionSet> sets, LastPerformance? lastPerformance, Suggestion? suggestion
 });
 
 
-@override $LastPerformanceCopyWith<$Res>? get lastPerformance;
+@override $LastPerformanceCopyWith<$Res>? get lastPerformance;@override $SuggestionCopyWith<$Res>? get suggestion;
 
 }
 /// @nodoc
@@ -611,7 +625,7 @@ class __$SessionExerciseCopyWithImpl<$Res>
 
 /// Create a copy of SessionExercise
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? exerciseId = null,Object? name = null,Object? gifUrl = null,Object? bodyPart = null,Object? order = null,Object? targetSets = freezed,Object? targetReps = freezed,Object? sets = null,Object? lastPerformance = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? exerciseId = null,Object? name = null,Object? gifUrl = null,Object? bodyPart = null,Object? order = null,Object? targetSets = freezed,Object? targetReps = freezed,Object? sets = null,Object? lastPerformance = freezed,Object? suggestion = freezed,}) {
   return _then(_SessionExercise(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,exerciseId: null == exerciseId ? _self.exerciseId : exerciseId // ignore: cast_nullable_to_non_nullable
@@ -623,7 +637,8 @@ as int,targetSets: freezed == targetSets ? _self.targetSets : targetSets // igno
 as int?,targetReps: freezed == targetReps ? _self.targetReps : targetReps // ignore: cast_nullable_to_non_nullable
 as int?,sets: null == sets ? _self._sets : sets // ignore: cast_nullable_to_non_nullable
 as List<SessionSet>,lastPerformance: freezed == lastPerformance ? _self.lastPerformance : lastPerformance // ignore: cast_nullable_to_non_nullable
-as LastPerformance?,
+as LastPerformance?,suggestion: freezed == suggestion ? _self.suggestion : suggestion // ignore: cast_nullable_to_non_nullable
+as Suggestion?,
   ));
 }
 
@@ -638,6 +653,18 @@ $LastPerformanceCopyWith<$Res>? get lastPerformance {
 
   return $LastPerformanceCopyWith<$Res>(_self.lastPerformance!, (value) {
     return _then(_self.copyWith(lastPerformance: value));
+  });
+}/// Create a copy of SessionExercise
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SuggestionCopyWith<$Res>? get suggestion {
+    if (_self.suggestion == null) {
+    return null;
+  }
+
+  return $SuggestionCopyWith<$Res>(_self.suggestion!, (value) {
+    return _then(_self.copyWith(suggestion: value));
   });
 }
 }
@@ -1194,6 +1221,282 @@ class __$LastPerformanceCopyWithImpl<$Res>
 performedAt: null == performedAt ? _self.performedAt : performedAt // ignore: cast_nullable_to_non_nullable
 as DateTime,sets: null == sets ? _self._sets : sets // ignore: cast_nullable_to_non_nullable
 as List<SessionSet>,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$Suggestion {
+
+ double? get weightKg; int get reps; SuggestionReason get reason;
+/// Create a copy of Suggestion
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SuggestionCopyWith<Suggestion> get copyWith => _$SuggestionCopyWithImpl<Suggestion>(this as Suggestion, _$identity);
+
+  /// Serializes this Suggestion to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as Suggestion;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Suggestion&&(identical(other.weightKg, _this.weightKg) || other.weightKg == _this.weightKg)&&(identical(other.reps, _this.reps) || other.reps == _this.reps)&&(identical(other.reason, _this.reason) || other.reason == _this.reason));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as Suggestion;
+  return Object.hash(runtimeType,_this.weightKg,_this.reps,_this.reason);
+}
+
+@override
+String toString() {
+  final _this = this as Suggestion;
+  return 'Suggestion(weightKg: ${_this.weightKg}, reps: ${_this.reps}, reason: ${_this.reason})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SuggestionCopyWith<$Res>  {
+  factory $SuggestionCopyWith(Suggestion value, $Res Function(Suggestion) _then) = _$SuggestionCopyWithImpl;
+@useResult
+$Res call({
+ double? weightKg, int reps, SuggestionReason reason
+});
+
+
+
+
+}
+/// @nodoc
+class _$SuggestionCopyWithImpl<$Res>
+    implements $SuggestionCopyWith<$Res> {
+  _$SuggestionCopyWithImpl(this._self, this._then);
+
+  final Suggestion _self;
+  final $Res Function(Suggestion) _then;
+
+/// Create a copy of Suggestion
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? weightKg = freezed,Object? reps = null,Object? reason = null,}) {
+  return _then(Suggestion(
+weightKg: freezed == weightKg ? _self.weightKg : weightKg // ignore: cast_nullable_to_non_nullable
+as double?,reps: null == reps ? _self.reps : reps // ignore: cast_nullable_to_non_nullable
+as int,reason: null == reason ? _self.reason : reason // ignore: cast_nullable_to_non_nullable
+as SuggestionReason,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [Suggestion].
+extension SuggestionPatterns on Suggestion {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _Suggestion value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _Suggestion() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _Suggestion value)  $default,){
+final _that = this;
+switch (_that) {
+case _Suggestion():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _Suggestion value)?  $default,){
+final _that = this;
+switch (_that) {
+case _Suggestion() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double? weightKg,  int reps,  SuggestionReason reason)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _Suggestion() when $default != null:
+return $default(_that.weightKg,_that.reps,_that.reason);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double? weightKg,  int reps,  SuggestionReason reason)  $default,) {final _that = this;
+switch (_that) {
+case _Suggestion():
+return $default(_that.weightKg,_that.reps,_that.reason);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double? weightKg,  int reps,  SuggestionReason reason)?  $default,) {final _that = this;
+switch (_that) {
+case _Suggestion() when $default != null:
+return $default(_that.weightKg,_that.reps,_that.reason);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _Suggestion extends Suggestion {
+  const _Suggestion({this.weightKg, required this.reps, required this.reason}): super._();
+  factory _Suggestion.fromJson(Map<String, dynamic> json) => _$SuggestionFromJson(json);
+
+@override final  double? weightKg;
+@override final  int reps;
+@override final  SuggestionReason reason;
+
+/// Create a copy of Suggestion
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SuggestionCopyWith<_Suggestion> get copyWith => __$SuggestionCopyWithImpl<_Suggestion>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SuggestionToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Suggestion&&(identical(other.weightKg, weightKg) || other.weightKg == weightKg)&&(identical(other.reps, reps) || other.reps == reps)&&(identical(other.reason, reason) || other.reason == reason));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,weightKg,reps,reason);
+}
+
+@override
+String toString() {
+    return 'Suggestion(weightKg: $weightKg, reps: $reps, reason: $reason)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SuggestionCopyWith<$Res> implements $SuggestionCopyWith<$Res> {
+  factory _$SuggestionCopyWith(_Suggestion value, $Res Function(_Suggestion) _then) = __$SuggestionCopyWithImpl;
+@override @useResult
+$Res call({
+ double? weightKg, int reps, SuggestionReason reason
+});
+
+
+
+
+}
+/// @nodoc
+class __$SuggestionCopyWithImpl<$Res>
+    implements _$SuggestionCopyWith<$Res> {
+  __$SuggestionCopyWithImpl(this._self, this._then);
+
+  final _Suggestion _self;
+  final $Res Function(_Suggestion) _then;
+
+/// Create a copy of Suggestion
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? weightKg = freezed,Object? reps = null,Object? reason = null,}) {
+  return _then(_Suggestion(
+weightKg: freezed == weightKg ? _self.weightKg : weightKg // ignore: cast_nullable_to_non_nullable
+as double?,reps: null == reps ? _self.reps : reps // ignore: cast_nullable_to_non_nullable
+as int,reason: null == reason ? _self.reason : reason // ignore: cast_nullable_to_non_nullable
+as SuggestionReason,
   ));
 }
 

@@ -5,10 +5,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FitPlan.Api.Services.WorkoutSessions;
 
-// "آخر مرة": for each exercise, the sets the user did in the latest COMPLETED session that had it.
+// "آخر مرة": for each exercise, the sets the user did in the latest COMPLETED session that had it,
+// plus the sets of the one before (the overload rules need two workouts to spot a slump).
+public record ExerciseHistory(LastPerformanceDto Last, SessionSetResponseDto[]? PreviousSets);
+
 public static class LastPerformanceQuery
 {
-    public static async Task<Dictionary<string, LastPerformanceDto>> GetAsync(
+    public static async Task<Dictionary<string, ExerciseHistory>> GetAsync(
         FitPlanDbContext context,
         Guid userId,
         IReadOnlyCollection<string> exerciseIds)
@@ -18,8 +21,8 @@ public static class LastPerformanceQuery
             return [];
         }
 
-        // 1. for each exercise, the id of its latest completed session exercise
-        var latestSessionExerciseIds = await context.SessionExercises
+        // 1. for each exercise, the ids of its two latest completed session exercises
+        var latest = await context.SessionExercises
             .Where(se => exerciseIds.Contains(se.ExerciseId)
                 && se.WorkoutSession.UserId == userId
                 && se.WorkoutSession.CompletedAt != null)
@@ -27,13 +30,16 @@ public static class LastPerformanceQuery
             .Select(group => group
                 .OrderByDescending(se => se.WorkoutSession.CompletedAt)
                 .Select(se => se.Id)
-                .First())
+                .Take(2)
+                .ToList())
             .ToListAsync();
 
+        var ids = latest.SelectMany(pair => pair).ToList();
+
         // 2. load their sets
-        var lastPerformances = await context.SessionExercises
+        var rows = await context.SessionExercises
             .AsNoTracking()
-            .Where(se => latestSessionExerciseIds.Contains(se.Id))
+            .Where(se => ids.Contains(se.Id))
             .Select(se => new
             {
                 se.ExerciseId,
@@ -51,12 +57,16 @@ public static class LastPerformanceQuery
             })
             .ToListAsync();
 
-        return lastPerformances.ToDictionary(
-            item => item.ExerciseId,
-            item => new LastPerformanceDto
-            {
-                PerformedAt = item.PerformedAt,
-                Sets = item.Sets
-            });
+        return rows
+            .GroupBy(row => row.ExerciseId)
+            .ToDictionary(
+                group => group.Key,
+                group =>
+                {
+                    var ordered = group.OrderByDescending(row => row.PerformedAt).ToList();
+                    return new ExerciseHistory(
+                        new LastPerformanceDto { PerformedAt = ordered[0].PerformedAt, Sets = ordered[0].Sets },
+                        ordered.ElementAtOrDefault(1)?.Sets);
+                });
     }
 }

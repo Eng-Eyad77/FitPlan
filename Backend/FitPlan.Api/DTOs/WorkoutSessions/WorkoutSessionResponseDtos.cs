@@ -47,6 +47,9 @@ public class SessionExerciseResponseDto
     // what the user did the last time with this exercise ("آخر مرة").
     // Only filled while the session is in progress, null if never done before.
     public LastPerformanceDto? LastPerformance { get; set; }
+
+    // what to try today, from the last time. Same lifetime as LastPerformance.
+    public SuggestionDto? Suggestion { get; set; }
 }
 
 
@@ -67,6 +70,26 @@ public class LastPerformanceDto
     public DateTime PerformedAt { get; set; }
 
     public SessionSetResponseDto[] Sets { get; set; } = [];
+}
+
+
+public enum SuggestionReason
+{
+    IncreaseWeight = 1, // every target rep was hit last time
+    RepeatWeight,       // same weight, beat the reps
+    Deload,             // two weak workouts in a row
+    MoreReps            // bodyweight exercise
+}
+
+
+public class SuggestionDto
+{
+    // null for a bodyweight exercise
+    public decimal? WeightKg { get; set; }
+
+    public int Reps { get; set; }
+
+    public SuggestionReason Reason { get; set; }
 }
 
 

@@ -60,6 +60,9 @@ _SessionExercise _$SessionExerciseFromJson(Map<String, dynamic> json) =>
           : LastPerformance.fromJson(
               json['lastPerformance'] as Map<String, dynamic>,
             ),
+      suggestion: json['suggestion'] == null
+          ? null
+          : Suggestion.fromJson(json['suggestion'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$SessionExerciseToJson(_SessionExercise instance) =>
@@ -74,6 +77,7 @@ Map<String, dynamic> _$SessionExerciseToJson(_SessionExercise instance) =>
       'targetReps': instance.targetReps,
       'sets': instance.sets,
       'lastPerformance': instance.lastPerformance,
+      'suggestion': instance.suggestion,
     };
 
 _SessionSet _$SessionSetFromJson(Map<String, dynamic> json) => _SessionSet(
@@ -106,6 +110,26 @@ Map<String, dynamic> _$LastPerformanceToJson(_LastPerformance instance) =>
       'performedAt': instance.performedAt.toIso8601String(),
       'sets': instance.sets,
     };
+
+_Suggestion _$SuggestionFromJson(Map<String, dynamic> json) => _Suggestion(
+  weightKg: (json['weightKg'] as num?)?.toDouble(),
+  reps: (json['reps'] as num).toInt(),
+  reason: $enumDecode(_$SuggestionReasonEnumMap, json['reason']),
+);
+
+Map<String, dynamic> _$SuggestionToJson(_Suggestion instance) =>
+    <String, dynamic>{
+      'weightKg': instance.weightKg,
+      'reps': instance.reps,
+      'reason': _$SuggestionReasonEnumMap[instance.reason]!,
+    };
+
+const _$SuggestionReasonEnumMap = {
+  SuggestionReason.increaseWeight: 'IncreaseWeight',
+  SuggestionReason.repeatWeight: 'RepeatWeight',
+  SuggestionReason.deload: 'Deload',
+  SuggestionReason.moreReps: 'MoreReps',
+};
 
 _CardioEntry _$CardioEntryFromJson(Map<String, dynamic> json) => _CardioEntry(
   id: json['id'] as String,

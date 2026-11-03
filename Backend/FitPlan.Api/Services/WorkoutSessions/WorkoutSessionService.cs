@@ -211,13 +211,13 @@ public class WorkoutSessionService(FitPlanDbContext context) : IWorkoutSessionSe
             return null;
         }
 
-        var lastPerformance = session.CompletedAt is null
+        var history = session.CompletedAt is null
             ? await LastPerformanceQuery.GetAsync(
                 context,
                 userId,
                 session.Exercises.Select(e => e.ExerciseId).ToList())
             : [];
 
-        return WorkoutSessionMappings.ToSessionDto(session, lastPerformance);
+        return WorkoutSessionMappings.ToSessionDto(session, history);
     }
 }

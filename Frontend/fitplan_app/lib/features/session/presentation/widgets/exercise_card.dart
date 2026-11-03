@@ -58,12 +58,15 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard> {
   SessionSet? _lastTime(int setNumber) =>
       _exercise.lastPerformance?.sets.where((s) => s.setNumber == setNumber).firstOrNull;
 
-  /// What to pre-fill: carry on from the set just done, else last time, else the target.
+  /// What to pre-fill: carry on from the set just done, else today's suggestion,
+  /// else last time, else the target.
   ({double? kg, int? reps}) _prefill(int setNumber) {
     if (_exercise.sets.isNotEmpty) {
       final previous = _exercise.sets.last;
       return (kg: previous.weightKg, reps: previous.reps);
     }
+    final suggestion = _exercise.suggestion;
+    if (suggestion != null) return (kg: suggestion.weightKg, reps: suggestion.reps);
     final last = _lastTime(setNumber) ?? _exercise.lastPerformance?.sets.lastOrNull;
     if (last != null) return (kg: last.weightKg, reps: last.reps);
     return (kg: null, reps: _exercise.targetReps);
@@ -182,6 +185,10 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard> {
           ),
           const SizedBox(height: AppSpacing.lg),
           _LastTime(last: _exercise.lastPerformance),
+          if (_exercise.suggestion case final suggestion?) ...[
+            const SizedBox(height: AppSpacing.md),
+            _SuggestionLine(suggestion: suggestion, lastTop: _topWeight(_exercise.lastPerformance)),
+          ],
           const SizedBox(height: AppSpacing.lg),
           const SetTableHeader(),
           const SizedBox(height: AppSpacing.sm),
@@ -234,6 +241,70 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard> {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+double? _topWeight(LastPerformance? last) => last?.sets
+    .map((s) => s.weightKg)
+    .whereType<double>()
+    .fold<double?>(null, (max, w) => max == null || w > max ? w : max);
+
+/// "Today 62.5 kg × 10  +2.5 · you hit every rep last time"
+class _SuggestionLine extends StatelessWidget {
+  const _SuggestionLine({required this.suggestion, required this.lastTop});
+
+  final Suggestion suggestion;
+  final double? lastTop;
+
+  @override
+  Widget build(BuildContext context) {
+    final kg = suggestion.weightKg;
+    final change = kg != null && lastTop != null ? kg - lastTop! : 0;
+    final target = kg == null ? '${suggestion.reps} reps' : '${formatKg(kg)} kg × ${suggestion.reps}';
+
+    return Semantics(
+      label: 'Suggested today: $target, ${suggestion.why}',
+      excludeSemantics: true,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 10),
+        decoration: BoxDecoration(
+          color: AppColors.accentTint(),
+          borderRadius: BorderRadius.circular(AppRadius.md),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.lightbulb_outline_rounded, color: AppColors.accent, size: 20),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        const TextSpan(text: 'Today  '),
+                        TextSpan(text: target, style: const TextStyle(color: AppColors.textPrimary)),
+                        if (change != 0)
+                          TextSpan(
+                            text: '  ${change > 0 ? '+' : '−'}${formatKg(change.abs().toDouble())}',
+                            style: const TextStyle(color: AppColors.accent),
+                          ),
+                      ],
+                    ),
+                    style: AppText.bodyStrong.copyWith(
+                      color: AppColors.textSecondary,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(capitalize(suggestion.why), style: AppText.caption),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

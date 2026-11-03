@@ -12,7 +12,7 @@ public static class WorkoutSessionMappings
     // Expects Exercises (with Exercise and Sets) and CardioEntries to be loaded.
     public static WorkoutSessionResponseDto ToSessionDto(
         WorkoutSession session,
-        IReadOnlyDictionary<string, LastPerformanceDto> lastPerformance) => new()
+        IReadOnlyDictionary<string, ExerciseHistory> history) => new()
     {
         Id = session.Id,
         Name = session.Name,
@@ -22,7 +22,7 @@ public static class WorkoutSessionMappings
         Notes = session.Notes,
         Exercises = session.Exercises
             .OrderBy(e => e.Order)
-            .Select(e => ToExerciseDto(e, lastPerformance.GetValueOrDefault(e.ExerciseId)))
+            .Select(e => ToExerciseDto(e, history.GetValueOrDefault(e.ExerciseId)))
             .ToArray(),
         Cardio = session.CardioEntries
             .OrderBy(c => c.RecordedAt)
@@ -31,7 +31,7 @@ public static class WorkoutSessionMappings
     };
 
     // Expects Exercise and Sets to be loaded.
-    public static SessionExerciseResponseDto ToExerciseDto(SessionExercise sessionExercise, LastPerformanceDto? lastPerformance) => new()
+    public static SessionExerciseResponseDto ToExerciseDto(SessionExercise sessionExercise, ExerciseHistory? history) => new()
     {
         Id = sessionExercise.Id,
         ExerciseId = sessionExercise.ExerciseId,
@@ -45,7 +45,16 @@ public static class WorkoutSessionMappings
             .OrderBy(s => s.SetNumber)
             .Select(ToSetDto)
             .ToArray(),
-        LastPerformance = lastPerformance
+        LastPerformance = history?.Last,
+        Suggestion = history is null
+            ? null
+            : OverloadRules.Suggest(
+                sessionExercise.Exercise.Name,
+                sessionExercise.Exercise.BodyPart,
+                sessionExercise.TargetSets,
+                sessionExercise.TargetReps,
+                history.Last.Sets,
+                history.PreviousSets)
     };
 
     public static SessionSetResponseDto ToSetDto(SessionSet set) => new()

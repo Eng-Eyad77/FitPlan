@@ -42,6 +42,7 @@ abstract class SessionExercise with _$SessionExercise {
     int? targetReps,
     @Default([]) List<SessionSet> sets,
     LastPerformance? lastPerformance,
+    Suggestion? suggestion,
   }) = _SessionExercise;
 
   factory SessionExercise.fromJson(Map<String, dynamic> json) => _$SessionExerciseFromJson(json);
@@ -71,6 +72,39 @@ abstract class LastPerformance with _$LastPerformance {
   }) = _LastPerformance;
 
   factory LastPerformance.fromJson(Map<String, dynamic> json) => _$LastPerformanceFromJson(json);
+}
+
+enum SuggestionReason {
+  @JsonValue('IncreaseWeight')
+  increaseWeight,
+  @JsonValue('RepeatWeight')
+  repeatWeight,
+  @JsonValue('Deload')
+  deload,
+  @JsonValue('MoreReps')
+  moreReps,
+}
+
+/// What to try today, worked out by the API from the last two times.
+@freezed
+abstract class Suggestion with _$Suggestion {
+  const Suggestion._();
+
+  const factory Suggestion({
+    double? weightKg,
+    required int reps,
+    required SuggestionReason reason,
+  }) = _Suggestion;
+
+  factory Suggestion.fromJson(Map<String, dynamic> json) => _$SuggestionFromJson(json);
+
+  /// Why, in a few words.
+  String get why => switch (reason) {
+        SuggestionReason.increaseWeight => 'you hit every rep last time',
+        SuggestionReason.repeatWeight => 'same weight, beat the reps',
+        SuggestionReason.deload => 'lighter to recover after two tough workouts',
+        SuggestionReason.moreReps => 'one more rep than your best',
+      };
 }
 
 enum CardioMachine {

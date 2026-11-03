@@ -65,10 +65,10 @@ public class SessionExerciseService(FitPlanDbContext context) : ISessionExercise
 
         sessionExercise.Exercise = exercise;
 
-        var lastPerformance = await LastPerformanceQuery.GetAsync(context, userId, [exercise.Id]);
+        var history = await LastPerformanceQuery.GetAsync(context, userId, [exercise.Id]);
 
         return Result<SessionExerciseResponseDto>.Success(
-            WorkoutSessionMappings.ToExerciseDto(sessionExercise, lastPerformance.GetValueOrDefault(exercise.Id)));
+            WorkoutSessionMappings.ToExerciseDto(sessionExercise, history.GetValueOrDefault(exercise.Id)));
     }
 
 
