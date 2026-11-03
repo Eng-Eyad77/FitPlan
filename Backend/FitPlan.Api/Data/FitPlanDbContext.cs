@@ -19,6 +19,16 @@ public class FitPlanDbContext : DbContext
 
     public DbSet<WorkoutPlanExercise> WorkoutPlanExercises => Set<WorkoutPlanExercise>();
 
+    public DbSet<WorkoutSession> WorkoutSessions => Set<WorkoutSession>();
+
+    public DbSet<SessionExercise> SessionExercises => Set<SessionExercise>();
+
+    public DbSet<SessionSet> SessionSets => Set<SessionSet>();
+
+    public DbSet<CardioEntry> CardioEntries => Set<CardioEntry>();
+
+    public DbSet<BodyWeightEntry> BodyWeightEntries => Set<BodyWeightEntry>();
+
 
     // Applies to every DateTime property in every entity, including ones we add later.
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
