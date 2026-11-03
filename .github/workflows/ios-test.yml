@@ -1,0 +1,37 @@
+# Builds an UNSIGNED iPhone .ipa on a GitHub macOS runner, for installing with Sideloadly and a free Apple ID.
+# Run it from the Actions tab ("iPhone test build" → Run workflow). Same steps as the ios-test workflow in codemagic.yaml.
+name: iPhone test build
+
+on:
+  workflow_dispatch:
+    inputs:
+      api_base_url:
+        description: API address the app talks to (your PC on the same Wi-Fi)
+        default: http://192.168.1.13:5264
+
+jobs:
+  ios:
+    runs-on: macos-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: Frontend/fitplan_app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      # the generated .freezed.dart / .g.dart files are committed, so no build_runner step
+      - run: flutter pub get
+      - name: Build the app without signing (Sideloadly signs it with your Apple ID)
+        run: flutter build ios --release --no-codesign --dart-define=API_BASE_URL=${{ inputs.api_base_url }}
+      - name: Package as .ipa
+        run: |
+          mkdir -p build/ios/ipa/Payload
+          cp -R build/ios/iphoneos/Runner.app build/ios/ipa/Payload/
+          cd build/ios/ipa && zip -qr FitPlan-test.ipa Payload
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FitPlan-test-ipa
+          path: Frontend/fitplan_app/build/ios/ipa/FitPlan-test.ipa
