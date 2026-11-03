@@ -13,47 +13,31 @@ public class WorkoutPlanExerciseService(FitPlanDbContext context) : IWorkoutPlan
 {
     public async Task<Result<WorkoutPlanExerciseResponseDto>> AddExerciseToPlanAsync(Guid userId, Guid planId, AddWorkoutPlanExerciseDto dto)
     {
-        var planExists = await context.WorkoutPlans
-        .AnyAsync(p => p.Id == planId && p.UserId == userId);
+        var plan = await FindUserPlanAsync(userId, planId);
 
-        if (!planExists)
+        if (plan is null)
         {
-            return Result<WorkoutPlanExerciseResponseDto>.Failure(
-                "Workout plan not found.",
-                ErrorCodes.WorkoutPlanNotFound);
+            return Result<WorkoutPlanExerciseResponseDto>.Failure(Errors.WorkoutPlanNotFound);
         }
 
-
         var exercise = await context.Exercises
-        .AsNoTracking()
-        .FirstOrDefaultAsync(e => e.Id == dto.ExerciseId);
-
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.Id == dto.ExerciseId);
 
         if (exercise is null)
         {
-            return Result<WorkoutPlanExerciseResponseDto>.Failure(
-                "Exercise not found.",
-                 ErrorCodes.ExerciseNotFound);
-
+            return Result<WorkoutPlanExerciseResponseDto>.Failure(Errors.ExerciseNotFound);
         }
 
-
-
-
         var exerciseAlreadyExists = await context.WorkoutPlanExercises
-         .AnyAsync(x =>
-          x.WorkoutPlanId == planId &&
-          x.ExerciseId == dto.ExerciseId);
+            .AnyAsync(x => x.WorkoutPlanId == planId && x.ExerciseId == dto.ExerciseId);
 
         if (exerciseAlreadyExists)
         {
-            return Result<WorkoutPlanExerciseResponseDto>.Failure(
-                "Exercise already exists in this workout plan.",
-                ErrorCodes.ExerciseAlreadyExists
-            );
+            return Result<WorkoutPlanExerciseResponseDto>.Failure(Errors.ExerciseAlreadyExists);
         }
 
-        var newWorkoutPlanExercises = new WorkoutPlanExercise
+        var newWorkoutPlanExercise = new WorkoutPlanExercise
         {
             Id = Guid.NewGuid(),
             WorkoutPlanId = planId,
@@ -63,7 +47,11 @@ public class WorkoutPlanExerciseService(FitPlanDbContext context) : IWorkoutPlan
             Order = dto.Order
         };
 
-        await context.WorkoutPlanExercises.AddAsync(newWorkoutPlanExercises);
+        context.WorkoutPlanExercises.Add(newWorkoutPlanExercise);
+
+        // changing the plan's exercises is a change to the plan itself
+        plan.UpdatedAt = DateTime.UtcNow;
+
         //if some user click add 2 times maybe save it 2 time so i add condition to database
         // Handle duplicate insert attempts caused by concurrent requests.
         try
@@ -71,27 +59,24 @@ public class WorkoutPlanExerciseService(FitPlanDbContext context) : IWorkoutPlan
             await context.SaveChangesAsync();
         }
         catch (DbUpdateException ex) when (
-           ex.InnerException is SqlException sqlException &&
+            ex.InnerException is SqlException sqlException &&
             (sqlException.Number == 2601 || sqlException.Number == 2627))
         {
-            return Result<WorkoutPlanExerciseResponseDto>.Failure(
-                "Exercise already exists in this workout plan.",
-                ErrorCodes.ExerciseAlreadyExists);
+            return Result<WorkoutPlanExerciseResponseDto>.Failure(Errors.ExerciseAlreadyExists);
         }
 
         var response = new WorkoutPlanExerciseResponseDto
         {
-            Id = newWorkoutPlanExercises.Id,
-            ExerciseId = dto.ExerciseId,
+            Id = newWorkoutPlanExercise.Id,
+            ExerciseId = exercise.Id,
             Name = exercise.Name,
             GifUrl = exercise.GifUrl,
             Instructions = exercise.Instructions,
             BodyPart = exercise.BodyPart,
-            Sets = dto.Sets,
-            Reps = dto.Reps,
-            Order = dto.Order
+            Sets = newWorkoutPlanExercise.Sets,
+            Reps = newWorkoutPlanExercise.Reps,
+            Order = newWorkoutPlanExercise.Order
         };
-
 
         return Result<WorkoutPlanExerciseResponseDto>.Success(response);
     }
@@ -100,124 +85,104 @@ public class WorkoutPlanExerciseService(FitPlanDbContext context) : IWorkoutPlan
     public async Task<Result<WorkoutPlanExerciseResponseDto[]>> GetPlanExercisesAsync(Guid userId, Guid planId)
     {
         var planExists = await context.WorkoutPlans
-        .AnyAsync(p => p.Id == planId && p.UserId == userId);
+            .AnyAsync(p => p.Id == planId && p.UserId == userId);
 
         if (!planExists)
         {
-            return Result<WorkoutPlanExerciseResponseDto[]>.Failure(
-                "Workout plan not found.",
-                ErrorCodes.WorkoutPlanNotFound);
+            return Result<WorkoutPlanExerciseResponseDto[]>.Failure(Errors.WorkoutPlanNotFound);
         }
 
-        var bringWorkoutPlanExercise = await context.WorkoutPlanExercises
-        .AsNoTracking()
-        .Where(p => p.WorkoutPlanId == planId)
-        .OrderBy(item => item.Order)
-        .ThenBy(item => item.Id)
-        .Select(item => new WorkoutPlanExerciseResponseDto
-        {
-            Id = item.Id,
-            ExerciseId = item.ExerciseId,
-            Name = item.Exercise.Name,
-            GifUrl = item.Exercise.GifUrl,
-            BodyPart = item.Exercise.BodyPart,
-            Instructions = item.Exercise.Instructions,
-            Sets = item.Sets,
-            Reps = item.Reps,
-            Order = item.Order
+        var planExercises = await context.WorkoutPlanExercises
+            .AsNoTracking()
+            .Where(p => p.WorkoutPlanId == planId)
+            .OrderBy(item => item.Order)
+            .ThenBy(item => item.Id)
+            .Select(item => new WorkoutPlanExerciseResponseDto
+            {
+                Id = item.Id,
+                ExerciseId = item.ExerciseId,
+                Name = item.Exercise.Name,
+                GifUrl = item.Exercise.GifUrl,
+                BodyPart = item.Exercise.BodyPart,
+                Instructions = item.Exercise.Instructions,
+                Sets = item.Sets,
+                Reps = item.Reps,
+                Order = item.Order
+            })
+            .ToArrayAsync();
 
-        }).ToArrayAsync();
-
-
-   
-        return Result<WorkoutPlanExerciseResponseDto[]>.Success(bringWorkoutPlanExercise);
-
-
+        return Result<WorkoutPlanExerciseResponseDto[]>.Success(planExercises);
     }
 
 
- public async Task<Result<WorkoutPlanExerciseResponseDto>> UpdatePlanExerciseAsync(Guid userId, Guid planId, Guid id, UpdateWorkoutPlanExerciseDto dto)
+    public async Task<Result<WorkoutPlanExerciseResponseDto>> UpdatePlanExerciseAsync(Guid userId, Guid planId, Guid id, UpdateWorkoutPlanExerciseDto dto)
     {
-         var planExists =  await context.WorkoutPlans
-        .AnyAsync(p => p.Id == planId && p.UserId == userId);
+        var plan = await FindUserPlanAsync(userId, planId);
 
-        if (!planExists)
+        if (plan is null)
         {
-            return Result<WorkoutPlanExerciseResponseDto>.Failure(
-                "Workout plan not found.",
-                ErrorCodes.WorkoutPlanNotFound);
+            return Result<WorkoutPlanExerciseResponseDto>.Failure(Errors.WorkoutPlanNotFound);
         }
 
+        var planExercise = await context.WorkoutPlanExercises
+            .Include(p => p.Exercise)
+            .FirstOrDefaultAsync(p => p.WorkoutPlanId == planId && p.Id == id);
 
-         var bringWorkoutPlanExercise = await context.WorkoutPlanExercises
-        .Include(p => p.Exercise)
-        .FirstOrDefaultAsync(p => p.WorkoutPlanId == planId && p.Id == id);
-
-
-         if (bringWorkoutPlanExercise is null)
+        if (planExercise is null)
         {
-            return Result<WorkoutPlanExerciseResponseDto>.Failure(
-                "Workout plan not found.",
-                ErrorCodes.WorkoutPlanExerciseNotFound);
+            return Result<WorkoutPlanExerciseResponseDto>.Failure(Errors.WorkoutPlanExerciseNotFound);
         }
 
-        bringWorkoutPlanExercise.Sets = dto.Sets;
-        bringWorkoutPlanExercise.Reps = dto.Reps;
-        bringWorkoutPlanExercise.Order = dto.Order;
-        
+        planExercise.Sets = dto.Sets;
+        planExercise.Reps = dto.Reps;
+        planExercise.Order = dto.Order;
+        plan.UpdatedAt = DateTime.UtcNow;
 
         await context.SaveChangesAsync();
 
-
-         var response = new WorkoutPlanExerciseResponseDto
+        var response = new WorkoutPlanExerciseResponseDto
         {
-            Id = bringWorkoutPlanExercise.Id,
-            ExerciseId =bringWorkoutPlanExercise.ExerciseId,
-            Name = bringWorkoutPlanExercise.Exercise.Name,
-            GifUrl = bringWorkoutPlanExercise.Exercise.GifUrl,
-            Instructions = bringWorkoutPlanExercise.Exercise.Instructions,
-            BodyPart = bringWorkoutPlanExercise.Exercise.BodyPart,
-            Sets = bringWorkoutPlanExercise.Sets,
-            Reps = bringWorkoutPlanExercise.Reps,
-            Order = bringWorkoutPlanExercise.Order
+            Id = planExercise.Id,
+            ExerciseId = planExercise.ExerciseId,
+            Name = planExercise.Exercise.Name,
+            GifUrl = planExercise.Exercise.GifUrl,
+            Instructions = planExercise.Exercise.Instructions,
+            BodyPart = planExercise.Exercise.BodyPart,
+            Sets = planExercise.Sets,
+            Reps = planExercise.Reps,
+            Order = planExercise.Order
         };
 
         return Result<WorkoutPlanExerciseResponseDto>.Success(response);
-
-
-
-
     }
 
     public async Task<Result<bool>> RemoveExerciseFromPlanAsync(Guid userId, Guid planId, Guid id)
     {
-         var planExists =  await context.WorkoutPlans
-        .AnyAsync(p => p.Id == planId && p.UserId == userId);
+        var plan = await FindUserPlanAsync(userId, planId);
 
-        if (!planExists)
+        if (plan is null)
         {
-            return  Result<bool>.Failure(
-                "Workout plan not found.",
-                ErrorCodes.WorkoutPlanNotFound);
+            return Result<bool>.Failure(Errors.WorkoutPlanNotFound);
         }
 
+        var planExercise = await context.WorkoutPlanExercises
+            .FirstOrDefaultAsync(p => p.WorkoutPlanId == planId && p.Id == id);
 
-         var bringWorkoutPlanExercise = await context.WorkoutPlanExercises
-        .FirstOrDefaultAsync(p => p.WorkoutPlanId == planId && p.Id == id);
-
-
-         if (bringWorkoutPlanExercise is null)
+        if (planExercise is null)
         {
-            return Result<bool>.Failure(
-                "Workout plan exercise not found.",
-                ErrorCodes.WorkoutPlanExerciseNotFound);
+            return Result<bool>.Failure(Errors.WorkoutPlanExerciseNotFound);
         }
 
-        context.WorkoutPlanExercises.Remove(bringWorkoutPlanExercise);
+        context.WorkoutPlanExercises.Remove(planExercise);
+        plan.UpdatedAt = DateTime.UtcNow;
         await context.SaveChangesAsync();
 
         return Result<bool>.Success(true);
     }
 
-   
+
+    // Ownership check: the plan must exist AND belong to the authenticated user.
+    // Returned as a tracked entity so the caller can update its UpdatedAt.
+    private Task<WorkoutPlan?> FindUserPlanAsync(Guid userId, Guid planId) =>
+        context.WorkoutPlans.FirstOrDefaultAsync(p => p.Id == planId && p.UserId == userId);
 }

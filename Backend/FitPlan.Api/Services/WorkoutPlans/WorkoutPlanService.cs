@@ -1,3 +1,4 @@
+using FitPlan.Api.Common.Results;
 using FitPlan.Api.Data;
 using FitPlan.Api.DTOs.WorkoutPlans;
 using FitPlan.Api.Models;
@@ -7,13 +8,13 @@ namespace FitPlan.Api.Services.WorkoutPlans;
 
 public class WorkoutPlanService(FitPlanDbContext context) : IWorkoutPlanService
 {
-    public async Task<WorkoutPlanResponseDto?> CreateWorkoutPlanAsync(CreateWorkoutPlanDto createPlan, Guid userId)
+    public async Task<Result<WorkoutPlanResponseDto>> CreateWorkoutPlanAsync(CreateWorkoutPlanDto createPlan, Guid userId)
     {
-        var user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        var userExists = await context.Users.AnyAsync(u => u.Id == userId);
 
-        if (user is null)
+        if (!userExists)
         {
-            return null;
+            return Result<WorkoutPlanResponseDto>.Failure(Errors.UserNotFound);
         }
 
         var newPlan = new WorkoutPlan
@@ -21,8 +22,7 @@ public class WorkoutPlanService(FitPlanDbContext context) : IWorkoutPlanService
             Id = Guid.NewGuid(),
             Name = createPlan.Name,
             Description = createPlan.Description,
-            UserId = user.Id,
-            User = user,
+            UserId = userId,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -30,109 +30,88 @@ public class WorkoutPlanService(FitPlanDbContext context) : IWorkoutPlanService
         context.WorkoutPlans.Add(newPlan);
         await context.SaveChangesAsync();
 
-        return new WorkoutPlanResponseDto
-        {
-            Id = newPlan.Id,
-            Name = newPlan.Name,
-            Description = newPlan.Description,
-            CreatedAt = newPlan.CreatedAt,
-            UpdatedAt = newPlan.UpdatedAt
-        };
+        return Result<WorkoutPlanResponseDto>.Success(ToResponseDto(newPlan));
     }
 
-  
 
+    // This one cannot fail: a user with no plans simply gets an empty array.
     public async Task<WorkoutPlanResponseDto[]> GetAllMyWorkoutPlansAsync(Guid userId)
     {
-        var userPlans = context.WorkoutPlans
-        .Where(allPlans => allPlans.UserId == userId);
-
-        
-       var result = userPlans.Select(plan => new WorkoutPlanResponseDto
-        {
-            Id = plan.Id,
-            Name = plan.Name,
-            Description = plan.Description,
-            CreatedAt = plan.CreatedAt,
-            UpdatedAt = plan.UpdatedAt
-        }).ToArrayAsync();
-
-
-        return await result;
-
+        return await context.WorkoutPlans
+            .AsNoTracking()
+            .Where(plan => plan.UserId == userId)
+            .OrderByDescending(plan => plan.CreatedAt) // newest plan first
+            .Select(plan => new WorkoutPlanResponseDto
+            {
+                Id = plan.Id,
+                Name = plan.Name,
+                Description = plan.Description,
+                CreatedAt = plan.CreatedAt,
+                UpdatedAt = plan.UpdatedAt
+            })
+            .ToArrayAsync();
     }
 
-    public async Task<WorkoutPlanResponseDto?> GetWorkoutPlanByIdAsync(Guid userId, Guid id)
+    public async Task<Result<WorkoutPlanResponseDto>> GetWorkoutPlanByIdAsync(Guid userId, Guid id)
     {
         var specificUserPlan = await context.WorkoutPlans
-        .FirstOrDefaultAsync(plan => plan.Id == id && plan.UserId == userId);
+            .AsNoTracking()
+            .FirstOrDefaultAsync(plan => plan.Id == id && plan.UserId == userId);
 
-        if(specificUserPlan is null)
+        if (specificUserPlan is null)
         {
-            return null;
+            return Result<WorkoutPlanResponseDto>.Failure(Errors.WorkoutPlanNotFound);
         }
 
-        var result = new WorkoutPlanResponseDto
-        {
-            Id = specificUserPlan.Id,
-            Name = specificUserPlan.Name,
-            Description = specificUserPlan.Description,
-            CreatedAt = specificUserPlan.CreatedAt,
-            UpdatedAt = specificUserPlan.UpdatedAt
-        };
-
-        return  result;
-
+        return Result<WorkoutPlanResponseDto>.Success(ToResponseDto(specificUserPlan));
     }
 
-    public async Task<WorkoutPlanResponseDto?> UpdateWorkoutPlanAsync
+    public async Task<Result<WorkoutPlanResponseDto>> UpdateWorkoutPlanAsync
     (
-        Guid userId, 
-        Guid id, 
+        Guid userId,
+        Guid id,
         UpdateWorkoutPlanDto newPlanDetails
     )
     {
         var updatePlan = await context.WorkoutPlans
-        .FirstOrDefaultAsync(updatedPlan => updatedPlan.Id == id && updatedPlan.UserId == userId);
+            .FirstOrDefaultAsync(plan => plan.Id == id && plan.UserId == userId);
 
-        if(updatePlan is null)
+        if (updatePlan is null)
         {
-            return null;
+            return Result<WorkoutPlanResponseDto>.Failure(Errors.WorkoutPlanNotFound);
         }
 
         updatePlan.Name = newPlanDetails.Name;
         updatePlan.Description = newPlanDetails.Description;
         updatePlan.UpdatedAt = DateTime.UtcNow;
         await context.SaveChangesAsync();
-        
 
-        var result = new WorkoutPlanResponseDto
-        {
-            Id = updatePlan.Id,
-            Name = updatePlan.Name,
-            Description = updatePlan.Description,
-            CreatedAt = updatePlan.CreatedAt,
-            UpdatedAt = updatePlan.UpdatedAt
-        };
-
-        return  result;
+        return Result<WorkoutPlanResponseDto>.Success(ToResponseDto(updatePlan));
     }
 
-      public async Task<bool> DeleteWorkoutPlanAsync(Guid id, Guid userId)
+    public async Task<Result<bool>> DeleteWorkoutPlanAsync(Guid id, Guid userId)
     {
-       var planWantToDelete = await context.WorkoutPlans.FirstOrDefaultAsync
-       (
-        selectedPlan => selectedPlan.Id == id && selectedPlan.UserId == userId
-        );
+        var planWantToDelete = await context.WorkoutPlans
+            .FirstOrDefaultAsync(plan => plan.Id == id && plan.UserId == userId);
 
-        if(planWantToDelete is null)
+        if (planWantToDelete is null)
         {
-            return false;
+            return Result<bool>.Failure(Errors.WorkoutPlanNotFound);
         }
 
         context.WorkoutPlans.Remove(planWantToDelete);
         await context.SaveChangesAsync();
 
-        return true;
+        return Result<bool>.Success(true);
     }
+
+
+    private static WorkoutPlanResponseDto ToResponseDto(WorkoutPlan plan) => new()
+    {
+        Id = plan.Id,
+        Name = plan.Name,
+        Description = plan.Description,
+        CreatedAt = plan.CreatedAt,
+        UpdatedAt = plan.UpdatedAt
+    };
 }

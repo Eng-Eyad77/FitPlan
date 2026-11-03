@@ -1,4 +1,5 @@
 
+using FitPlan.Api.Common.Results;
 using FitPlan.Api.DTOs.Exercises;
 
 namespace FitPlan.Api.Services.Exercises;
@@ -11,5 +12,5 @@ public interface IExerciseService
         string? bodyPart,
         string? search);
 
-    Task<ExerciseDto?> GetExerciseByIdAsync(string id);
+    Task<Result<ExerciseDto>> GetExerciseByIdAsync(string id);
 }

@@ -4,11 +4,11 @@ namespace FitPlan.Api.DTOs.Auth;
 
 public class RegisterRequestDto
 {
+    [Required]
+    [StringLength(50, MinimumLength = 3)]
+    public required string Username { get; set; }
 
-[StringLength(50)] [Required]
-   public  required string  Username  { get; set; }
-
-[Required]
-   public required string Password { get; set; }
-    
+    [Required]
+    [StringLength(100, MinimumLength = 8)]
+    public required string Password { get; set; }
 }

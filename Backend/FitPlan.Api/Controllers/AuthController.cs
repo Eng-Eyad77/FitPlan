@@ -4,57 +4,28 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FitPlan.Api.Controllers;
 
-[ApiController]
-[Route("api/[controller]")]
-public class AuthController : ControllerBase
+[Route("api/auth")]
+public class AuthController(IAuthService authService) : ApiControllerBase
 {
-    private readonly IAuthService authService;  
-
-
-
-    public AuthController(IAuthService authService)
-    {
-        this.authService = authService;
-    } 
-
-
-
     [HttpPost("register")]
-    public async Task<ActionResult> CreateUser(RegisterRequestDto newRegister)
+    public async Task<IActionResult> CreateUser(RegisterRequestDto newRegister)
     {
-        var newUser =  await authService.RegisterAsync(newRegister);
+        var result = await authService.RegisterAsync(newRegister);
 
-        if(newUser.Succeeded == false)
+        if (!result.IsSuccess)
         {
-            return Conflict(new
-            {
-                newUser.ErrorCode
-            });
+            return Problem(result.Error);
         }
 
-
-        return StatusCode(201, newUser.Data);
-
-        
+        return StatusCode(StatusCodes.Status201Created, result.Data);
     }
 
 
     [HttpPost("login")]
-
-    public async Task<ActionResult> Login(LoginRequestDto newLogin)
+    public async Task<IActionResult> Login(LoginRequestDto newLogin)
     {
-        var newLoginAttempt = await authService.LoginAsync(newLogin);
+        var result = await authService.LoginAsync(newLogin);
 
-        if (!newLoginAttempt.Succeeded)
-        {
-            return Unauthorized(new
-            {
-                newLoginAttempt.ErrorCode
-            }); 
-        }
-
-        return Ok(newLoginAttempt.Data);
+        return result.IsSuccess ? Ok(result.Data) : Problem(result.Error);
     }
-
-
 }

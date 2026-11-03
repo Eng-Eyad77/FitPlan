@@ -1,5 +1,4 @@
 
-using System.Security.Claims;
 using FitPlan.Api.DTOs.WorkoutPlans;
 using FitPlan.Api.Services.WorkoutPlans;
 using Microsoft.AspNetCore.Authorization;
@@ -7,116 +6,84 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FitPlan.Api.Controllers;
 
-
-[ApiController]
 [Authorize]
 [Route("api/workout-plans")]
-public class WorkoutPlansController(IWorkoutPlanService workoutPlanService) : ControllerBase
+public class WorkoutPlansController(IWorkoutPlanService workoutPlanService) : ApiControllerBase
 {
-
     [HttpPost]
-    public async Task<ActionResult> CreateWorkoutPlan([FromBody] CreateWorkoutPlanDto createWorkoutPlan)
+    public async Task<IActionResult> CreateWorkoutPlan([FromBody] CreateWorkoutPlanDto createWorkoutPlan)
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (!Guid.TryParse(userIdClaim, out var userId))
+        if (!TryGetUserId(out var userId))
         {
             return Unauthorized();
         }
-       
-       var newPlan = await workoutPlanService.CreateWorkoutPlanAsync(createWorkoutPlan, userId);
-        if(newPlan is null)
+
+        var result = await workoutPlanService.CreateWorkoutPlanAsync(createWorkoutPlan, userId);
+
+        if (!result.IsSuccess)
         {
-            return NotFound("User not found");
+            return Problem(result.Error);
         }
 
         return CreatedAtAction
         (
             nameof(GetWorkoutPlanById),
-            new { id = newPlan.Id },
-            newPlan
+            new { id = result.Data.Id },
+            result.Data
         );
-
-
     }
 
 
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult> GetWorkoutPlanById(Guid id)
+    public async Task<IActionResult> GetWorkoutPlanById(Guid id)
     {
-            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (!Guid.TryParse(userIdClaim, out var userId))
+        if (!TryGetUserId(out var userId))
         {
             return Unauthorized();
         }
 
-        var getWorkoutPlanById = await workoutPlanService.GetWorkoutPlanByIdAsync(userId, id);
-            if(getWorkoutPlanById is null)
-        {
-            return NotFound("Plan not found");
-        }
+        var result = await workoutPlanService.GetWorkoutPlanByIdAsync(userId, id);
 
-        return Ok(getWorkoutPlanById);
-
+        return result.IsSuccess ? Ok(result.Data) : Problem(result.Error);
     }
-
 
 
     [HttpGet]
-    public async Task<ActionResult> GetMyWorkoutPlans()
+    public async Task<IActionResult> GetMyWorkoutPlans()
     {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (!Guid.TryParse(userIdClaim, out var userId))
+        if (!TryGetUserId(out var userId))
         {
             return Unauthorized();
         }
 
-        var plans = await workoutPlanService.GetAllMyWorkoutPlansAsync(userId);
-     
-        return Ok(plans);
+        return Ok(await workoutPlanService.GetAllMyWorkoutPlansAsync(userId));
     }
 
 
-   [HttpPut("{id:guid}")]
-    public async Task<ActionResult> UpdateWorkoutPlan([FromBody]UpdateWorkoutPlanDto updateWorkoutPlan, Guid id)
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> UpdateWorkoutPlan([FromBody] UpdateWorkoutPlanDto updateWorkoutPlan, Guid id)
     {
-         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (!Guid.TryParse(userIdClaim, out var userId))
+        if (!TryGetUserId(out var userId))
         {
             return Unauthorized();
         }
 
+        var result = await workoutPlanService.UpdateWorkoutPlanAsync(userId, id, updateWorkoutPlan);
 
-        var updatedPlan = await workoutPlanService.UpdateWorkoutPlanAsync(userId, id, updateWorkoutPlan);
-        if(updatedPlan is null)
-        {
-            return NotFound("There is no Plan to Update");
-        }
-
-        return Ok(updatedPlan);
+        return result.IsSuccess ? Ok(result.Data) : Problem(result.Error);
     }
 
 
-
-        [HttpDelete("{id:guid}")]
-        public async Task<ActionResult> DeleteWorkoutPlan(Guid id)
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> DeleteWorkoutPlan(Guid id)
     {
-             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (!Guid.TryParse(userIdClaim, out var userId))
+        if (!TryGetUserId(out var userId))
         {
             return Unauthorized();
         }
 
-        var deletePlan = await workoutPlanService.DeleteWorkoutPlanAsync(id,userId);
-        if(!deletePlan)
-        {
-            return NotFound("No Plan to Delete");
-        }
+        var result = await workoutPlanService.DeleteWorkoutPlanAsync(id, userId);
 
-        return NoContent();
+        return result.IsSuccess ? NoContent() : Problem(result.Error);
     }
 }

@@ -1,44 +1,33 @@
 
-using FitPlan.Api.DTOs.Exercises;
+using System.ComponentModel.DataAnnotations;
 using FitPlan.Api.Services.Exercises;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FitPlan.Api.Controllers;
 
-[ApiController]
 [Route("api/exercises")]
-public class ExercisesController(IExerciseService exerciseService) : ControllerBase
+public class ExercisesController(IExerciseService exerciseService) : ApiControllerBase
 {
-  [HttpGet]
-  public async Task<IActionResult> GetAllExercises
-  (int page = 1, // to point on 1 page
-   int pageSize = 10, // to know how many exercises in the page 
-   string? bodyPart = null, // wish body part
-    string? search = null) // to search with exercise name
-  {
-
-    if (page < 1 || pageSize < 1 || pageSize > 100)
+    // [ApiController] validates these [Range] attributes automatically
+    // and returns 400 ValidationProblemDetails if they are out of range.
+    [HttpGet]
+    public async Task<IActionResult> GetAllExercises
+    (
+        [Range(1, int.MaxValue)] int page = 1, // to point on 1 page
+        [Range(1, 100)] int pageSize = 10, // to know how many exercises in the page
+        string? bodyPart = null, // wish body part
+        string? search = null // to search with exercise name
+    )
     {
-      return BadRequest("Page must be at least 1, and pageSize must be between 1 and 100.");
+        return Ok(await exerciseService.GetAllExercisesAsync(page, pageSize, bodyPart, search));
     }
 
-    return Ok(await exerciseService.GetAllExercisesAsync(page, pageSize, bodyPart, search));
-    
 
-  }
-
-
-
-  [HttpGet("{id}")]
-  public async Task<IActionResult> GetExerciseById(string id)
-  {
-    var exercise = await exerciseService.GetExerciseByIdAsync(id);
-
-    if (exercise is null)
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetExerciseById(string id)
     {
-      return NotFound();
-    }
+        var result = await exerciseService.GetExerciseByIdAsync(id);
 
-    return Ok(exercise);
-  }
+        return result.IsSuccess ? Ok(result.Data) : Problem(result.Error);
+    }
 }

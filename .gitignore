@@ -12,5 +12,5 @@ obj/
 *.user
 *.suo
 
-
-# Backend/FitPlan.Api/wwwroot/uploads/profile-pictures/*
+# User uploaded files (profile pictures)
+Backend/FitPlan.Api/wwwroot/uploads/

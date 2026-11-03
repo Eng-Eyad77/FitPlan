@@ -1,126 +1,66 @@
-using System.Security.Claims;
 using FitPlan.Api.DTOs.Profile;
 using FitPlan.Api.Services.Profile;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-
-
 namespace FitPlan.Api.Controllers;
 
-[ApiController]
 [Authorize]
 [Route("api/profile")]
-public class ProfileController(IProfileService profileService) : ControllerBase
+public class ProfileController(IProfileService profileService) : ApiControllerBase
 {
-
     [HttpGet("me")]
-
     public async Task<IActionResult> GetUserProfile()
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-
-        if (!Guid.TryParse(userId, out var result))
-        {   
+        if (!TryGetUserId(out var userId))
+        {
             return Unauthorized();
         }
 
-          var userProfile = await profileService.GetUserProfileAsync(result);
-          
-            if (userProfile is null)
-            {
-                return NotFound();
-            }
+        var result = await profileService.GetUserProfileAsync(userId);
 
-            return Ok(userProfile);
-
-
+        return result.IsSuccess ? Ok(result.Data) : Problem(result.Error);
     }
-
-
 
 
     [HttpPut("me")]
     public async Task<IActionResult> UpdateProfile(UpdateBioRequestDto updateProfileRequest)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-
-        if (!Guid.TryParse(userId, out var result))
+        if (!TryGetUserId(out var userId))
         {
             return Unauthorized();
         }
 
+        var result = await profileService.UpdateBioAsync(userId, updateProfileRequest);
 
-
-         var updatedUserProfile = await profileService.UpdateBioAsync(result, updateProfileRequest );
-            if (updatedUserProfile is null)
-            {
-                return NotFound();
-            }
-
-              return Ok(updatedUserProfile);
-        
+        return result.IsSuccess ? Ok(result.Data) : Problem(result.Error);
     }
 
 
     [HttpPost("me/picture")]
-    public async Task<IActionResult> uploadProfilePicture(IFormFile file)
+    public async Task<IActionResult> UploadProfilePicture(IFormFile file)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        if (!Guid.TryParse(userId, out var result))
+        if (!TryGetUserId(out var userId))
         {
             return Unauthorized();
         }
 
-        var userUploadedPicture = await profileService.UploadProfilePictureAsync(result,file);
+        var result = await profileService.UploadProfilePictureAsync(userId, file);
 
-        if(!userUploadedPicture.Succeeded)
-        {
-            return userUploadedPicture.ErrorCode switch 
-            {
-                "InvalidFile"   => BadRequest("The uploaded file is invalid or corrupted."),
-                "FileTooLarge"  => StatusCode(413, "The file size exceeds the allowed limit."),
-                "UserNotFound"  => NotFound("The specified user could not be found."),
-                              _ => StatusCode(500, "An unexpected internal server error occurred.")
-            };
-        }
-
-        return Ok(userUploadedPicture.Data);
-
+        return result.IsSuccess ? Ok(result.Data) : Problem(result.Error);
     }
-
 
 
     [HttpDelete("me/picture")]
     public async Task<IActionResult> DeleteProfilePicture()
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-
-         if (!Guid.TryParse(userId, out var result))
+        if (!TryGetUserId(out var userId))
         {
             return Unauthorized();
         }
 
-        var deleteResult = await profileService.DeleteProfilePictureAsync(result);
+        var result = await profileService.DeleteProfilePictureAsync(userId);
 
-
-        if(!deleteResult.Succeeded)
-        {
-            return deleteResult.ErrorCode switch
-            {
-                "UserNotFound" => NotFound(),
-                _ => StatusCode(500)
-            };
-        }
-
-
-        return Ok(deleteResult.Data);
-
+        return result.IsSuccess ? Ok(result.Data) : Problem(result.Error);
     }
-
-
 }

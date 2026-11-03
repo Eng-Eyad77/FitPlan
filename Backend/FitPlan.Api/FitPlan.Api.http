@@ -1,8 +1,11 @@
 @FitPlan.Api_HostAddress = http://localhost:5264
 
+# Paste the accessToken you get from Register / Login here (do not commit real tokens).
+@token = paste-access-token-here
+
 
 ### Register
-POST http://localhost:5264/api/auth/register
+POST {{FitPlan.Api_HostAddress}}/api/auth/register
 Content-Type: application/json
 
 {
@@ -14,7 +17,7 @@ Content-Type: application/json
 
 
 ### Login
-POST http://localhost:5264/api/auth/login
+POST {{FitPlan.Api_HostAddress}}/api/auth/login
 Content-Type: application/json
 
 {
@@ -24,15 +27,15 @@ Content-Type: application/json
 
 
 ### Get My Profile
-GET http://localhost:5264/api/profile/me
-Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjNjYzU2ZDdkLTM1ODUtNDg1ZS1iYWM0LTM4NWFhZmVkOTQ3ZiIsImV4cCI6MTc5MjU4NjU0OCwiaXNzIjoiRml0UGxhbi5BcGkiLCJhdWQiOiJGaXRQbGFuLkNsaWVudCJ9.JSc76n6R7uSht3n8b1GJ04HFOhMu3Z3glA2GyuD-RHi4QdrrV98lN5CRdpDx2vx_hIlIUWfStxEp8AeN3fkWpA
+GET {{FitPlan.Api_HostAddress}}/api/profile/me
+Authorization: Bearer {{token}}
 
 
 
 
 ### Update Profile
-PUT http://localhost:5264/api/profile/me
-Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjNjYzU2ZDdkLTM1ODUtNDg1ZS1iYWM0LTM4NWFhZmVkOTQ3ZiIsImV4cCI6MTc5MjQ4NzM3NywiaXNzIjoiRml0UGxhbi5BcGkiLCJhdWQiOiJGaXRQbGFuLkNsaWVudCJ9.e06e5uZ-8zasbSgESnkS52n1bbIwZVkwmIDZsteOLn-AqsroOxHlzSuNaPfXPZ1aRT6zSmwAw4_iUfc6dbK-zA
+PUT {{FitPlan.Api_HostAddress}}/api/profile/me
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -41,8 +44,8 @@ Content-Type: application/json
 
 
 ### upload Profile Picture
-POST http://localhost:5264/api/profile/me/picture
-Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjNjYzU2ZDdkLTM1ODUtNDg1ZS1iYWM0LTM4NWFhZmVkOTQ3ZiIsImV4cCI6MTc5MjU4ODcyMSwiaXNzIjoiRml0UGxhbi5BcGkiLCJhdWQiOiJGaXRQbGFuLkNsaWVudCJ9.Gd-TyaG-Txsw10jp8EXmuRY4KxjUMrJg9COmoKjlwFipUVCxzstN4sYXrgXAbrqn3B9Y7PZtC8ilajz_aUUUdA
+POST {{FitPlan.Api_HostAddress}}/api/profile/me/picture
+Authorization: Bearer {{token}}
 Content-Type: multipart/form-data; boundary=FitPlanBoundary
 
 --FitPlanBoundary
@@ -56,8 +59,8 @@ Content-Type: image/jpeg
 
 
 ### Delete Profile Picture
-DELETE http://localhost:5264/api/profile/me/picture
-Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjNjYzU2ZDdkLTM1ODUtNDg1ZS1iYWM0LTM4NWFhZmVkOTQ3ZiIsImV4cCI6MTc5MjU4ODcyMSwiaXNzIjoiRml0UGxhbi5BcGkiLCJhdWQiOiJGaXRQbGFuLkNsaWVudCJ9.Gd-TyaG-Txsw10jp8EXmuRY4KxjUMrJg9COmoKjlwFipUVCxzstN4sYXrgXAbrqn3B9Y7PZtC8ilajz_aUUUdA
+DELETE {{FitPlan.Api_HostAddress}}/api/profile/me/picture
+Authorization: Bearer {{token}}
 
 
 
@@ -76,6 +79,5 @@ Accept: application/json
 
 
 ### Get All Exercises from database
-GET http://localhost:5264/api/exercises
+GET {{FitPlan.Api_HostAddress}}/api/exercises
 Accept: application/json
-

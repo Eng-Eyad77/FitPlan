@@ -5,6 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Register Services
 builder.Services
+    .AddErrorHandling()
     .AddDatabase(builder.Configuration)
     .AddAuthenticationServices(builder.Configuration)
     .AddApplicationServices()
