@@ -10,7 +10,8 @@ builder.Services
     .AddDatabase(builder.Configuration)
     .AddAuthenticationServices(builder.Configuration)
     .AddApplicationServices()
-    .AddSwaggerDocumentation();
+    .AddSwaggerDocumentation()
+    .AddCors();
 
 // enums travel as text in the JSON ("Treadmill" instead of 1)
 builder.Services.AddControllers()

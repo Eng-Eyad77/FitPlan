@@ -17,6 +17,13 @@ public static class ApplicationBuilderExtensions
             app.UseSwagger();
             app.UseSwaggerUI();
             app.MapOpenApi();
+
+            // Flutter Web runs on another localhost port, so the browser needs CORS to call the API.
+            // Development only: the mobile apps do not use CORS at all.
+            app.UseCors(policy => policy
+                .SetIsOriginAllowed(origin => new Uri(origin).IsLoopback)
+                .AllowAnyHeader()
+                .AllowAnyMethod());
         }
 
         app.UseHttpsRedirection();
