@@ -8,6 +8,8 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_text.dart';
 import '../../auth/application/auth_controller.dart';
+import '../../history/application/history_controller.dart';
+import '../../history/presentation/history_screen.dart';
 import '../../plans/application/plans_controller.dart';
 import '../../profile/application/profile_controller.dart';
 import '../../profile/presentation/widgets/profile_avatar.dart';
@@ -15,8 +17,7 @@ import '../../session/application/active_session_controller.dart';
 import '../../session/presentation/start_workout.dart';
 import '../../session/presentation/widgets/elapsed_clock.dart';
 
-/// Home: greeting, profile shortcut and the "Up next" card.
-/// The week strip and last session come with the history step.
+/// Home: greeting, this week, what to do next and the last workout.
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -66,7 +67,10 @@ class HomeScreen extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.xxl),
+            const _WeekCard(),
+            const SizedBox(height: AppSpacing.lg),
             const _UpNextCard(),
+            const _LastSession(),
           ].animate(interval: 50.ms).fadeIn(duration: 280.ms).slideY(begin: 0.06, end: 0),
         ),
       ),
@@ -196,6 +200,124 @@ class _UpNextCard extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// "This week": one circle per day, filled on the days a workout was finished.
+class _WeekCard extends ConsumerWidget {
+  const _WeekCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final sessions = ref.watch(historyControllerProvider).value?.items ?? const [];
+    final localizations = MaterialLocalizations.of(context);
+    // Material counts from Sunday = 0; DateTime counts Monday = 1 ... Sunday = 7
+    final firstIndex = localizations.firstDayOfWeekIndex;
+    final firstDay = firstIndex == 0 ? DateTime.sunday : firstIndex;
+
+    final now = DateTime.now();
+    final counts = sessionsPerDay(sessions, now, firstDayOfWeek: firstDay);
+    final todayIndex = (now.weekday - firstDay) % 7;
+    final total = counts.fold(0, (a, b) => a + b);
+    final trainedDays = counts.where((c) => c > 0).length;
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: AppRadius.cardBorder,
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text('This week', style: AppText.heading),
+              const Spacer(),
+              Text(
+                total == 0 ? 'No workouts yet' : '$total ${total == 1 ? 'workout' : 'workouts'}',
+                style: AppText.secondary.copyWith(color: total == 0 ? AppColors.textTertiary : AppColors.accent),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Semantics(
+            label: 'Trained on $trainedDays of 7 days this week',
+            excludeSemantics: true,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                for (var i = 0; i < 7; i++)
+                  _DayDot(
+                    // narrowWeekdays starts at Sunday
+                    label: localizations.narrowWeekdays[(firstIndex + i) % 7],
+                    trained: counts[i] > 0,
+                    today: i == todayIndex,
+                    future: i > todayIndex,
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DayDot extends StatelessWidget {
+  const _DayDot({required this.label, required this.trained, required this.today, required this.future});
+
+  final String label;
+  final bool trained;
+  final bool today;
+  final bool future;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: trained ? AppColors.signatureGradient : null,
+            color: trained ? null : AppColors.surface2,
+            border: today && !trained ? Border.all(color: AppColors.accent, width: 1.5) : null,
+          ),
+          child: trained ? const Icon(Icons.check_rounded, size: 20, color: AppColors.onAccent) : null,
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          label,
+          style: AppText.caption.copyWith(
+            color: today ? AppColors.accent : (future ? AppColors.textTertiary : AppColors.textSecondary),
+            fontWeight: today ? FontWeight.w600 : FontWeight.w400,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// The most recent finished workout, tap for the details.
+class _LastSession extends ConsumerWidget {
+  const _LastSession();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final last = ref.watch(historyControllerProvider).value?.items.firstOrNull;
+    if (last == null) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.lg),
+      child: SessionSummaryCard(
+        summary: last,
+        title: 'Last session',
+        onTap: () => context.push(Routes.historyDetail(last.id)),
       ),
     );
   }

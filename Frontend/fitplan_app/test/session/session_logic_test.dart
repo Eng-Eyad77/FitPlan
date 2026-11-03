@@ -34,6 +34,7 @@ void main() {
       expect(formatDuration(2700), '45 min');
       expect(formatDuration(4500), '1 h 15 min');
       expect(formatDuration(3600), '1 h');
+      expect(formatDuration(20), '< 1 min');
     });
 
     test('formatDaysAgo uses calendar days', () {

@@ -6,6 +6,8 @@ import '../features/auth/application/auth_controller.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
 import '../features/exercises/presentation/exercise_picker_screen.dart';
+import '../features/history/presentation/history_screen.dart';
+import '../features/history/presentation/past_session_screen.dart';
 import '../features/home/presentation/home_screen.dart';
 import '../features/plans/presentation/plan_detail_screen.dart';
 import '../features/plans/presentation/plans_screen.dart';
@@ -27,6 +29,7 @@ abstract final class Routes {
   static const progress = '/progress';
   static const profile = '/profile';
   static String planDetail(String id) => '/plans/$id';
+  static String historyDetail(String id) => '/history/$id';
 
   /// Pops with the chosen Exercise. extra: `Set<String>` of exercise ids already added.
   static const exercisePicker = '/exercises/pick';
@@ -106,7 +109,13 @@ final routerProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(routes: [
             GoRoute(
               path: Routes.history,
-              builder: (_, _) => const ComingSoonScreen(title: 'History'),
+              builder: (_, _) => const HistoryScreen(),
+              routes: [
+                GoRoute(
+                  path: ':id',
+                  builder: (_, state) => PastSessionScreen(sessionId: state.pathParameters['id']!),
+                ),
+              ],
             ),
           ]),
           StatefulShellBranch(routes: [

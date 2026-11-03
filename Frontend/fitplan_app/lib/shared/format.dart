@@ -12,8 +12,9 @@ String formatClock(int totalSeconds) {
   return h > 0 ? '$h:${m.toString().padLeft(2, '0')}:$s' : '$m:$s';
 }
 
-/// 2700 -> "45 min", 4500 -> "1 h 15 min"
+/// 2700 -> "45 min", 4500 -> "1 h 15 min", 20 -> "< 1 min"
 String formatDuration(int totalSeconds) {
+  if (totalSeconds < 30) return '< 1 min';
   final minutes = (totalSeconds / 60).round();
   if (minutes < 60) return '$minutes min';
   final rest = minutes % 60;

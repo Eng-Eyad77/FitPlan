@@ -41,6 +41,25 @@ class SessionsRepository {
     return WorkoutSession.fromJson(response.data!);
   }
 
+  /// Completed sessions, newest first.
+  Future<HistoryPage> getHistory({int page = 1, int pageSize = 20}) async {
+    final response = await apiCall(
+      () => _dio.get<Map<String, dynamic>>(
+        _base,
+        queryParameters: {'page': page, 'pageSize': pageSize},
+      ),
+    );
+    final data = response.data!;
+    return HistoryPage(
+      items: [
+        for (final json in data['items'] as List<dynamic>)
+          SessionSummary.fromJson(json as Map<String, dynamic>),
+      ],
+      page: data['page'] as int,
+      totalPages: data['totalPages'] as int,
+    );
+  }
+
   Future<SessionSummary> complete(String id, {String? notes}) async {
     final response = await apiCall(
       () => _dio.post<Map<String, dynamic>>('$_base/$id/complete', data: {'notes': notes}),
@@ -120,6 +139,16 @@ class SessionsRepository {
   Future<void> deleteCardio(String sessionId, String id) async {
     await apiCall(() => _dio.delete<void>('$_base/$sessionId/cardio/$id'));
   }
+}
+
+class HistoryPage {
+  const HistoryPage({required this.items, required this.page, required this.totalPages});
+
+  final List<SessionSummary> items;
+  final int page;
+  final int totalPages;
+
+  bool get hasMore => page < totalPages;
 }
 
 /// What the cardio sheet sends. Only machine and duration are required.
