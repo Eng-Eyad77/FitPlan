@@ -1,4 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- the release build needs it too, not only debug: every screen talks to the API -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="FitPlan"
         android:name="${applicationName}"
