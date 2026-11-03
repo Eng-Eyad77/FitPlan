@@ -9,6 +9,7 @@ import '../../../core/theme/app_text.dart';
 import '../../../shared/format.dart';
 import '../../../shared/widgets/feedback.dart';
 import '../../exercises/domain/exercise.dart';
+import '../../exercises/presentation/exercise_details_sheet.dart';
 import '../../exercises/presentation/widgets/exercise_thumb.dart';
 import '../../session/presentation/start_workout.dart';
 import '../application/plans_controller.dart';
@@ -212,7 +213,17 @@ class _PlanExerciseTile extends ConsumerWidget {
           padding: const EdgeInsets.all(AppSpacing.md),
           child: Row(
             children: [
-              ExerciseThumb(url: exercise.gifUrl),
+              ExerciseThumb(
+                url: exercise.gifUrl,
+                size: 64,
+                onTap: () => showExerciseDetails(
+                  context,
+                  exerciseId: exercise.exerciseId,
+                  name: exercise.name,
+                  gifUrl: exercise.gifUrl,
+                  bodyPart: exercise.bodyPart,
+                ),
+              ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(

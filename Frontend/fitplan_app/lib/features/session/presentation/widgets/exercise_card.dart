@@ -6,6 +6,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text.dart';
 import '../../../../shared/format.dart';
 import '../../../../shared/widgets/feedback.dart';
+import '../../../exercises/presentation/exercise_details_sheet.dart';
 import '../../../exercises/presentation/widgets/exercise_thumb.dart';
 import '../../application/active_session_controller.dart';
 import '../../application/rest_timer.dart';
@@ -141,7 +142,17 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ExerciseThumb(url: _exercise.gifUrl, size: 88),
+              ExerciseThumb(
+                url: _exercise.gifUrl,
+                size: 88,
+                onTap: () => showExerciseDetails(
+                  context,
+                  exerciseId: _exercise.exerciseId,
+                  name: _exercise.name,
+                  gifUrl: _exercise.gifUrl,
+                  bodyPart: _exercise.bodyPart,
+                ),
+              ),
               const SizedBox(width: AppSpacing.lg),
               Expanded(
                 child: Column(

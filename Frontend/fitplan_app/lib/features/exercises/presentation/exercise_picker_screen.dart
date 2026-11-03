@@ -11,6 +11,7 @@ import '../../../shared/format.dart';
 import '../../../shared/widgets/feedback.dart';
 import '../data/exercises_repository.dart';
 import '../domain/exercise.dart';
+import 'exercise_details_sheet.dart';
 import 'widgets/exercise_thumb.dart';
 
 /// Search the library and pick one exercise. Pops with the chosen [Exercise].
@@ -100,6 +101,18 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
         _loading = false;
       });
     }
+  }
+
+  Future<void> _showDetails(Exercise exercise, {required bool added}) async {
+    final add = await showExerciseDetails(
+      context,
+      exerciseId: exercise.id,
+      name: exercise.name,
+      gifUrl: exercise.gifUrl,
+      bodyPart: exercise.bodyPart,
+      actionLabel: added ? null : 'Add exercise',
+    );
+    if (add == true && mounted) _pick(exercise);
   }
 
   void _pick(Exercise exercise) {
@@ -206,6 +219,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
           exercise: exercise,
           added: added,
           onTap: added ? null : () => _pick(exercise),
+          onDetails: () => _showDetails(exercise, added: added),
         );
       },
     );
@@ -242,26 +256,35 @@ class _BodyPartChip extends StatelessWidget {
 }
 
 class _ExerciseRow extends StatelessWidget {
-  const _ExerciseRow({required this.exercise, required this.added, required this.onTap});
+  const _ExerciseRow({
+    required this.exercise,
+    required this.added,
+    required this.onTap,
+    required this.onDetails,
+  });
 
   final Exercise exercise;
   final bool added;
   final VoidCallback? onTap;
 
+  /// The info button, and a long press anywhere on the row (phones have no hover).
+  final VoidCallback onDetails;
+
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
+      onLongPress: onDetails,
       borderRadius: BorderRadius.circular(AppRadius.md),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-        child: Opacity(
-          opacity: added ? 0.5 : 1,
-          child: Row(
-            children: [
-              ExerciseThumb(url: exercise.gifUrl),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
+        child: Row(
+          children: [
+            Opacity(opacity: added ? 0.5 : 1, child: ExerciseThumb(url: exercise.gifUrl, size: 76)),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Opacity(
+                opacity: added ? 0.5 : 1,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -272,16 +295,27 @@ class _ExerciseRow extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2),
-                    Text(capitalize(exercise.bodyPart), style: AppText.caption),
+                    Text(
+                      added ? '${capitalize(exercise.bodyPart)} · added' : capitalize(exercise.bodyPart),
+                      style: AppText.caption,
+                    ),
                   ],
                 ),
               ),
-              Icon(
-                added ? Icons.check_circle_rounded : Icons.add_circle_outline_rounded,
-                color: added ? AppColors.textTertiary : AppColors.accent,
-              ),
-            ],
-          ),
+            ),
+            IconButton(
+              tooltip: 'How to do ${exercise.name}',
+              onPressed: onDetails,
+              icon: const Icon(Icons.info_outline_rounded, color: AppColors.textSecondary),
+            ),
+            IconButton(
+              tooltip: added ? 'Already added' : 'Add ${exercise.name}',
+              onPressed: onTap,
+              icon: Icon(added ? Icons.check_circle_rounded : Icons.add_circle_outline_rounded),
+              color: AppColors.accent,
+              disabledColor: AppColors.textTertiary,
+            ),
+          ],
         ),
       ),
     );

@@ -30,4 +30,14 @@ class ExercisesRepository {
     );
     return ExercisePage.fromJson(response.data!);
   }
+
+  Future<Exercise> getExercise(String id) async {
+    final response = await apiCall(() => _dio.get<Map<String, dynamic>>('/api/exercises/$id'));
+    return Exercise.fromJson(response.data!);
+  }
 }
+
+/// One exercise by id (cached while the app runs: the library does not change).
+final exerciseProvider = FutureProvider.family<Exercise, String>(
+  (ref, id) => ref.watch(exercisesRepositoryProvider).getExercise(id),
+);
