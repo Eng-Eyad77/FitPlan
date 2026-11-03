@@ -12,4 +12,7 @@ public class WorkoutPlanResponseDto
 
     public required DateTime UpdatedAt { get; set; }
 
+    // shown on the plan cards in the app
+    public int ExerciseCount { get; set; }
+
 }

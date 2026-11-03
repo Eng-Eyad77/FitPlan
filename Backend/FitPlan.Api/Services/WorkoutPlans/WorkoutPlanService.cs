@@ -47,7 +47,8 @@ public class WorkoutPlanService(FitPlanDbContext context) : IWorkoutPlanService
                 Name = plan.Name,
                 Description = plan.Description,
                 CreatedAt = plan.CreatedAt,
-                UpdatedAt = plan.UpdatedAt
+                UpdatedAt = plan.UpdatedAt,
+                ExerciseCount = plan.Exercises.Count
             })
             .ToArrayAsync();
     }
@@ -63,7 +64,9 @@ public class WorkoutPlanService(FitPlanDbContext context) : IWorkoutPlanService
             return Result<WorkoutPlanResponseDto>.Failure(Errors.WorkoutPlanNotFound);
         }
 
-        return Result<WorkoutPlanResponseDto>.Success(ToResponseDto(specificUserPlan));
+        var exerciseCount = await context.WorkoutPlanExercises.CountAsync(item => item.WorkoutPlanId == id);
+
+        return Result<WorkoutPlanResponseDto>.Success(ToResponseDto(specificUserPlan, exerciseCount));
     }
 
     public async Task<Result<WorkoutPlanResponseDto>> UpdateWorkoutPlanAsync
@@ -86,7 +89,9 @@ public class WorkoutPlanService(FitPlanDbContext context) : IWorkoutPlanService
         updatePlan.UpdatedAt = DateTime.UtcNow;
         await context.SaveChangesAsync();
 
-        return Result<WorkoutPlanResponseDto>.Success(ToResponseDto(updatePlan));
+        var exerciseCount = await context.WorkoutPlanExercises.CountAsync(item => item.WorkoutPlanId == id);
+
+        return Result<WorkoutPlanResponseDto>.Success(ToResponseDto(updatePlan, exerciseCount));
     }
 
     public async Task<Result<bool>> DeleteWorkoutPlanAsync(Guid id, Guid userId)
@@ -106,12 +111,14 @@ public class WorkoutPlanService(FitPlanDbContext context) : IWorkoutPlanService
     }
 
 
-    private static WorkoutPlanResponseDto ToResponseDto(WorkoutPlan plan) => new()
+    // a new plan has no exercises yet, so the count defaults to 0
+    private static WorkoutPlanResponseDto ToResponseDto(WorkoutPlan plan, int exerciseCount = 0) => new()
     {
         Id = plan.Id,
         Name = plan.Name,
         Description = plan.Description,
         CreatedAt = plan.CreatedAt,
-        UpdatedAt = plan.UpdatedAt
+        UpdatedAt = plan.UpdatedAt,
+        ExerciseCount = exerciseCount
     };
 }
