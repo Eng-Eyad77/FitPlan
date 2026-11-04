@@ -6,8 +6,8 @@ on:
   workflow_dispatch:
     inputs:
       api_base_url:
-        description: API address the app talks to (your PC on the same Wi-Fi)
-        default: http://192.168.1.13:5264
+        description: API address the app talks to
+        default: https://fitplan-api-eyad.azurewebsites.net
 
 jobs:
   ios:
