@@ -1,6 +1,7 @@
 using FitPlan.Api.Common.Results;
 using FitPlan.Api.Data;
 using FitPlan.Api.DTOs.Profile;
+using FitPlan.Api.Extensions;
 using FitPlan.Api.Models;
 using FitPlan.Api.Services.BodyWeight;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,7 @@ namespace FitPlan.Api.Services.Profile;
 public class ProfileService(
     FitPlanDbContext context,
     IWebHostEnvironment webHost,
+    IConfiguration configuration,
     IBodyWeightService bodyWeightService) : IProfileService
 {
     private const long MaxFileSize = 5 * 1024 * 1024; // 5 MB in bytes
@@ -143,7 +145,7 @@ public class ProfileService(
 
 
     private string GetProfilePicturesFolder() =>
-        Path.Combine(webHost.ContentRootPath, "wwwroot", "uploads", "profile-pictures");
+        Path.Combine(configuration.GetUploadsRoot(webHost), "profile-pictures");
 
     private void DeletePictureFile(string? pictureUrl)
     {

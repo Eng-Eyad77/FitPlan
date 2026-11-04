@@ -1,4 +1,6 @@
 
+using Microsoft.Extensions.FileProviders;
+
 namespace FitPlan.Api.Extensions;
 
 public static class ApplicationBuilderExtensions
@@ -31,7 +33,14 @@ public static class ApplicationBuilderExtensions
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.UseStaticFiles();
+        // profile pictures, served from the uploads folder (outside the app folder in production)
+        var uploadsRoot = app.Configuration.GetUploadsRoot(app.Environment);
+        Directory.CreateDirectory(uploadsRoot);
+        app.UseStaticFiles(new StaticFileOptions
+        {
+            FileProvider = new PhysicalFileProvider(uploadsRoot),
+            RequestPath = "/uploads"
+        });
 
         app.MapControllers();
 
