@@ -1,46 +1,48 @@
-# تجربة FitPlan على جوال حقيقي (مجاناً)
+# Testing FitPlan on a real phone (free)
 
-## 1. السيرفر
-التطبيق يتصل بالـ API على Azure: `https://fitplan-api-eyad.azurewebsites.net`، فيشتغل من أي شبكة. التفاصيل في [DEPLOYMENT.md](DEPLOYMENT.md).
+## 1. The server
+The app talks to the API on Azure, `https://fitplan-api-eyad.azurewebsites.net`, so it works on any network. See [DEPLOYMENT.md](DEPLOYMENT.md) for details.
 
-إذا تبغى تجرب على الـ API اللي في جهازك: شغّله بـ `dotnet run --project Backend/FitPlan.Api --launch-profile lan`، وابنِ التطبيق بـ `API_BASE_URL=http://<IP جهازك>:5264`. لازم الجوال والكمبيوتر يكونون على نفس الـ Wi-Fi.
+To test against the API on your own PC instead, run it with `dotnet run --project Backend/FitPlan.Api --launch-profile lan` and build the app with `API_BASE_URL=http://<your PC IP>:5264`. The phone and the PC must be on the same Wi-Fi.
 
-## 2. iPhone: بناء التطبيق على Codemagic
-1. سجّل في [codemagic.io](https://codemagic.io) بحساب GitHub، واختر الـ repo `FitPlan`.
-2. Codemagic بيقرأ ملف `codemagic.yaml` تلقائياً. اختر workflow **iPhone test build (unsigned)**.
-4. اضغط **Start build** (حوالي 10 دقائق). بعد ما يخلص حمّل **FitPlan-test.ipa** من Artifacts.
+## 2. iPhone: build the app on Codemagic
+1. Sign up at [codemagic.io](https://codemagic.io) with GitHub and pick the `FitPlan` repository.
+2. Codemagic reads `codemagic.yaml` automatically. Choose the **iPhone test build (unsigned)** workflow.
+3. Press **Start build** (about 5–10 minutes). When it finishes, download **FitPlan-test.ipa** from Artifacts.
 
-## 3. iPhone: التثبيت بـ Sideloadly (على Windows)
-1. ثبّت **iTunes** من موقع Apple (مو من Microsoft Store) و **Sideloadly** من موقعه الرسمي `sideloadly.io`.
-2. وصّل الآيفون بالكيبل، واضغط **Trust** على الجوال.
-3. اسحب ملف الـ `.ipa` على Sideloadly، واكتب Apple ID، واضغط **Start**.
-   - يُفضّل تستخدم **Apple ID ثانوي** للتجربة، مو حسابك الأساسي.
-4. على الآيفون:
-   - **Settings ← Privacy & Security ← Developer Mode** شغّله، وبيعيد تشغيل الجوال (iOS 16 وأحدث).
-   - **Settings ← General ← VPN & Device Management** ← اختر الـ Apple ID ← **Trust**.
-5. افتح FitPlan.
+If Codemagic stays queued for a long time, the same build can run on GitHub Actions: **Actions → iPhone test build → Run workflow** (`.github/workflows/ios-test.yml`).
 
-**القيود:** التطبيق يشتغل **7 أيام** وبعدها تعيد الخطوة 3 (دقيقة وحدة)، ولين 3 تطبيقات بنفس الطريقة.
+## 3. iPhone: install with Sideloadly (on Windows)
+1. Install **iTunes** from Apple's website (not the Microsoft Store version) and **Sideloadly** from its official site, `sideloadly.io`.
+2. Connect the iPhone with a cable and tap **Trust** on the phone.
+3. Drop the `.ipa` onto Sideloadly, enter an Apple ID and press **Start**.
+   - Use a **secondary Apple ID** for testing, not your main one.
+4. On the iPhone:
+   - **Settings → Privacy & Security → Developer Mode**: turn it on; the phone restarts (iOS 16 and later).
+   - **Settings → General → VPN & Device Management** → pick the Apple ID → **Trust**.
+5. Open FitPlan.
 
-## 4. Android: ملف APK لأي جوال Android
+**Limits:** with a free Apple ID the app runs for **7 days**; after that repeat step 3 (about a minute). At most 3 apps can be installed this way.
+
+## 4. Android: an APK for any Android phone
 ```
 cd Frontend/fitplan_app
 flutter build apk --release --dart-define=API_BASE_URL=https://fitplan-api-eyad.azurewebsites.net
 ```
-الملف: `Frontend/fitplan_app/build/app/outputs/flutter-apk/app-release.apk`. أرسله، وعند التثبيت الجوال بيطلب السماح بالتثبيت من مصدر غير المتجر.
+The file is `Frontend/fitplan_app/build/app/outputs/flutter-apk/app-release.apk`. Send it to the tester; when installing, the phone asks to allow installs from an unknown source.
 
-## 5. قائمة التجربة على الجوال
-- [ ] تسجيل حساب جديد، تسجيل خروج، تسجيل دخول، وكلمة سر غلط
-- [ ] صورة البروفايل من **الكاميرا** ومن **الصور** (رسائل الأذونات تطلع)
-- [ ] إضافة وزن الجسم، والـ weekly goal
-- [ ] خطة جديدة: إضافة تمارين، تعديل الـ target، ترتيب بالسحب، حذف تمرين
-- [ ] البحث في التمارين، والـ GIFs تشتغل، وتفاصيل التمرين
-- [ ] تمرين كامل: sets، تعديل set، حذف set، rest timer (+15s و Skip)، cardio، finish
-- [ ] **اقفل التطبيق نهائياً وسط تمرين وافتحه**: لازم يرجع للتمرين
-- [ ] تمرين ثاني بنفس الخطة: الاقتراح 💡 والـ PRs والمقارنة
-- [ ] History: التفاصيل والحذف
-- [ ] Progress: الشارتات، والضغط عليها يطلع القيم
-- [ ] الكيبورد ما يغطي الحقول، وما فيه نص مقصوص
-- [ ] **الآيفون فقط:** الـ notch والـ home indicator ما يغطون أزرار، والـ swipe back يشتغل
+## 5. Test checklist
+- [ ] Register, log out, log in, and a wrong password
+- [ ] Profile picture from the **camera** and from **photos** (the permission prompts appear)
+- [ ] Add body weight, and set the weekly goal
+- [ ] New plan: add exercises, edit targets, reorder by dragging, remove an exercise
+- [ ] Exercise search, GIFs load, exercise details
+- [ ] A full workout: sets, edit a set, delete a set, rest timer (+15s and Skip), cardio, finish
+- [ ] **Force-close the app in the middle of a workout and reopen it**: it must return to the workout
+- [ ] A second workout from the same plan: the 💡 suggestion, PRs and the comparison
+- [ ] History: details and delete
+- [ ] Progress: the charts, and tapping them shows the values
+- [ ] The keyboard never covers fields, and no text is cut off
+- [ ] **iPhone only:** the notch and home indicator don't cover buttons, and swipe back works
 
-اكتب أي مشكلة مع صورة شاشة وأنا أصلحها.
+Report any problem with a screenshot.
