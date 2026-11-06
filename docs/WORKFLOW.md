@@ -138,15 +138,37 @@ Open a pull request to `main`. After it merges, open a pull request from `main` 
 https://github.com/Eng-Eyad77/FitPlan/compare/develop...main
 ```
 
-## Test builds
+## App builds
 
-Codemagic builds only when started manually:
+Decision D16 sets how iOS and Android app builds run:
+
+- **iOS:** manual Codemagic builds only, when a new build is needed for testing or installation.
+- **Android:** local builds on the development machine, when a new build is needed.
+- **Automatic builds:** none. A Git push or pull request never starts an iOS or Android build.
+- **Backend-only changes:** these don't need an iOS build.
+- **Signing:** changes to code signing, certificates, provisioning profiles or Apple Developer account settings need Eyad's explicit approval.
+
+This covers iOS and Android app builds only. API builds in CI and Admin Web builds in GitHub Actions are separate.
+
+### iOS: Codemagic
 
 1. Open the app on codemagic.io and press **Start new build**.
 2. Choose the branch to build.
 3. Choose the **iPhone test build (unsigned)** workflow.
 
-`API_BASE_URL` in `codemagic.yaml` still points to the Production API, so a test build uses real data. This changes when Dev exists in Phase 2.
+### Android: local
+
+From `Frontend/fitplan_app`:
+
+```bash
+flutter build apk --release --dart-define=API_BASE_URL=https://fitplan-api-eyad.azurewebsites.net
+```
+
+The APK is saved to `build/app/outputs/flutter-apk/app-release.apk`. Git ignores it, so never add it to a commit.
+
+### Which API a build uses
+
+`API_BASE_URL` in `codemagic.yaml` and in the Android command above points to the Production API, so these test builds use real data. This changes when Dev exists in Phase 2.
 
 ## Never commit
 
