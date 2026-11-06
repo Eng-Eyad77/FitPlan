@@ -54,11 +54,15 @@ flutter analyze
 flutter test
 ```
 
-From `Backend/FitPlan.Api`:
+From `Backend`:
 
 ```bash
-dotnet build
+dotnet test FitPlan.slnx
 ```
+
+This builds the API and runs its tests. They need a SQL Server on your machine, SQL Express by default. Each run creates its own `FitPlanTests_*` databases and drops them afterwards. To use another local server, set `FITPLAN_TEST_SQL` to its connection string. The tests refuse any server that isn't on this machine.
+
+Every pull request into `develop` or `main` runs the same checks in GitHub Actions (`.github/workflows/ci.yml`), using a throwaway SQL Server container. CI doesn't sign in to Azure, deploy anything or build a mobile app. Managed Identity sign-in can't be tested there, so it's checked on the Dev API.
 
 ### 3. Commit
 
