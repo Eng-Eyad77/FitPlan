@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Register Services
 builder.Services
     .AddErrorHandling()
-    .AddDatabase(builder.Configuration)
+    .AddDatabase(builder.Configuration, builder.Environment)
     .AddAuthenticationServices(builder.Configuration)
     .AddApplicationServices()
     .AddSwaggerDocumentation()
