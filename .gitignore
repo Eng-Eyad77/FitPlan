@@ -14,3 +14,32 @@ obj/
 
 # User uploaded files (profile pictures)
 Backend/FitPlan.Api/wwwroot/uploads/
+
+# Publish output and packaged builds
+publish/
+*.zip
+*.ipa
+*.apk
+*.aab
+
+# Secrets and signing files
+.env*
+*.pfx
+*.p12
+*.mobileprovision
+
+# Local databases and scripts
+*.bak
+*.mdf
+*.ldf
+migrate.sql
+
+# macOS
+.DS_Store
+
+# Personal local notes
+PROJECT_SUMMARY.md
+
+# Private project documents (never commit)
+docs/ROADMAP.md
+docs/REQUIREMENTS.md
