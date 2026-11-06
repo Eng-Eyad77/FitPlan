@@ -78,9 +78,6 @@ public class DevDatabaseGuardTests
     }
 
     [Fact]
-    public void Temporary_failure_to_check_that_CI_goes_red() => Assert.Fail("Deliberate failure for the CI negative test.");
-
-    [Fact]
     public void The_real_API_startup_runs_the_guard()
     {
         // The default connection string points at this machine, so the Dev environment must refuse to start.
