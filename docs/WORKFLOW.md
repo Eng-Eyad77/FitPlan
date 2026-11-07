@@ -154,7 +154,9 @@ Each deploy compares `Backend/FitPlan.Api/Migrations` between the commit that `/
 
 **Approval is a person's decision, not technical proof.** GitHub only records that someone approved. It can't tell whether a migration script ran, because the workflow has no database access. Before you approve, check the evidence yourself.
 
-**Don't merge a migration yet.** `FitPlan.Migrator` exists, but the `fitplan-migrator` database user hasn't been created on Dev and the tool hasn't run against Azure SQL. Until both are done and checked, a schema change has to wait.
+**Dev is ready for migrations.** `fitplan-migrator` exists in `FitPlanDb-dev`, without a login, with only `db_ddladmin`, `db_datareader` and `db_datawriter`. On Azure SQL it can create and drop tables, but can't join `db_owner`, create users or grant permissions to others. The migrator has run against Dev once, with no change to the schema.
+
+**Don't release a migration to `main` yet.** Production has no `fitplan-migrator` user and no approved way to apply a migration. Until Phase 3C defines one, a migration can merge into `develop` but must not reach `main`.
 
 #### FitPlan.Migrator
 
