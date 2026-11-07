@@ -6,8 +6,8 @@ GitHub is the source of truth. Work happens locally on a feature branch and reac
 
 | Branch | Purpose | Rules |
 | --- | --- | --- |
-| `main` | Released code. Will deploy to Production from Phase 3, after manual approval. | Protected |
-| `develop` | Integration branch. Will deploy to Dev from Phase 3. | Protected |
+| `main` | Released code. Deploys to Production after a person approves the run. | Protected |
+| `develop` | Integration branch. Deploys to Dev after every merge. | Protected |
 | `feature/<short-name>` | One piece of work, branched from `develop`. | Deleted after merging |
 | `hotfix/<short-name>` | An urgent Production fix, branched from `main`. | Deleted after merging |
 
@@ -120,7 +120,49 @@ Open a pull request from `develop` to `main`, and merge with **Create a merge co
 https://github.com/Eng-Eyad77/FitPlan/compare/main...develop
 ```
 
-Merging to `main` must not reach Production until the approved pipeline exists. Until Phase 3 there is no automatic deployment, and any Production change needs explicit approval.
+Release when few people use the app. Production runs on the F1 plan, which has no deployment slots, so each deploy restarts the API for a short time.
+
+## Production deployment
+
+Every merge into `main` runs `.github/workflows/deploy-prod.yml`:
+
+1. The same CI checks as a pull request.
+2. A schema check, which compares `Backend/FitPlan.Api/Migrations` between the commit that Production's `/health/live` reports and the commit being released.
+3. A wait for approval at the `production` environment. Every run waits, whatever the schema check found.
+4. After approval: the deploy, a wait until `/health/live` reports the released commit, and the same checks as Dev. `/swagger/index.html` must return 404, `/api/profile/me` must return 401 without a token, and `/api/exercises` must return 200. That last check is read-only, but it wakes the Production database once per release.
+
+The deploy identity can only reach the Production web app. It has no database access and can't change SQL firewall rules. Uploaded photos live in `/home/data/uploads`, outside the deployed folder, so a deploy doesn't remove them.
+
+### Schema check results
+
+| Result | What happens |
+| --- | --- |
+| `unchanged` | The run waits for approval. |
+| `changed` | The run fails before anyone is asked to approve. Production has no migration path yet, so a release with a migration can't go out. |
+| `unverified` | The run waits for approval, with a warning that the running version is unknown. Check the evidence before you approve. |
+
+Production connects to its database differently from Dev, and has no `fitplan-migrator` user. A Production migration path is planned with that work in Phase 4. Until then, keep migrations out of `main`.
+
+### Before you approve
+
+Approval is a person's decision. Check the run's summary first:
+
+- The schema check result, and the commit it compared against.
+- That the release is the commit you expect.
+- For `unverified`: why the running version is unknown, and evidence that the release needs no migration, such as no change under `Migrations` since the last release.
+
+To stop a release, reject the run. Nothing is deployed.
+
+### If a Production deploy fails
+
+The run turns red, and nothing rolls back or deploys an older version by itself. Check the failed step and the App Service logs, then decide.
+
+To go back to the previous release, choose one:
+
+- **Re-run the last successful Deploy Prod run.** GitHub runs it again from that run's own commit, through the same checks and the same approval. Use this only if the schema check would find no migration difference.
+- **Revert the bad commit.** Open a pull request into `develop` that reverts it, then release again.
+
+Either way, rolling back is a decision, not an automatic step.
 
 ## Dev deployment
 
@@ -156,7 +198,7 @@ Each deploy compares `Backend/FitPlan.Api/Migrations` between the commit that `/
 
 **Dev is ready for migrations.** `fitplan-migrator` exists in `FitPlanDb-dev`, without a login, with only `db_ddladmin`, `db_datareader` and `db_datawriter`. On Azure SQL it can create and drop tables, but can't join `db_owner`, create users or grant permissions to others. The migrator has run against Dev once, with no change to the schema.
 
-**Don't release a migration to `main` yet.** Production has no `fitplan-migrator` user and no approved way to apply a migration. Until Phase 3C defines one, a migration can merge into `develop` but must not reach `main`.
+**Don't release a migration to `main` yet.** Production has no `fitplan-migrator` user and no approved way to apply a migration, so the Production deploy refuses any release that changes migrations. Until Phase 4 adds a Production path, a migration can merge into `develop` but blocks the next release.
 
 #### FitPlan.Migrator
 
@@ -206,15 +248,18 @@ If the run waits for another reason, find out why before you approve. The first 
 
 ### Environment settings
 
-| Setting | `dev` | `dev-schema` |
-| --- | --- | --- |
-| Deployment branches | `develop` only | `develop` only |
-| Required reviewer | None | `Eng-Eyad77` |
-| Prevent self-review | Not applicable | Off, because there's one reviewer |
-| Allow administrators to bypass | Off | Off |
-| Secrets | `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID` | None |
+| Setting | `dev` | `dev-schema` | `production` |
+| --- | --- | --- | --- |
+| Deployment branches | `develop` only | `develop` only | `main` only |
+| Required reviewer | None | `Eng-Eyad77` | `Eng-Eyad77` |
+| Prevent self-review | Not applicable | Off, because there's one reviewer | Off, because there's one reviewer |
+| Allow administrators to bypass | Off | Off | Off |
+| Secrets | `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID` | None | `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID` |
+| Azure identity | `fitplan-gh-dev`, Website Contributor on `fitplan-api-dev` only | None | `fitplan-gh-prod`, Website Contributor on `fitplan-api-eyad` only |
 
-Create both before any workflow references them, because GitHub creates a missing environment with no protection. Each deploy stops if `dev-schema` has no required reviewer.
+Create each environment before any workflow references it, because GitHub creates a missing environment with no protection. A Dev deploy stops if `dev-schema` has no required reviewer, and a Production deploy stops if `production` has none.
+
+Each identity's federated credential trusts one subject in the immutable format, such as `repo:Eng-Eyad77@177796235/FitPlan@1408724659:environment:production`.
 
 ### Temporary SQL firewall rules
 
@@ -254,7 +299,7 @@ git pull origin main
 git switch -c hotfix/short-name
 ```
 
-Open a pull request to `main`. After it merges, open a pull request from `main` to `develop`, using **Create a merge commit**, so the fix isn't lost:
+Open a pull request to `main`. Merging it starts a Production deploy, which waits for approval like any release. After it merges, open a pull request from `main` to `develop`, using **Create a merge commit**, so the fix isn't lost:
 
 ```text
 https://github.com/Eng-Eyad77/FitPlan/compare/develop...main
