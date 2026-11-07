@@ -132,6 +132,14 @@ Every merge into `develop` runs `.github/workflows/deploy-dev.yml`: the CI check
 
 The deploy identity can only reach the Dev web app. It has no database access and can't change SQL firewall rules.
 
+The workflow signs in to Azure with OpenID Connect, so no Azure password or key is stored in GitHub. The identity's federated credential trusts one subject only:
+
+```text
+repo:Eng-Eyad77@177796235/FitPlan@1408724659:environment:dev
+```
+
+GitHub sends this immutable format for repositories created after July 15, 2026. The numbers are the account and repository IDs, which don't change if either is renamed. If sign-in fails with `AADSTS700213`, compare the subject in the error with the federated credential. Any new environment, such as Production, needs a credential in the same format.
+
 ### If a deploy fails
 
 The run turns red, and nothing rolls back or deploys an older version by itself. Check the failed step and the App Service logs, then decide. To go back, open a pull request that reverts the bad commit, which goes through the same checks and deploy. Undoing a schema change is a separate decision with its own plan.
