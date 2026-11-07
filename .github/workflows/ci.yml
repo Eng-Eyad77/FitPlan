@@ -1,17 +1,21 @@
-# Checks every pull request into develop or main. It builds no iOS or Android app (docs/WORKFLOW.md),
-# and it never signs in to Azure: the only database is a throwaway container on the runner.
+# Checks every pull request into develop or main, and runs first in deploy workflows.
+# It builds no iOS or Android app (docs/WORKFLOW.md), and it never signs in to Azure:
+# the only database is a throwaway container on the runner.
 name: CI
 
 on:
   pull_request:
     branches: [develop, main]
+  workflow_call:
 
 permissions:
   contents: read
 
+# A new push replaces the checks of an older push on the same pull request.
+# A deploy's checks have their own group and are never cancelled.
 concurrency:
-  group: ci-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
+  group: ci-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   backend:
@@ -27,7 +31,7 @@ jobs:
         with:
           dotnet-version: 10.0.x
       - run: dotnet restore FitPlan.slnx
-      - run: dotnet build FitPlan.slnx --configuration Release --no-restore
+      - run: dotnet build FitPlan.slnx --configuration Release --no-restore -p:SourceRevisionId=$GITHUB_SHA
       - name: Start a throwaway SQL Server
         # The password is random for this run, masked in the logs, and reachable only from this runner.
         run: |
@@ -50,6 +54,8 @@ jobs:
           docker logs --tail 40 fitplan-test-sql
           exit 1
       - run: dotnet test FitPlan.slnx --configuration Release --no-build
+        env:
+          FITPLAN_EXPECTED_COMMIT: ${{ github.sha }}
 
   flutter:
     name: Flutter analyze and tests

@@ -1,0 +1,176 @@
+# Deploys the API to Dev after every merge into develop. It builds no iOS or Android app.
+# The deploy identity can only reach the Dev web app: it has no database access and can't change
+# SQL firewall rules. Schema changes are applied separately (docs/WORKFLOW.md), and a push waits
+# for a person unless its migrations are verified to match the commit running on Dev.
+name: Deploy Dev
+
+on:
+  push:
+    branches: [develop]
+
+permissions:
+  contents: read
+
+# One deploy at a time. A running deploy is never cancelled, and only the newest push waits.
+concurrency:
+  group: deploy-dev
+  cancel-in-progress: false
+
+env:
+  APP_NAME: fitplan-api-dev
+  RESOURCE_GROUP: fitplan-dev-rg
+  BASE_URL: https://fitplan-api-dev.azurewebsites.net
+
+jobs:
+  checks:
+    uses: ./.github/workflows/ci.yml
+
+  schema-check:
+    name: Look for schema changes
+    needs: checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      migrations: ${{ steps.compare.outputs.migrations }}
+      reason: ${{ steps.compare.outputs.reason }}
+    steps:
+      - name: Confirm dev-schema still requires a reviewer
+        # GitHub creates a missing environment with no protection, which would open the gate.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          rules=$(curl --silent --fail --max-time 30 \
+            --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/environments/dev-schema" \
+            | jq -r '[.protection_rules[]?.type] | join(",")')
+          case ",$rules," in
+            *,required_reviewers,*) echo "dev-schema requires a reviewer." ;;
+            *) echo "::error::dev-schema has no required reviewer."; exit 1 ;;
+          esac
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - id: compare
+        name: Compare migrations with the commit running on Dev
+        # The running commit is the reference, so a migration that was never deployed still counts
+        # after later pushes. Only a completed comparison with no difference skips the gate.
+        run: |
+          decide() {
+            echo "migrations=$1" >> "$GITHUB_OUTPUT"
+            echo "reason=$2" >> "$GITHUB_OUTPUT"
+            echo "Migrations $1: $2" | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          }
+
+          deployed=""
+          for attempt in $(seq 1 6); do
+            deployed=$(curl --silent --fail --max-time 30 "$BASE_URL/health/live" | jq -r '.commit // empty' 2> /dev/null || true)
+            [ -n "$deployed" ] && break
+            echo "Attempt $attempt: no commit from /health/live"
+            sleep 20
+          done
+
+          if ! printf '%s' "$deployed" | grep -Eq '^[0-9a-f]{40}$'; then
+            decide unverified "/health/live gave no valid commit, so the running version is unknown."
+          fi
+          if ! git cat-file -e "$deployed^{commit}" 2> /dev/null; then
+            decide unverified "The running commit $deployed isn't in this repository."
+          fi
+
+          result=0
+          git diff --quiet "$deployed" "$GITHUB_SHA" -- Backend/FitPlan.Api/Migrations || result=$?
+          case "$result" in
+            0) decide unchanged "No migration differs from the running commit $deployed." ;;
+            1) decide changed "Migrations differ from the running commit $deployed." ;;
+            *) decide unverified "Git couldn't compare with the running commit $deployed." ;;
+          esac
+
+  schema-gate:
+    name: Human approval to continue
+    needs: schema-check
+    # Anything but a completed comparison with no difference waits for a person.
+    if: needs.schema-check.outputs.migrations != 'unchanged'
+    # This environment has a required reviewer and no secrets.
+    # Approval is a person's decision. It is NOT technical proof that a migration script ran.
+    environment: dev-schema
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Record the approval
+        env:
+          REASON: ${{ needs.schema-check.outputs.reason }}
+        run: |
+          echo "A person approved continuing. This doesn't prove that any migration script ran."
+          echo "Reason for the approval: $REASON"
+
+  deploy:
+    name: Deploy to Dev
+    needs: [schema-check, schema-gate]
+    if: ${{ !cancelled() && needs.schema-check.result == 'success' && (needs.schema-gate.result == 'success' || needs.schema-gate.result == 'skipped') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    environment:
+      name: dev
+      url: ${{ env.BASE_URL }}
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          dotnet-version: 10.0.x
+      - name: Publish the API
+        run: |
+          dotnet publish Backend/FitPlan.Api/FitPlan.Api.csproj --configuration Release \
+            --output "$RUNNER_TEMP/publish" -p:SourceRevisionId=$GITHUB_SHA
+          rm -f "$RUNNER_TEMP/publish/appsettings.Development.json"
+          rm -rf "$RUNNER_TEMP/publish/wwwroot/uploads"
+          (cd "$RUNNER_TEMP/publish" && zip -qr "$RUNNER_TEMP/fitplan-api.zip" .)
+      - uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3.1.0
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Deploy
+        run: |
+          az webapp deploy --resource-group "$RESOURCE_GROUP" --name "$APP_NAME" \
+            --src-path "$RUNNER_TEMP/fitplan-api.zip" --type zip
+      - name: Wait until the new commit is running
+        # The health check never touches the database, so waiting here can't wake it.
+        run: |
+          for attempt in $(seq 1 20); do
+            commit=$(curl --silent --max-time 30 "$BASE_URL/health/live" | jq -r '.commit // empty' 2> /dev/null || true)
+            if [ "$commit" = "$GITHUB_SHA" ]; then
+              echo "Commit $commit is running after attempt $attempt"
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "::error::$BASE_URL/health/live never reported $GITHUB_SHA. Last value: ${commit:-none}"
+          exit 1
+      - name: Check protected and hidden routes
+        run: |
+          check() {
+            status=$(curl --silent --output /dev/null --max-time 60 --write-out '%{http_code}' "$BASE_URL$1" || true)
+            echo "$1 returned $status"
+            [ "$status" = "$2" ] || { echo "::error::$1 returned $status, expected $2"; exit 1; }
+          }
+          check /swagger/index.html 404
+          check /api/profile/me 401
+      - name: Read from the Dev database through Managed Identity
+        # Read-only, and no user data. It wakes the database once per deploy, which spends free allowance.
+        run: |
+          for attempt in $(seq 1 8); do
+            status=$(curl --silent --output /dev/null --max-time 70 --write-out '%{http_code}' "$BASE_URL/api/exercises" || true)
+            echo "Attempt $attempt returned $status"
+            if [ "$status" = "200" ]; then
+              exit 0
+            fi
+            sleep 20
+          done
+          echo "::error::$BASE_URL/api/exercises never returned 200"
+          exit 1

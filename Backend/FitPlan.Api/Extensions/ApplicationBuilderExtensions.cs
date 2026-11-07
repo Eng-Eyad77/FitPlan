@@ -43,6 +43,7 @@ public static class ApplicationBuilderExtensions
         });
 
         app.MapControllers();
+        app.MapHealthEndpoints();
 
         return app;
     }
