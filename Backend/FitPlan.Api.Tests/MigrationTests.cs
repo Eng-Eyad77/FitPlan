@@ -4,6 +4,7 @@ using FitPlan.Api.Tests.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Storage;
 using Xunit;
 
 namespace FitPlan.Api.Tests;
@@ -101,6 +102,30 @@ public sealed class MigrationTests : IAsyncLifetime
         Assert.Empty(await context.Database.GetAppliedMigrationsAsync());
 
         await context.Database.MigrateAsync();
+        Assert.Equal(context.Database.GetMigrations(), await context.Database.GetAppliedMigrationsAsync());
+    }
+
+    [Fact]
+    public async Task Migrations_run_with_only_the_permissions_planned_for_schema_changes()
+    {
+        await context.GetService<IRelationalDatabaseCreator>().CreateAsync();
+        await context.Database.OpenConnectionAsync();
+
+        await context.Database.ExecuteSqlRawAsync("CREATE USER [fitplan-migrator] WITHOUT LOGIN WITH DEFAULT_SCHEMA = dbo;");
+        await context.Database.ExecuteSqlRawAsync("ALTER ROLE db_ddladmin ADD MEMBER [fitplan-migrator];");
+        await context.Database.ExecuteSqlRawAsync("ALTER ROLE db_datareader ADD MEMBER [fitplan-migrator];");
+        await context.Database.ExecuteSqlRawAsync("ALTER ROLE db_datawriter ADD MEMBER [fitplan-migrator];");
+
+        await context.Database.ExecuteSqlRawAsync("EXECUTE AS USER = 'fitplan-migrator';");
+        try
+        {
+            await context.Database.MigrateAsync();
+        }
+        finally
+        {
+            await context.Database.ExecuteSqlRawAsync("REVERT;");
+        }
+
         Assert.Equal(context.Database.GetMigrations(), await context.Database.GetAppliedMigrationsAsync());
     }
 
