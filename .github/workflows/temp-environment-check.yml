@@ -1,0 +1,27 @@
+# TEMPORARY: proves that the dev and dev-schema environments refuse any branch except develop.
+# It requests no token, holds no secret, and deploys nothing. This branch is never merged.
+name: Temporary environment check
+
+on:
+  pull_request:
+    branches: [develop]
+
+permissions:
+  contents: read
+
+jobs:
+  dev:
+    name: Expect refusal from dev
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    environment: dev
+    steps:
+      - run: echo "::error::The dev environment let this branch in."; exit 1
+
+  dev-schema:
+    name: Expect refusal from dev-schema
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    environment: dev-schema
+    steps:
+      - run: echo "::error::The dev-schema environment let this branch in."; exit 1
