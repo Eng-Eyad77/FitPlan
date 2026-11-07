@@ -60,7 +60,7 @@ From `Backend`:
 dotnet test FitPlan.slnx
 ```
 
-This builds the API and runs its tests. They need a SQL Server on your machine, SQL Express by default. Each run creates its own `FitPlanTests_*` databases and drops them afterwards. To use another local server, set `FITPLAN_TEST_SQL` to its connection string. The tests refuse any server that isn't on this machine.
+This builds the API and the migrator, and runs the tests for both. They need a SQL Server on your machine, SQL Express by default. Each run creates its own `FitPlanTests_*` databases and drops them afterwards. To use another local server, set `FITPLAN_TEST_SQL` to its connection string. The tests refuse any server that isn't on this machine.
 
 Every pull request into `develop` or `main` runs the same checks in GitHub Actions (`.github/workflows/ci.yml`), using a throwaway SQL Server container. CI doesn't sign in to Azure, deploy anything or build a mobile app. Managed Identity sign-in can't be tested there, so it's checked on the Dev API.
 
@@ -154,16 +154,51 @@ Each deploy compares `Backend/FitPlan.Api/Migrations` between the commit that `/
 
 **Approval is a person's decision, not technical proof.** GitHub only records that someone approved. It can't tell whether a migration script ran, because the workflow has no database access. Before you approve, check the evidence yourself.
 
-**Don't merge a migration yet.** Migrations are applied with the `FitPlan.Migrator` tool, which doesn't exist yet. A schema change has to wait until it does.
+**Don't merge a migration yet.** `FitPlan.Migrator` exists, but the `fitplan-migrator` database user hasn't been created on Dev and the tool hasn't run against Azure SQL. Until both are done and checked, a schema change has to wait.
 
-The tool will apply a generated SQL script as `fitplan-migrator`, which has only `db_ddladmin`, `db_datareader` and `db_datawriter`. The rules for running a script are:
+#### FitPlan.Migrator
 
-- Review the script, which must stay compatible with the running API, and approve its SHA-256.
-- Reject any script that fails validation or differs from the expected EF Core format.
-- Use one unpooled connection with `SET XACT_ABORT ON`, and `EXECUTE AS USER ... WITH COOKIE`, with `REVERT WITH COOKIE` in cleanup.
-- Stop at the first error. `XACT_ABORT` doesn't catch every failure: after `RAISERROR`, the migration can still commit and record itself as applied.
-- Never retry a migration whose result is uncertain. Compare the schema with a reference database first.
-- If permissions aren't enough, stop and report the exact error. Don't add `db_owner`.
+`Backend/FitPlan.Migrator` applies the idempotent script that EF Core generates. It runs the script as the database user `fitplan-migrator`, which has only `db_ddladmin`, `db_datareader` and `db_datawriter`, never `db_owner`.
+
+`validate` checks a script without connecting to anything. It accepts only the exact shape EF Core generates: the history table batch, then one batch per migration, with every step inside an EF Core migration check. The migrations must be the API's own, in order, recorded with the API's EF Core version. Only these steps are allowed: create, alter or drop a table, create or drop an index, and `EXEC(N'...')` with one constant string that holds one of those. The tool rejects anything else, including `REVERT`, `EXECUTE AS`, permission and role changes, `USE`, `ALTER DATABASE`, `RAISERROR`, `THROW` and `PRINT`, even inside `EXEC`. A step that EF Core can generate but this list doesn't allow yet needs its own tests before it is added.
+
+`apply` checks the script's SHA-256 against the approved hash and validates the script again, before it connects. It connects only to `FitPlanDb-dev` on `fitplan-sql-eyad-dev`, signing in with your `az login` account, so no password or key is stored. Then it:
+
+- Uses one unpooled connection with `SET XACT_ABORT ON`.
+- Takes an exclusive lock, so two runs can't overlap. If another run holds it, nothing runs.
+- Switches to `fitplan-migrator` with `EXECUTE AS USER ... WITH COOKIE`, and switches back with `REVERT WITH COOKIE` whatever happens.
+- Runs the batches in order and stops at the first error. After each batch it checks that no transaction is open and that the session still runs as `fitplan-migrator`.
+- Reports the history before and after, and for a failure the batch, the migration and the exact SQL error.
+
+It never retries and never rolls back by itself. If permissions aren't enough, it stops with the SQL error. Don't add `db_owner`.
+
+#### Applying a migration to Dev
+
+1. Merge the pull request with the migration. The deploy waits at `dev-schema`, because the migrations differ.
+2. Generate the script from the merged commit, and save it outside the repository:
+
+   ```bash
+   dotnet ef migrations script --idempotent --project Backend/FitPlan.Api --output <folder outside the repo>/fitplan-dev.sql
+   ```
+
+3. Validate it and note the SHA-256 it prints:
+
+   ```bash
+   dotnet run --project Backend/FitPlan.Migrator -- validate <folder outside the repo>/fitplan-dev.sql
+   ```
+
+4. Read the script. The running API still uses the old code until the deploy finishes, so the change must work with both versions. Approve the SHA-256 only after you've read it.
+5. Add a temporary firewall rule for your IP, named as described under "Temporary SQL firewall rules".
+6. Apply it:
+
+   ```bash
+   dotnet run --project Backend/FitPlan.Migrator -- apply <folder outside the repo>/fitplan-dev.sql --sha256 <approved hash> --target dev
+   ```
+
+7. Delete the firewall rule and list the rules again.
+8. Approve the deploy only if the outcome is `Succeeded` and the history after lists the new migration.
+
+If the outcome is anything else, reject the deploy and don't run the script again. Compare the schema and `__EFMigrationsHistory` with a reference database first. `XACT_ABORT` doesn't catch every failure, and a migration's result can be uncertain if the connection drops.
 
 If the run waits for another reason, find out why before you approve. The first deploy of `/health/live` waits this way, because the running API doesn't have that endpoint yet. To stop a deploy, reject the run. GitHub lets a run wait up to 30 days for approval.
 
