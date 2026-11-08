@@ -1,5 +1,8 @@
 <Solution>
   <Folder Name="/Backend/">
   <Project Path="FitPlan.Api/FitPlan.Api.csproj" />
+  <Project Path="FitPlan.Api.Tests/FitPlan.Api.Tests.csproj" />
+  <Project Path="FitPlan.Migrator/FitPlan.Migrator.csproj" />
+  <Project Path="FitPlan.Migrator.Tests/FitPlan.Migrator.Tests.csproj" />
   </Folder>
 </Solution>

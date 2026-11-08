@@ -1,0 +1,157 @@
+# Deploys the API to Production after every merge into main, and only after a person approves.
+# It builds no iOS or Android app. The deploy identity can only reach the Production web app: it has
+# no database access and can't change SQL firewall rules. Production has no migration path yet, so a
+# release that changes migrations is refused before anyone is asked to approve it.
+name: Deploy Prod
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# One deploy at a time. A running deploy is never cancelled, and only the newest push waits.
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+env:
+  APP_NAME: fitplan-api-eyad
+  RESOURCE_GROUP: fitplan-rg
+  BASE_URL: https://fitplan-api-eyad.azurewebsites.net
+
+jobs:
+  checks:
+    uses: ./.github/workflows/ci.yml
+
+  schema-check:
+    name: Refuse schema changes
+    needs: checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Confirm production still requires a reviewer
+        # GitHub creates a missing environment with no protection, which would deploy without approval.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          rules=$(curl --silent --fail --max-time 30 \
+            --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/environments/production" \
+            | jq -r '[.protection_rules[]?.type] | join(",")')
+          case ",$rules," in
+            *,required_reviewers,*) echo "production requires a reviewer." ;;
+            *) echo "::error::production has no required reviewer."; exit 1 ;;
+          esac
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Compare migrations with the commit running in Production
+        # A difference stops the release here. An unknown running version is shown to the reviewer.
+        run: |
+          report() { echo "$1" | tee -a "$GITHUB_STEP_SUMMARY"; }
+
+          deployed=""
+          for attempt in $(seq 1 6); do
+            deployed=$(curl --silent --fail --max-time 30 "$BASE_URL/health/live" | jq -r '.commit // empty' 2> /dev/null || true)
+            [ -n "$deployed" ] && break
+            echo "Attempt $attempt: no commit from /health/live"
+            sleep 20
+          done
+
+          if ! printf '%s' "$deployed" | grep -Eq '^[0-9a-f]{40}$'; then
+            report "Migrations unverified: /health/live gave no valid commit, so the running version is unknown. Check the evidence before you approve."
+            echo "::warning::The running Production version is unknown. Check the evidence before you approve."
+            exit 0
+          fi
+          if ! git cat-file -e "$deployed^{commit}" 2> /dev/null; then
+            report "Migrations unverified: the running commit $deployed isn't in this repository. Check the evidence before you approve."
+            echo "::warning::The running Production commit isn't in this repository."
+            exit 0
+          fi
+
+          result=0
+          git diff --quiet "$deployed" "$GITHUB_SHA" -- Backend/FitPlan.Api/Migrations || result=$?
+          case "$result" in
+            0) report "Migrations unchanged: no migration differs from the running commit $deployed." ;;
+            1)
+              report "Migrations changed since the running commit $deployed. Production has no migration path yet, so this release is refused."
+              echo "::error::Migrations differ from the running Production commit. Production has no migration path yet."
+              exit 1 ;;
+            *)
+              report "Migrations unverified: Git couldn't compare with the running commit $deployed. Check the evidence before you approve."
+              echo "::warning::Git couldn't compare migrations with the running Production commit." ;;
+          esac
+
+  deploy:
+    name: Deploy to Production
+    needs: schema-check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    # This environment has a required reviewer, so the job waits here until a person approves.
+    environment:
+      name: production
+      url: ${{ env.BASE_URL }}
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          dotnet-version: 10.0.x
+      - name: Publish the API
+        run: |
+          dotnet publish Backend/FitPlan.Api/FitPlan.Api.csproj --configuration Release \
+            --output "$RUNNER_TEMP/publish" -p:SourceRevisionId=$GITHUB_SHA
+          rm -f "$RUNNER_TEMP/publish/appsettings.Development.json"
+          rm -rf "$RUNNER_TEMP/publish/wwwroot/uploads"
+          (cd "$RUNNER_TEMP/publish" && zip -qr "$RUNNER_TEMP/fitplan-api.zip" .)
+      - uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3.1.0
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Deploy
+        run: |
+          az webapp deploy --resource-group "$RESOURCE_GROUP" --name "$APP_NAME" \
+            --src-path "$RUNNER_TEMP/fitplan-api.zip" --type zip
+      - name: Wait until the new commit is running
+        # The health check never touches the database, so waiting here can't wake it.
+        run: |
+          for attempt in $(seq 1 20); do
+            commit=$(curl --silent --max-time 30 "$BASE_URL/health/live" | jq -r '.commit // empty' 2> /dev/null || true)
+            if [ "$commit" = "$GITHUB_SHA" ]; then
+              echo "Commit $commit is running after attempt $attempt"
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "::error::$BASE_URL/health/live never reported $GITHUB_SHA. Last value: ${commit:-none}"
+          exit 1
+      - name: Check protected and hidden routes
+        run: |
+          check() {
+            status=$(curl --silent --output /dev/null --max-time 60 --write-out '%{http_code}' "$BASE_URL$1" || true)
+            echo "$1 returned $status"
+            [ "$status" = "$2" ] || { echo "::error::$1 returned $status, expected $2"; exit 1; }
+          }
+          check /swagger/index.html 404
+          check /api/profile/me 401
+      - name: Read from the Production database
+        # Read-only, and no user data. It wakes the database once per release, which spends free allowance.
+        run: |
+          for attempt in $(seq 1 8); do
+            status=$(curl --silent --output /dev/null --max-time 70 --write-out '%{http_code}' "$BASE_URL/api/exercises" || true)
+            echo "Attempt $attempt returned $status"
+            if [ "$status" = "200" ]; then
+              exit 0
+            fi
+            sleep 20
+          done
+          echo "::error::$BASE_URL/api/exercises never returned 200"
+          exit 1
