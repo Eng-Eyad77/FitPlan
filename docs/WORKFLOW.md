@@ -255,7 +255,9 @@ If the run waits for another reason, find out why before you approve. The first 
 | Prevent self-review | Not applicable | Off, because there's one reviewer | Off, because there's one reviewer |
 | Allow administrators to bypass | Off | Off | Off |
 | Secrets | `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID` | None | `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID` |
-| Azure identity | `fitplan-gh-dev`, Website Contributor on `fitplan-api-dev` only | None | `fitplan-gh-prod`, Website Contributor on `fitplan-api-eyad` only |
+| Azure identity | `fitplan-gh-dev`, FitPlan Web Deploy on `fitplan-api-dev` only | None | `fitplan-gh-prod`, FitPlan Web Deploy on `fitplan-api-eyad` only |
+
+FitPlan Web Deploy is a custom role that can only read the web app and publish to it. It can't read app settings or connection strings. [RECOVERY.md](RECOVERY.md#rebuild-dev-from-scratch) lists its permissions.
 
 Create each environment before any workflow references it, because GitHub creates a missing environment with no protection. A Dev deploy stops if `dev-schema` has no required reviewer, and a Production deploy stops if `production` has none.
 

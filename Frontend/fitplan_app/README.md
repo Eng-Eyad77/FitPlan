@@ -58,3 +58,4 @@ dart run flutter_launcher_icons
 
 - [Testing on a real phone](../../docs/TESTING_ON_DEVICES.md)
 - [Git workflow](../../docs/WORKFLOW.md)
+- [Backup and recovery](../../docs/RECOVERY.md)
