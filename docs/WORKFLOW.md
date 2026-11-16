@@ -122,6 +122,38 @@ https://github.com/Eng-Eyad77/FitPlan/compare/main...develop
 
 Release when few people use the app. Production runs on the F1 plan, which has no deployment slots, so each deploy restarts the API for a short time.
 
+## Keeping released apps working
+
+An API release reaches everyone at once, but people update the app when they choose. Every API change must keep the last released app working. Until the app can ask users to update, assume every released version is still in use.
+
+The last released app is the newest build installed outside development: the current test build on devices now, and the newest store version after launch.
+
+**Allowed:**
+
+- New endpoints.
+- New fields in a response. The app ignores fields it doesn't know.
+- New optional fields in a request, with a default that keeps the old behavior.
+- New enum values only in places where the released app handles an unknown value. The current app doesn't handle any: an unknown `RecordType` or `SuggestionReason` fails the whole response.
+
+**Not allowed while a released app uses it:**
+
+- Removing or renaming an endpoint, a route, a query parameter or a JSON field. Enums are sent as strings, so renaming an enum value counts too.
+- Changing a field's type or meaning, or making it nullable when it wasn't.
+- Making a request field required, or adding validation that rejects requests the released app sends.
+- Changing the status code or the error body that the app reacts to, such as `401` on an expired session.
+
+To replace something, add the new version next to the old one. Remove the old one only after an app release that no longer uses it, and after deciding that the versions still using it can stop working.
+
+**Database changes** follow the same idea, because there are no deployment slots and the old API runs until the deploy finishes. Add columns as nullable or with a default. Remove or rename a column in two releases: first stop using it in code, then drop it in a later migration.
+
+**Before a release pull request**, list what changed under `Backend/FitPlan.Api/Controllers` and `Backend/FitPlan.Api/DTOs` since the last release:
+
+```bash
+git diff --stat origin/main...origin/develop -- Backend/FitPlan.Api/Controllers Backend/FitPlan.Api/DTOs
+```
+
+For each change, check it against the lists above, and say in the pull request why it's safe. Installed builds use the Production API, so they can't be tried against Dev without a new build. After each Production release, open the installed app and try the main flows: sign in, the exercise list, and starting and saving a session. If one breaks, roll back as in [If a Production deploy fails](#if-a-production-deploy-fails).
+
 ## Production deployment
 
 Every merge into `main` runs `.github/workflows/deploy-prod.yml`:
@@ -337,7 +369,7 @@ The APK is saved to `build/app/outputs/flutter-apk/app-release.apk`. Git ignores
 
 ### Which API a build uses
 
-`API_BASE_URL` in `codemagic.yaml` and in the Android command above points to the Production API, so these test builds use real data. This changes when Dev exists in Phase 2.
+`API_BASE_URL` in `codemagic.yaml` and in the Android command above points to the Production API, so these test builds use real data. Dev exists, but no build points to it yet. A build for Dev needs its own manual build with `API_BASE_URL` set to `https://fitplan-api-dev.azurewebsites.net`.
 
 ## Never commit
 
