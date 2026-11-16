@@ -1,11 +1,14 @@
 
 using System.ComponentModel.DataAnnotations;
 using FitPlan.Api.Services.Exercises;
+using FitPlan.Api.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace FitPlan.Api.Controllers;
 
 [Route("api/exercises")]
+[EnableRateLimiting(RateLimitingExtensions.ExercisesPolicy)]
 public class ExercisesController(IExerciseService exerciseService) : ApiControllerBase
 {
     // [ApiController] validates these [Range] attributes automatically

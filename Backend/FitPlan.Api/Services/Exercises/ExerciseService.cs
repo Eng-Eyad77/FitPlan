@@ -1,12 +1,14 @@
 using FitPlan.Api.Common.Results;
-using FitPlan.Api.Data;
 using FitPlan.Api.DTOs.Exercises;
-using Microsoft.EntityFrameworkCore;
 
 namespace FitPlan.Api.Services.Exercises;
 
-public class ExerciseService(FitPlanDbContext context) : IExerciseService
+// Reads from ExerciseCatalog, so browsing exercises doesn't touch the database.
+// Comparisons ignore case, like the database's collation did.
+public class ExerciseService(ExerciseCatalog catalog) : IExerciseService
 {
+    private static readonly StringComparison IgnoreCase = StringComparison.OrdinalIgnoreCase;
+
     public async Task<ExerciseListResponseDto> GetAllExercisesAsync
     (
         int page, // to point on 1 page
@@ -15,73 +17,54 @@ public class ExerciseService(FitPlanDbContext context) : IExerciseService
         string? search // to search with exercise name
     )
     {
-        var query = context.Exercises.AsQueryable();
+        var snapshot = await catalog.GetAsync();
+        IEnumerable<ExerciseDto> query = snapshot.All;
 
-        if (!string.IsNullOrWhiteSpace(search))
+        var hasSearch = !string.IsNullOrWhiteSpace(search);
+        if (hasSearch)
         {
             // to bring the exercises that their name contains the search
-            query = query.Where(e => e.Name.Contains(search));
+            query = query.Where(e => e.Name.Contains(search!, IgnoreCase));
         }
 
         if (!string.IsNullOrWhiteSpace(bodyPart))
         {
             // exact match, so "upper arms" does not also bring "lower arms"
-            query = query.Where(e => e.BodyPart == bodyPart);
+            query = query.Where(e => e.BodyPart.Equals(bodyPart, IgnoreCase));
         }
 
-        //to calculate the exercises so i can divided on pages
-        var totalCount = await query.CountAsync();
+        var matches = query.ToList();
 
         // with a search: the exact name first, then names that start with it, then the rest (shorter names first)
-        var ordered = string.IsNullOrWhiteSpace(search)
-            ? query.OrderBy(o => o.Id)
-            : query
-                .OrderBy(e => e.Name == search ? 0 : e.Name.StartsWith(search) ? 1 : 2)
+        var ordered = hasSearch
+            ? matches
+                .OrderBy(e => e.Name.Equals(search, IgnoreCase) ? 0 : e.Name.StartsWith(search!, IgnoreCase) ? 1 : 2)
                 .ThenBy(e => e.Name.Length)
-                .ThenBy(e => e.Id);
+                .ThenBy(e => e.Id, StringComparer.OrdinalIgnoreCase)
+            : matches.OrderBy(e => e.Id, StringComparer.OrdinalIgnoreCase);
 
         // this is for put the exercises in pages
-        var exercises = await ordered
+        var items = ordered
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(item => new ExerciseDto
-            {
-                Id = item.Id,
-                Name = item.Name,
-                BodyPart = item.BodyPart,
-                GifUrl = item.GifUrl,
-                Instructions = item.Instructions
-            })
-            .ToListAsync();
-
-        var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+            .ToList();
 
         return new ExerciseListResponseDto
         {
-            Items = exercises,
+            Items = items,
             Page = page,
             PageSize = pageSize,
-            TotalCount = totalCount,
-            TotalPages = totalPages
+            TotalCount = matches.Count,
+            TotalPages = (int)Math.Ceiling((double)matches.Count / pageSize)
         };
     }
 
     public async Task<Result<ExerciseDto>> GetExerciseByIdAsync(string id)
     {
-        var exercise = await context.Exercises.FindAsync(id);
+        var snapshot = await catalog.GetAsync();
 
-        if (exercise is null)
-        {
-            return Result<ExerciseDto>.Failure(Errors.ExerciseNotFound);
-        }
-
-        return Result<ExerciseDto>.Success(new ExerciseDto
-        {
-            Id = exercise.Id,
-            Name = exercise.Name,
-            BodyPart = exercise.BodyPart,
-            GifUrl = exercise.GifUrl,
-            Instructions = exercise.Instructions
-        });
+        return snapshot.ById.TryGetValue(id, out var exercise)
+            ? Result<ExerciseDto>.Success(exercise)
+            : Result<ExerciseDto>.Failure(Errors.ExerciseNotFound);
     }
 }

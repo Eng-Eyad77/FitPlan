@@ -61,6 +61,8 @@ public sealed class ApiFixture : IAsyncLifetime
         Directory.Delete(uploadsRoot, recursive: true);
     }
 
+    public IServiceProvider Services => factory.Services;
+
     public HttpClient CreateClient(string? accessToken = null)
     {
         var client = factory.CreateClient();
