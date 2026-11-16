@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/network/api_exception.dart';
 import '../../../core/storage/session_storage.dart';
 import '../data/auth_repository.dart';
 import '../domain/auth_session.dart';
@@ -37,11 +38,36 @@ class AuthController extends AsyncNotifier<AuthSession?> {
     await _start(session);
   }
 
+  /// Sign-up is never repeated by itself. If its answer is lost (timeout), the server may still
+  /// have created the account, and a second tap would get "username taken". In both cases we try
+  /// to log in with the same details: if that works, the account is the user's and we continue.
   Future<void> register(String username, String password) async {
-    final session = await ref
-        .read(authRepositoryProvider)
-        .register(username: username, password: password);
+    final repository = ref.read(authRepositoryProvider);
+    AuthSession session;
+    try {
+      session = await repository.register(username: username, password: password);
+    } on ApiException catch (error) {
+      if (!_mayAlreadyExist(error)) rethrow;
+      session = await _loginInstead(repository, username, password, error);
+    }
     await _start(session);
+  }
+
+  static bool _mayAlreadyExist(ApiException error) =>
+      error.code == ApiException.timeout || error.code == ApiException.usernameAlreadyExists;
+
+  Future<AuthSession> _loginInstead(
+    AuthRepository repository,
+    String username,
+    String password,
+    ApiException registerError,
+  ) async {
+    try {
+      return await repository.login(username: username, password: password);
+    } on ApiException {
+      // not this user's account, or still no answer: report what sign-up said
+      throw registerError;
+    }
   }
 
   Future<void> logout() async {

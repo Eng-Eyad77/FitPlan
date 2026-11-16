@@ -49,6 +49,45 @@ void main() {
     test('no response means a network error', () {
       final error = ApiException.fromDio(_dioError());
       expect(error.code, ApiException.networkError);
+      expect(error.isTemporary, isTrue);
+    });
+
+    for (final type in [
+      DioExceptionType.connectionTimeout,
+      DioExceptionType.sendTimeout,
+      DioExceptionType.receiveTimeout,
+    ]) {
+      test('$type is a timeout, not a network error', () {
+        final error = ApiException.fromDio(
+          DioException(requestOptions: RequestOptions(path: '/test'), type: type),
+        );
+        expect(error.code, ApiException.timeout);
+        expect(error.isTemporary, isTrue);
+      });
+    }
+
+    test("the API's 503 keeps its DatabaseUnavailable code and message", () {
+      final error = ApiException.fromDio(_dioError(status: 503, data: {
+        'status': 503,
+        'title': 'The server is starting up. Try again in a moment.',
+        'errorCode': 'DatabaseUnavailable',
+      }));
+      expect(error.code, ApiException.databaseUnavailable);
+      expect(error.message, 'The server is starting up. Try again in a moment.');
+      expect(error.isTemporary, isTrue);
+    });
+
+    for (final status in [502, 503, 504]) {
+      test('$status without ProblemDetails means the server is starting', () {
+        final error = ApiException.fromDio(_dioError(status: status, data: '<html>Service Unavailable</html>'));
+        expect(error.code, ApiException.serverUnavailable);
+        expect(error.statusCode, status);
+      });
+    }
+
+    test('a validation error is not temporary', () {
+      final error = ApiException.fromDio(_dioError(status: 400, data: {'errorCode': 'ValidationFailed'}));
+      expect(error.isTemporary, isFalse);
     });
   });
 

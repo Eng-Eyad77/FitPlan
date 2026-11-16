@@ -24,20 +24,57 @@ class ApiException implements Exception {
   /// Validation errors per field, keys in lower camel case ("password", "username").
   final Map<String, List<String>> fieldErrors;
 
+  /// No answer at all: no internet, or the server can't be reached.
   static const networkError = 'NetworkError';
+
+  /// The request left, but no answer came in time. A POST may still have been done by the server.
+  static const timeout = 'Timeout';
+
+  /// The server answered that it can't handle requests right now, e.g. while it starts up.
+  static const serverUnavailable = 'ServerUnavailable';
+
+  /// The API's own 503: the database is still waking up. Nothing was saved.
+  static const databaseUnavailable = 'DatabaseUnavailable';
+
   static const unknownError = 'UnknownError';
+
+  static const usernameAlreadyExists = 'UsernameAlreadyExists';
+
+  /// True when trying again in a moment is likely to work.
+  bool get isTemporary =>
+      code == networkError || code == timeout || code == serverUnavailable || code == databaseUnavailable;
 
   factory ApiException.fromDio(DioException error) {
     final response = error.response;
 
     if (response == null) {
-      return const ApiException(
-        code: networkError,
-        message: "Can't reach the server. Check your connection and try again.",
-      );
+      return switch (error.type) {
+        DioExceptionType.connectionTimeout ||
+        DioExceptionType.sendTimeout ||
+        DioExceptionType.receiveTimeout =>
+          const ApiException(
+            code: timeout,
+            message: 'The server took too long to answer. Try again in a moment.',
+          ),
+        _ => const ApiException(
+            code: networkError,
+            message: "Can't reach the server. Check your connection and try again.",
+          ),
+      };
     }
 
     final data = response.data;
+    final status = response.statusCode;
+
+    // 502, 503 and 504 without our ProblemDetails come from Azure while the API starts.
+    if (status != null && status >= 502 && status <= 504 && data is! Map<String, dynamic>) {
+      return ApiException(
+        code: serverUnavailable,
+        message: 'The server is starting up. Try again in a moment.',
+        statusCode: status,
+      );
+    }
+
     if (data is Map<String, dynamic>) {
       return ApiException(
         code: data['errorCode'] as String? ?? unknownError,
