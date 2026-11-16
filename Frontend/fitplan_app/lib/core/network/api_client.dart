@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/auth/application/auth_controller.dart';
 import '../config/env.dart';
 import 'api_exception.dart';
+import 'slow_requests.dart';
 
 /// The one HTTP client of the app.
 ///
@@ -14,8 +15,10 @@ final dioProvider = Provider<Dio>((ref) {
   final dio = Dio(
     BaseOptions(
       baseUrl: Env.apiBaseUrl,
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 20),
+      connectTimeout: connectTimeout,
+      // longer than the API's own database retries (about 45 s), so a waking database
+      // ends in an answer instead of a timeout
+      receiveTimeout: receiveTimeout,
       headers: {'Accept': 'application/json'},
     ),
   );
@@ -28,9 +31,15 @@ final dioProvider = Provider<Dio>((ref) {
         if (token != null) {
           options.headers['Authorization'] = 'Bearer $token';
         }
+        options.extra[_endTracking] = ref.read(slowRequestsProvider.notifier).track();
         handler.next(options);
       },
+      onResponse: (response, handler) {
+        _stopTracking(response.requestOptions);
+        handler.next(response);
+      },
       onError: (error, handler) {
+        _stopTracking(error.requestOptions);
         final hadToken = error.requestOptions.headers.containsKey('Authorization');
         if (error.response?.statusCode == 401 && hadToken) {
           // expired or invalid token -> back to the login screen
@@ -51,6 +60,16 @@ final dioProvider = Provider<Dio>((ref) {
 
   return dio;
 });
+
+const connectTimeout = Duration(seconds: 15);
+const receiveTimeout = Duration(seconds: 60);
+
+const _endTracking = 'fitplan.endSlowTracking';
+
+void _stopTracking(RequestOptions options) {
+  final end = options.extra.remove(_endTracking);
+  if (end is void Function()) end();
+}
 
 /// Small helper so repositories can write:  `await apiCall(() => dio.get(...))`
 /// and get an [ApiException] instead of a raw DioException.

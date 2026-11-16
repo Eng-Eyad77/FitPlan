@@ -21,6 +21,7 @@ public static class ErrorHandlingExtensions
                     StatusCodes.Status403Forbidden => "Forbidden",
                     StatusCodes.Status404NotFound => "NotFound",
                     StatusCodes.Status500InternalServerError => "InternalServerError",
+                    StatusCodes.Status503ServiceUnavailable => "ServiceUnavailable",
                     _ => "RequestFailed"
                 });
             };
