@@ -8,6 +8,7 @@ using FitPlan.Api.Services.SessionExercises;
 using FitPlan.Api.Services.CardioEntries;
 using FitPlan.Api.Services.BodyWeight;
 using FitPlan.Api.Services.Stats;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace FitPlan.Api.Extensions;
 
@@ -23,6 +24,8 @@ public static class ServicesExtensions
         // Exercises
         services.AddScoped<IExerciseImportService, ExerciseImportService>();
         services.AddScoped<IExerciseService, ExerciseService>();
+        services.AddSingleton<ExerciseCatalog>();
+        services.TryAddSingleton(TimeProvider.System);
 
         // Workout Plans
         services.AddScoped<IWorkoutPlanService, WorkoutPlanService>();
