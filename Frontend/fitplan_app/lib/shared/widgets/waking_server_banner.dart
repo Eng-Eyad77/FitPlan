@@ -13,7 +13,7 @@ class WakingServerBanner extends ConsumerWidget {
 
   final Widget child;
 
-  static const text = 'Waking the server, this can take up to a minute…';
+  static const text = 'Waking the server, this can take a minute…';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
