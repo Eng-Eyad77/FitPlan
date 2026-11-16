@@ -16,7 +16,7 @@ final dioProvider = Provider<Dio>((ref) {
     BaseOptions(
       baseUrl: Env.apiBaseUrl,
       connectTimeout: connectTimeout,
-      // longer than the API's own database retries (about 45 s), so a waking database
+      // longer than the API waits for a waking database (up to 60 s, then about 20 s of retries), so it
       // ends in an answer instead of a timeout
       receiveTimeout: receiveTimeout,
       headers: {'Accept': 'application/json'},
@@ -62,7 +62,7 @@ final dioProvider = Provider<Dio>((ref) {
 });
 
 const connectTimeout = Duration(seconds: 15);
-const receiveTimeout = Duration(seconds: 60);
+const receiveTimeout = Duration(seconds: 90);
 
 const _endTracking = 'fitplan.endSlowTracking';
 

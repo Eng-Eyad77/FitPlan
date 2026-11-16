@@ -16,7 +16,7 @@ public static class DatabaseExtensions
         IConfiguration configuration,
         IHostEnvironment environment)
     {
-        var connectionString = configuration.GetConnectionString("FitPlanDb");
+        var connectionString = WithWakeUpTime(configuration.GetConnectionString("FitPlanDb"));
         EnsureDevUsesDevDatabase(environment, connectionString);
 
         services.AddDbContext<FitPlanDbContext>(options =>
@@ -28,12 +28,33 @@ public static class DatabaseExtensions
         return services;
     }
 
-    // A paused serverless database answers 40613 for up to about a minute while it resumes.
-    // EF retries only errors it knows are transient, waiting longer each time, up to about 45 s in total.
+    // A paused serverless database wakes up in two ways, and both need handling:
+    // - the login waits while the database resumes. SqlClient's default 15 s gives up first, with
+    //   "Connection Timeout Expired" (-2), which EF doesn't retry. So the connection waits up to 60 s.
+    // - the database answers 40613 "not currently available". EF retries that, waiting longer
+    //   each time, about 20 s in total.
     // A user-started transaction can't be retried this way, so the code must not open one
     // without going through Database.CreateExecutionStrategy().
-    private const int MaxRetryCount = 6;
-    private static readonly TimeSpan MaxRetryDelay = TimeSpan.FromSeconds(12);
+    public const int MinConnectTimeoutSeconds = 60;
+    private const int MaxRetryCount = 4;
+    private static readonly TimeSpan MaxRetryDelay = TimeSpan.FromSeconds(10);
+
+    // Raises the connect timeout to MinConnectTimeoutSeconds, and keeps a longer one if set.
+    public static string? WithWakeUpTime(string? connectionString)
+    {
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            return connectionString;
+        }
+
+        var builder = new SqlConnectionStringBuilder(connectionString);
+        if (builder.ConnectTimeout < MinConnectTimeoutSeconds)
+        {
+            builder.ConnectTimeout = MinConnectTimeoutSeconds;
+        }
+
+        return builder.ConnectionString;
+    }
 
     // The Dev API must never reach Production, so it only starts against the Dev database.
     private static void EnsureDevUsesDevDatabase(IHostEnvironment environment, string? connectionString)

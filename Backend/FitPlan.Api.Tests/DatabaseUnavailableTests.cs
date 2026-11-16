@@ -3,6 +3,7 @@ using FitPlan.Api.Common.Exceptions;
 using FitPlan.Api.Data;
 using FitPlan.Api.Extensions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
@@ -32,6 +33,41 @@ public class DatabaseUnavailableTests
         using var context = provider.GetRequiredService<FitPlanDbContext>();
 
         Assert.True(context.Database.CreateExecutionStrategy().RetriesOnFailure);
+
+        // the login itself must outlast a database resume, which SqlClient's default 15 s doesn't
+        var used = new SqlConnectionStringBuilder(context.Database.GetConnectionString());
+        Assert.Equal(DatabaseExtensions.MinConnectTimeoutSeconds, used.ConnectTimeout);
+    }
+
+    [Theory]
+    [InlineData("Server=x;Database=y;", 60)]
+    [InlineData("Server=x;Database=y;Connect Timeout=30;", 60)]
+    [InlineData("Server=x;Database=y;Connection Timeout=120;", 120)]
+    public void The_connect_timeout_is_raised_but_never_lowered(string connectionString, int expected)
+    {
+        var result = new SqlConnectionStringBuilder(DatabaseExtensions.WithWakeUpTime(connectionString));
+
+        Assert.Equal(expected, result.ConnectTimeout);
+        Assert.Equal("x", result.DataSource);
+        Assert.Equal("y", result.InitialCatalog);
+    }
+
+    [Fact]
+    public void Managed_Identity_sign_in_survives_the_rewrite()
+    {
+        var result = new SqlConnectionStringBuilder(DatabaseExtensions.WithWakeUpTime(
+            "Server=tcp:x,1433;Database=y;Authentication=Active Directory Managed Identity;Encrypt=True;"));
+
+        Assert.Equal(SqlAuthenticationMethod.ActiveDirectoryManagedIdentity, result.Authentication);
+        Assert.Empty(result.Password);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public void A_missing_connection_string_is_left_alone(string? connectionString)
+    {
+        Assert.Equal(connectionString, DatabaseExtensions.WithWakeUpTime(connectionString));
     }
 
     [Fact]
