@@ -17,6 +17,7 @@ public sealed class MigrationTests : IAsyncLifetime
         "BodyWeightEntries",
         "CardioEntries",
         "Exercises",
+        "RefreshTokens",
         "SessionExercises",
         "SessionSets",
         "Users",

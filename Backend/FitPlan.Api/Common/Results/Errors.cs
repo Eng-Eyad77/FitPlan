@@ -11,6 +11,10 @@ public static class Errors
     public static readonly Error InvalidCredentials =
         new("InvalidCredentials", "Invalid username or password.", ErrorType.Unauthorized);
 
+    // The refresh token is unknown, expired, revoked or was already used: the user must log in again.
+    public static readonly Error InvalidRefreshToken =
+        new("InvalidRefreshToken", "Your session has ended. Log in again.", ErrorType.Unauthorized);
+
     // Users & Profile
     public static readonly Error UserNotFound =
         new("UserNotFound", "User not found.", ErrorType.NotFound);

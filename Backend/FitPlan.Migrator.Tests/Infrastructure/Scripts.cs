@@ -13,6 +13,7 @@ public static class Scripts
     public const string InitialCreate = "20261011115825_InitialCreate";
     public const string AddWorkoutSessions = "20261103062255_AddWorkoutSessions";
     public const string AddUserWeeklyGoal = "20261103111630_AddUserWeeklyGoal";
+    public const string AddRefreshTokens = "20261118210358_AddRefreshTokens";
 
     public static readonly KnownMigrations Known = KnownMigrations.FromApi();
 
