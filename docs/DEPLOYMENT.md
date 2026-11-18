@@ -15,7 +15,7 @@ Subscription: Azure for Students. Region: UAE North.
 | --- | --- | --- |
 | App Service plan | `fitplan-plan-dev`, F1 Linux (free) | `fitplan-plan`, F1 Linux (free) |
 | Web app | `fitplan-api-dev`, .NET 10 | `fitplan-api-eyad`, .NET 10 |
-| SQL server | `fitplan-sql-eyad-dev`, Microsoft Entra authentication only | `fitplan-sql-eyad`. The admin login is kept with the other secrets, not in this file. |
+| SQL server | `fitplan-sql-eyad-dev`, Microsoft Entra authentication only | `fitplan-sql-eyad`, Microsoft Entra authentication only |
 | Database | `FitPlanDb-dev`, free offer | `FitPlanDb`, free offer |
 | Deploy identity | `fitplan-gh-dev` | `fitplan-gh-prod` |
 
@@ -23,7 +23,7 @@ Both databases are serverless and pause when idle or when the monthly free limit
 
 ## Settings (in Azure, not in the code)
 
-- **Connection string:** `FitPlanDb`. Dev signs in with its managed identity. Production still uses a SQL login.
+- **Connection string:** `FitPlanDb`. Both apps sign in with their managed identity (`Authentication=Active Directory Managed Identity`), as a database user with only `db_datareader` and `db_datawriter`. No password is stored.
 - **App settings:**
   - `Jwt__Key`
   - `ASPNETCORE_ENVIRONMENT`: `Dev` or `Production`
@@ -43,9 +43,9 @@ Each run builds the API with its commit, deploys it as a package, waits until `/
 ## Migrations
 
 - **Dev:** apply them with `FitPlan.Migrator`, as in [Applying a migration to Dev](WORKFLOW.md#applying-a-migration-to-dev). The Dev deploy waits for your confirmation when migrations change.
-- **Production:** there is no migration path yet. The Production deploy refuses any release that changes migrations. A path is planned in Phase 4.
+- **Production:** apply them with `FitPlan.Migrator --target prod`, as in [Applying a migration to Production](WORKFLOW.md#applying-a-migration-to-production), before you approve the deploy. The Production deploy warns when migrations change.
 
-Don't run migration scripts against Production by hand.
+Don't run migration scripts against Production any other way.
 
 ## Backups and recovery
 
