@@ -12,6 +12,14 @@ public static class RateLimitingExtensions
     public const string ExercisesPolicy = "exercises";
     public const int ExercisesPermitPerMinute = 120;
 
+    // Login and sign-up guess passwords or create accounts, so each IP gets only a few a minute.
+    public const string SignInPolicy = "sign-in";
+    public const int SignInPermitPerMinute = 10;
+
+    // The app refreshes about once every 30 minutes, so this only stops floods.
+    public const string RefreshPolicy = "refresh";
+    public const int RefreshPermitPerMinute = 30;
+
     // The exercise library is open without signing in, so one caller could flood it.
     // Each signed-in user, or each IP address otherwise, gets ExercisesPermitPerMinute requests a minute.
     public static IServiceCollection AddRateLimits(this IServiceCollection services)
@@ -28,6 +36,9 @@ public static class RateLimitingExtensions
                     Window = TimeSpan.FromMinutes(1),
                     QueueLimit = 0
                 }));
+
+            options.AddPolicy(SignInPolicy, context => PerIp(context, SignInPermitPerMinute));
+            options.AddPolicy(RefreshPolicy, context => PerIp(context, RefreshPermitPerMinute));
 
             options.OnRejected = async (context, cancellationToken) =>
             {
@@ -52,6 +63,16 @@ public static class RateLimitingExtensions
 
         return services;
     }
+
+    private static RateLimitPartition<string> PerIp(HttpContext context, int permitPerMinute) =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            $"ip:{ClientIp(context)}",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = permitPerMinute,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            });
 
     public static string PartitionKey(HttpContext context)
     {
