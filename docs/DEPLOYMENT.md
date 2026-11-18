@@ -28,6 +28,7 @@ Both databases are serverless and pause when idle or when the monthly free limit
   - `Jwt__Key`
   - `ASPNETCORE_ENVIRONMENT`: `Dev` or `Production`
   - `Uploads__Root=/home/data/uploads`: profile pictures are saved here so they survive deploys.
+  - `Exercises__CacheFile=/home/data/cache/exercises.json`: the exercise list is saved here, so an app that restarts after sleeping doesn't wake the database to read it again. Without it the list is kept in memory only.
 
 Secret values live **only** in the Azure settings and in a local file outside the repository. Never commit them. The deploy identities can't read them.
 
