@@ -10,6 +10,7 @@ builder.Services
     .AddDatabase(builder.Configuration, builder.Environment)
     .AddAuthenticationServices(builder.Configuration)
     .AddApplicationServices()
+    .AddRateLimits()
     .AddSwaggerDocumentation()
     .AddCors();
 

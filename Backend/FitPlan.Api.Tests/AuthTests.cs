@@ -67,6 +67,18 @@ public class AuthTests(ApiFixture api)
     }
 
     [Fact]
+    public async Task A_short_password_is_rejected_with_the_real_rule()
+    {
+        var response = await api.CreateClient().PostAsJsonAsync(
+            "/api/auth/register", new { username = ApiFixture.NewUsername(), password = "short" });
+
+        await response.AssertProblemAsync(HttpStatusCode.BadRequest, "ValidationFailed");
+        using var body = System.Text.Json.JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        var message = body.RootElement.GetProperty("errors").GetProperty("Password")[0].GetString();
+        Assert.Equal("Password must be 8 to 100 characters.", message);
+    }
+
+    [Fact]
     public async Task Login_with_the_correct_password_returns_a_working_token()
     {
         var user = await api.RegisterUserAsync();

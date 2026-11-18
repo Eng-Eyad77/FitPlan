@@ -33,6 +33,9 @@ public static class ApplicationBuilderExtensions
         app.UseAuthentication();
         app.UseAuthorization();
 
+        // after authentication, so a signed-in user is limited by account rather than IP
+        app.UseRateLimiter();
+
         // profile pictures, served from the uploads folder (outside the app folder in production)
         var uploadsRoot = app.Configuration.GetUploadsRoot(app.Environment);
         Directory.CreateDirectory(uploadsRoot);
