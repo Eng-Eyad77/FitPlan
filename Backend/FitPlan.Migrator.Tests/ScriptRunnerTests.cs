@@ -124,25 +124,38 @@ public sealed class ScriptRunnerTests
     }
 
     [Theory]
-    [InlineData("Server=tcp:fitplan-sql-eyad.database.windows.net,1433;Initial Catalog=FitPlanDb;Authentication=Active Directory Default")]
+    [InlineData("Server=tcp:fitplan-sql-eyad.database.windows.net,1433;Initial Catalog=master;Authentication=Active Directory Default")]
+    [InlineData("Server=tcp:fitplan-sql-eyad.database.windows.net,1433;Initial Catalog=FitPlanDb-dev;Authentication=Active Directory Default")]
+    [InlineData("Server=tcp:fitplan-sql-eyad-dev.database.windows.net,1433;Initial Catalog=FitPlanDb;Authentication=Active Directory Default")]
+    [InlineData("Server=tcp:fitplan-sql-eyad.database.windows.net.attacker.example,1433;Initial Catalog=FitPlanDb")]
     [InlineData("Server=tcp:fitplan-sql-eyad-dev.database.windows.net,1433;Initial Catalog=master;Authentication=Active Directory Default")]
     [InlineData("Server=tcp:fitplan-sql-eyad-dev.database.windows.net.attacker.example,1433;Initial Catalog=FitPlanDb-dev")]
     [InlineData("Server=localhost\\SQLEXPRESS;Initial Catalog=FitPlanDb;Trusted_Connection=True")]
     [InlineData("Server=db.example.com;Initial Catalog=FitPlanTests_abc")]
-    public async Task Refuses_any_target_other_than_Dev_or_a_local_test_database(string connectionString)
+    public async Task Refuses_any_target_other_than_Dev_Production_or_a_local_test_database(string connectionString)
     {
         var script = Scripts.Idempotent();
 
         var report = await ScriptRunner.ApplyAsync(Scripts.Bytes(script), Scripts.Sha256(script), connectionString, Scripts.Known);
 
         Assert.Equal(RunOutcome.Refused, report.Outcome);
-        Assert.Contains("isn't the Dev database", report.Message);
+        Assert.Contains("isn't the Dev or Production database", report.Message);
     }
 
     [Fact]
     public void Allows_the_Dev_database()
     {
         Assert.True(MigrationTarget.IsAllowed(MigrationTarget.Dev, out _));
+    }
+
+    [Fact]
+    public void Allows_the_Production_database_signing_in_with_az_login()
+    {
+        Assert.True(MigrationTarget.IsAllowed(MigrationTarget.Prod, out _));
+
+        var builder = new SqlConnectionStringBuilder(MigrationTarget.Prod);
+        Assert.Equal(SqlAuthenticationMethod.ActiveDirectoryDefault, builder.Authentication);
+        Assert.True(string.IsNullOrEmpty(builder.Password));
     }
 
     [Fact]

@@ -2,22 +2,28 @@ using Microsoft.Data.SqlClient;
 
 namespace FitPlan.Migrator;
 
-// The only databases the migrator may connect to: the Dev database, and throwaway test databases on this machine.
-// Production isn't on the list, so it is refused even if someone passes its connection string.
+// The only databases the migrator may connect to: the Dev and Production databases, and throwaway
+// test databases on this machine. Any other server or database is refused.
 public static class MigrationTarget
 {
     public const string DevServer = "fitplan-sql-eyad-dev.database.windows.net";
     public const string DevDatabase = "FitPlanDb-dev";
+    public const string ProdServer = "fitplan-sql-eyad.database.windows.net";
+    public const string ProdDatabase = "FitPlanDb";
 
     private const string TestDatabasePrefix = "FitPlanTests_";
 
     private static readonly string[] LocalHosts = ["localhost", "127.0.0.1", "(local)", "."];
 
+    public static string Dev => Azure(DevServer, DevDatabase);
+
+    public static string Prod => Azure(ProdServer, ProdDatabase);
+
     // Signs in with the account from `az login`. No password or key is stored.
-    public static string Dev => new SqlConnectionStringBuilder
+    private static string Azure(string server, string database) => new SqlConnectionStringBuilder
     {
-        DataSource = $"tcp:{DevServer},1433",
-        InitialCatalog = DevDatabase,
+        DataSource = $"tcp:{server},1433",
+        InitialCatalog = database,
         Authentication = SqlAuthenticationMethod.ActiveDirectoryDefault,
         Encrypt = SqlConnectionEncryptOption.Mandatory,
         ConnectTimeout = 120
@@ -43,7 +49,8 @@ public static class MigrationTarget
             .Trim();
         var database = builder.InitialCatalog;
 
-        if (host.Equals(DevServer, StringComparison.OrdinalIgnoreCase) && database == DevDatabase)
+        if ((host.Equals(DevServer, StringComparison.OrdinalIgnoreCase) && database == DevDatabase)
+            || (host.Equals(ProdServer, StringComparison.OrdinalIgnoreCase) && database == ProdDatabase))
         {
             reason = "";
             return true;
@@ -55,7 +62,7 @@ public static class MigrationTarget
             return true;
         }
 
-        reason = $"{host}/{database} isn't the Dev database or a local test database.";
+        reason = $"{host}/{database} isn't the Dev or Production database, or a local test database.";
         return false;
     }
 }

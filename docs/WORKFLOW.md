@@ -170,10 +170,10 @@ The deploy identity can only reach the Production web app. It has no database ac
 | Result | What happens |
 | --- | --- |
 | `unchanged` | The run waits for approval. |
-| `changed` | The run fails before anyone is asked to approve. Production has no migration path yet, so a release with a migration can't go out. |
+| `changed` | The run waits for approval, with a warning. Apply the migrations first, as in [Applying a migration to Production](#applying-a-migration-to-production), then approve. |
 | `unverified` | The run waits for approval, with a warning that the running version is unknown. Check the evidence before you approve. |
 
-Production connects to its database differently from Dev, and has no `fitplan-migrator` user. A Production migration path is planned with that work in Phase 4. Until then, keep migrations out of `main`.
+Production has its own `fitplan-migrator` user with the same three roles as Dev's, and the same migrator applies the script.
 
 ### Before you approve
 
@@ -230,7 +230,7 @@ Each deploy compares `Backend/FitPlan.Api/Migrations` between the commit that `/
 
 **Dev is ready for migrations.** `fitplan-migrator` exists in `FitPlanDb-dev`, without a login, with only `db_ddladmin`, `db_datareader` and `db_datawriter`. On Azure SQL it can create and drop tables, but can't join `db_owner`, create users or grant permissions to others. The migrator has run against Dev once, with no change to the schema.
 
-**Don't release a migration to `main` yet.** Production has no `fitplan-migrator` user and no approved way to apply a migration, so the Production deploy refuses any release that changes migrations. Until Phase 4 adds a Production path, a migration can merge into `develop` but blocks the next release.
+**Production is ready for migrations too.** `fitplan-migrator` exists in `FitPlanDb` with the same three roles. Apply a release's migrations before approving its deploy, as in [Applying a migration to Production](#applying-a-migration-to-production).
 
 #### FitPlan.Migrator
 
@@ -238,7 +238,7 @@ Each deploy compares `Backend/FitPlan.Api/Migrations` between the commit that `/
 
 `validate` checks a script without connecting to anything. It accepts only the exact shape EF Core generates: the history table batch, then one batch per migration, with every step inside an EF Core migration check. The migrations must be the API's own, in order, recorded with the API's EF Core version. Only these steps are allowed: create, alter or drop a table, create or drop an index, and `EXEC(N'...')` with one constant string that holds one of those. The tool rejects anything else, including `REVERT`, `EXECUTE AS`, permission and role changes, `USE`, `ALTER DATABASE`, `RAISERROR`, `THROW` and `PRINT`, even inside `EXEC`. A step that EF Core can generate but this list doesn't allow yet needs its own tests before it is added.
 
-`apply` checks the script's SHA-256 against the approved hash and validates the script again, before it connects. It connects only to `FitPlanDb-dev` on `fitplan-sql-eyad-dev`, signing in with your `az login` account, so no password or key is stored. Then it:
+`apply` checks the script's SHA-256 against the approved hash and validates the script again, before it connects. It connects only to `FitPlanDb-dev` on `fitplan-sql-eyad-dev` (`--target dev`) or `FitPlanDb` on `fitplan-sql-eyad` (`--target prod --confirm FitPlanDb`), signing in with your `az login` account, so no password or key is stored. Then it:
 
 - Uses one unpooled connection with `SET XACT_ABORT ON`.
 - Takes an exclusive lock, so two runs can't overlap. If another run holds it, nothing runs.
@@ -273,6 +273,22 @@ It never retries and never rolls back by itself. If permissions aren't enough, i
 
 7. Delete the firewall rule and list the rules again.
 8. Approve the deploy only if the outcome is `Succeeded` and the history after lists the new migration.
+
+#### Applying a migration to Production
+
+Do this after the migration has gone through Dev, and while the release run waits at `production`.
+
+1. Generate the script from the release commit, outside the repository, and validate it as for Dev. The SHA-256 must be the one you approved for Dev.
+2. The running Production API still uses the old code until the deploy finishes, so the change must work with both versions. See [Keeping released apps working](#keeping-released-apps-working).
+3. Add a temporary firewall rule on `fitplan-sql-eyad` for your IP, named as described under "Temporary SQL firewall rules". You sign in as the server's Microsoft Entra admin.
+4. Apply it:
+
+   ```bash
+   dotnet run --project Backend/FitPlan.Migrator -- apply <folder outside the repo>/fitplan-prod.sql --sha256 <approved hash> --target prod --confirm FitPlanDb
+   ```
+
+5. Delete the firewall rule and list the rules again.
+6. Approve the deploy only if the outcome is `Succeeded` and the history after lists the new migration. If it failed, reject the run and don't retry before comparing the schema with Dev.
 
 If the outcome is anything else, reject the deploy and don't run the script again. Compare the schema and `__EFMigrationsHistory` with a reference database first. `XACT_ABORT` doesn't catch every failure, and a migration's result can be uncertain if the connection drops.
 
