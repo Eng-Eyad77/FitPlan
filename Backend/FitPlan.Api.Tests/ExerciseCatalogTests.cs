@@ -7,6 +7,7 @@ using FitPlan.Api.Services.Exercises;
 using FitPlan.Api.Tests.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
@@ -35,12 +36,21 @@ public class ExerciseCatalogTests(ApiFixture api)
         }
     }
 
-    private (ExerciseCatalog Catalog, CountingScopes Scopes, ManualClock Clock) NewCatalog()
+    private (ExerciseCatalog Catalog, CountingScopes Scopes, ManualClock Clock) NewCatalog(
+        string? cacheFile = null, ManualClock? clock = null)
     {
         var scopes = new CountingScopes(api.Services.GetRequiredService<IServiceScopeFactory>());
-        var clock = new ManualClock();
-        return (new ExerciseCatalog(scopes, clock, NullLogger<ExerciseCatalog>.Instance), scopes, clock);
+        clock ??= new ManualClock();
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection([new(ExerciseCatalog.CacheFileSetting, cacheFile)])
+            .Build();
+        return (new ExerciseCatalog(scopes, clock, NullLogger<ExerciseCatalog>.Instance, configuration), scopes, clock);
     }
+
+    private static string NewCacheFile() =>
+        Path.Combine(Path.GetTempPath(), "fitplan-tests-" + Guid.NewGuid().ToString("N"), "cache", "exercises.json");
+
+    private static void DeleteCacheFile(string file) => Directory.Delete(Path.GetDirectoryName(Path.GetDirectoryName(file))!, recursive: true);
 
     private Task DeleteExerciseAsync(string id) =>
         api.WithDbContextAsync(context => context.Exercises.Where(e => e.Id == id).ExecuteDeleteAsync());
@@ -104,6 +114,119 @@ public class ExerciseCatalogTests(ApiFixture api)
         scopes.Fail = true;
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => catalog.GetAsync());
+    }
+
+    [Fact]
+    public async Task After_a_restart_the_saved_file_is_served_without_reading_the_database()
+    {
+        var file = NewCacheFile();
+        try
+        {
+            var id = await api.AddExerciseAsync("Saved " + Guid.NewGuid().ToString("N"));
+            var clock = new ManualClock();
+            await NewCatalog(file, clock).Catalog.GetAsync();
+            await DeleteExerciseAsync(id);
+
+            clock.Now += ExerciseCatalog.RefreshAfter - TimeSpan.FromSeconds(1);
+            var (restarted, scopes, _) = NewCatalog(file, clock);
+
+            Assert.Contains(id, (await restarted.GetAsync()).ById.Keys);
+            Assert.Equal(0, scopes.Reads);
+        }
+        finally
+        {
+            DeleteCacheFile(file);
+        }
+    }
+
+    [Fact]
+    public async Task An_old_saved_file_is_replaced_from_the_database()
+    {
+        var file = NewCacheFile();
+        try
+        {
+            var id = await api.AddExerciseAsync("Old " + Guid.NewGuid().ToString("N"));
+            var clock = new ManualClock();
+            await NewCatalog(file, clock).Catalog.GetAsync();
+            await DeleteExerciseAsync(id);
+
+            clock.Now += ExerciseCatalog.RefreshAfter;
+            var (restarted, scopes, _) = NewCatalog(file, clock);
+            Assert.DoesNotContain(id, (await restarted.GetAsync()).ById.Keys);
+            Assert.Equal(1, scopes.Reads);
+
+            // the new list was saved, so the next start reads nothing either
+            var (again, againScopes, _) = NewCatalog(file, clock);
+            Assert.DoesNotContain(id, (await again.GetAsync()).ById.Keys);
+            Assert.Equal(0, againScopes.Reads);
+        }
+        finally
+        {
+            DeleteCacheFile(file);
+        }
+    }
+
+    [Fact]
+    public async Task An_old_saved_file_is_served_when_the_database_fails()
+    {
+        var file = NewCacheFile();
+        try
+        {
+            var id = await api.AddExerciseAsync("Fallback " + Guid.NewGuid().ToString("N"));
+            var clock = new ManualClock();
+            await NewCatalog(file, clock).Catalog.GetAsync();
+
+            clock.Now += ExerciseCatalog.RefreshAfter * 3;
+            var (restarted, scopes, _) = NewCatalog(file, clock);
+            scopes.Fail = true;
+
+            Assert.Contains(id, (await restarted.GetAsync()).ById.Keys);
+        }
+        finally
+        {
+            DeleteCacheFile(file);
+        }
+    }
+
+    [Fact]
+    public async Task A_broken_saved_file_is_ignored_and_the_database_is_read()
+    {
+        var file = NewCacheFile();
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(file)!);
+            await File.WriteAllTextAsync(file, "{ not json");
+            var id = await api.AddExerciseAsync("Broken " + Guid.NewGuid().ToString("N"));
+            var (catalog, scopes, _) = NewCatalog(file);
+
+            Assert.Contains(id, (await catalog.GetAsync()).ById.Keys);
+            Assert.Equal(1, scopes.Reads);
+        }
+        finally
+        {
+            DeleteCacheFile(file);
+        }
+    }
+
+    [Fact]
+    public async Task A_saved_file_dated_in_the_future_is_treated_as_old()
+    {
+        var file = NewCacheFile();
+        try
+        {
+            var clock = new ManualClock();
+            await NewCatalog(file, clock).Catalog.GetAsync();
+
+            clock.Now -= TimeSpan.FromHours(1);
+            var (restarted, scopes, _) = NewCatalog(file, clock);
+            await restarted.GetAsync();
+
+            Assert.Equal(1, scopes.Reads);
+        }
+        finally
+        {
+            DeleteCacheFile(file);
+        }
     }
 
     [Fact]

@@ -113,7 +113,7 @@ Use this if the subscription is closed or the Dev resources are lost. You need t
 | 3 | Database | `FitPlanDb-dev`, free offer, auto-pause when the free limit is used up. Import the export file into it. |
 | 4 | App Service plan | `fitplan-plan-dev`, F1 Linux |
 | 5 | Web app | `fitplan-api-dev`, .NET 10, HTTPS only, system-assigned managed identity |
-| 6 | App settings | `ASPNETCORE_ENVIRONMENT`, `Uploads__Root=/home/data/uploads`, a new `Jwt__Key`, and connection string `FitPlanDb` (type `SQLAzure`) using `Authentication=Active Directory Managed Identity` |
+| 6 | App settings | `ASPNETCORE_ENVIRONMENT`, `Uploads__Root=/home/data/uploads`, `Exercises__CacheFile=/home/data/cache/exercises.json`, a new `Jwt__Key`, and connection string `FitPlanDb` (type `SQLAzure`) using `Authentication=Active Directory Managed Identity` |
 | 7 | Database user for the app | A contained user for the web app's identity, with read and write roles |
 | 8 | Firewall | One `dev-app-out-*` rule per outbound IP of the web app |
 | 9 | Migration user | `fitplan-migrator`, a user without a login, with `db_ddladmin`, `db_datareader` and `db_datawriter`. Never `db_owner`. |
