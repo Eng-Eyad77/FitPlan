@@ -33,17 +33,3 @@ abstract class ExercisePage with _$ExercisePage {
 
   bool get hasMore => page < totalPages;
 }
-
-/// The body parts the library uses, in the order the filter chips show them.
-const bodyParts = [
-  'chest',
-  'back',
-  'shoulders',
-  'upper arms',
-  'lower arms',
-  'upper legs',
-  'lower legs',
-  'waist',
-  'neck',
-  'cardio',
-];

@@ -5,9 +5,24 @@ namespace FitPlan.Api.Services.Exercises;
 
 // Reads from ExerciseCatalog, so browsing exercises doesn't touch the database.
 // Comparisons ignore case, like the database's collation did.
-public class ExerciseService(ExerciseCatalog catalog) : IExerciseService
+public class ExerciseService(ExerciseCatalog catalog, IConfiguration configuration) : IExerciseService
 {
+    // Body parts left out of the library and search (Phase 6: cardio, which Workout Session covers).
+    // Only the listing hides them: their rows stay, and they still load by ID for old plans and history.
+    // Clear the setting to bring them back.
+    public const string HiddenBodyPartsSetting = "Exercises:HiddenBodyParts";
+
+    // The order the filter chips show; a body part not listed here comes after them, A to Z.
+    private static readonly string[] BodyPartOrder =
+        ["chest", "back", "shoulders", "upper arms", "lower arms", "upper legs", "lower legs", "waist", "neck", "cardio"];
+
     private static readonly StringComparison IgnoreCase = StringComparison.OrdinalIgnoreCase;
+
+    private readonly HashSet<string> _hidden = new(
+        configuration.GetSection(HiddenBodyPartsSetting).Get<string[]>()?
+            .Where(part => !string.IsNullOrWhiteSpace(part))
+            .Select(part => part.Trim()) ?? [],
+        StringComparer.OrdinalIgnoreCase);
 
     public async Task<ExerciseListResponseDto> GetAllExercisesAsync
     (
@@ -18,7 +33,7 @@ public class ExerciseService(ExerciseCatalog catalog) : IExerciseService
     )
     {
         var snapshot = await catalog.GetAsync();
-        IEnumerable<ExerciseDto> query = snapshot.All;
+        IEnumerable<ExerciseDto> query = snapshot.All.Where(e => !_hidden.Contains(e.BodyPart));
 
         var hasSearch = !string.IsNullOrWhiteSpace(search);
         if (hasSearch)
@@ -59,6 +74,21 @@ public class ExerciseService(ExerciseCatalog catalog) : IExerciseService
         };
     }
 
+    // The body parts the library has, without the hidden ones: the app builds its filter chips from these.
+    public async Task<IReadOnlyList<string>> GetBodyPartsAsync()
+    {
+        var snapshot = await catalog.GetAsync();
+
+        return snapshot.All
+            .Select(e => e.BodyPart.ToLowerInvariant())
+            .Where(part => !_hidden.Contains(part))
+            .Distinct()
+            .OrderBy(part => Array.IndexOf(BodyPartOrder, part) is var index and >= 0 ? index : int.MaxValue)
+            .ThenBy(part => part, StringComparer.Ordinal)
+            .ToList();
+    }
+
+    // Hidden exercises too: a plan or a past workout may still point at one.
     public async Task<Result<ExerciseDto>> GetExerciseByIdAsync(string id)
     {
         var snapshot = await catalog.GetAsync();

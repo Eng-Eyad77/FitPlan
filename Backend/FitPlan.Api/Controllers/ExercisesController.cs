@@ -26,6 +26,10 @@ public class ExercisesController(IExerciseService exerciseService) : ApiControll
     }
 
 
+    // the filter chips: body parts that have exercises, without the hidden ones
+    [HttpGet("body-parts")]
+    public async Task<IActionResult> GetBodyParts() => Ok(await exerciseService.GetBodyPartsAsync());
+
     [HttpGet("{id}")]
     public async Task<IActionResult> GetExerciseById(string id)
     {

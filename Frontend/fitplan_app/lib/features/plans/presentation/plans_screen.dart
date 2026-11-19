@@ -41,6 +41,17 @@ class PlansScreen extends ConsumerWidget {
                 Row(
                   children: [
                     const Expanded(child: Text('Plans', style: AppText.title)),
+                    IconButton.filledTonal(
+                      tooltip: 'Browse exercises',
+                      onPressed: () => context.push(Routes.exerciseLibrary),
+                      style: IconButton.styleFrom(
+                        backgroundColor: AppColors.surface2,
+                        foregroundColor: AppColors.textPrimary,
+                        fixedSize: const Size.square(AppSpacing.minTouch - 4),
+                      ),
+                      icon: const Icon(Icons.search_rounded),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
                     IconButton.filled(
                       tooltip: 'New plan',
                       onPressed: () => _create(context, ref),
