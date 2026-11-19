@@ -88,6 +88,14 @@ class SessionsRepository {
     await apiCall(() => _dio.delete<void>('$_base/$sessionId/exercises/$sessionExerciseId'));
   }
 
+  /// Changes the rest for this session only; the plan keeps its own.
+  Future<void> updateRest(String sessionId, String sessionExerciseId, int? restSeconds) async {
+    await apiCall(() => _dio.patch<void>(
+          '$_base/$sessionId/exercises/$sessionExerciseId',
+          data: {'restSeconds': restSeconds},
+        ));
+  }
+
   // ---- sets ----
 
   Future<SessionSet> addSet(

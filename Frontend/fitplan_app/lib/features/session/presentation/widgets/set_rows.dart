@@ -127,12 +127,20 @@ class DraftSetRow extends StatefulWidget {
     required this.onDone,
     this.initialKg,
     this.initialReps,
+    this.typed,
+    this.onTyped,
     this.highlighted = false,
   });
 
   final int setNumber;
   final double? initialKg;
   final int? initialReps;
+
+  /// What the user typed before (the card was closed in between). Wins over the pre-fill.
+  final ({String kg, String reps})? typed;
+
+  /// Called on every edit by the user, so the values outlive this row.
+  final void Function(String kg, String reps)? onTyped;
 
   /// The next set to do gets the accent border.
   final bool highlighted;
@@ -146,9 +154,11 @@ class DraftSetRow extends StatefulWidget {
 
 class _DraftSetRowState extends State<DraftSetRow> {
   late final _kg = TextEditingController(
-    text: widget.initialKg == null ? '' : formatKg(widget.initialKg!),
+    text: widget.typed?.kg ?? (widget.initialKg == null ? '' : formatKg(widget.initialKg!)),
   );
-  late final _reps = TextEditingController(text: widget.initialReps?.toString() ?? '');
+  late final _reps = TextEditingController(text: widget.typed?.reps ?? widget.initialReps?.toString() ?? '');
+
+  void _typed(String _) => widget.onTyped?.call(_kg.text, _reps.text);
   bool _saving = false;
   String? _error;
 
@@ -207,6 +217,7 @@ class _DraftSetRowState extends State<DraftSetRow> {
                   hint: 'BW',
                   label: 'Set ${widget.setNumber} weight in kilograms',
                   decimal: true,
+                  onChanged: _typed,
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
@@ -215,6 +226,7 @@ class _DraftSetRowState extends State<DraftSetRow> {
                   controller: _reps,
                   hint: '0',
                   label: 'Set ${widget.setNumber} reps',
+                  onChanged: _typed,
                   onSubmitted: _done,
                 ),
               ),
@@ -251,6 +263,7 @@ class _CellField extends StatelessWidget {
     required this.hint,
     required this.label,
     this.decimal = false,
+    this.onChanged,
     this.onSubmitted,
   });
 
@@ -258,6 +271,7 @@ class _CellField extends StatelessWidget {
   final String hint;
   final String label;
   final bool decimal;
+  final ValueChanged<String>? onChanged;
   final VoidCallback? onSubmitted;
 
   @override
@@ -273,6 +287,7 @@ class _CellField extends StatelessWidget {
           FilteringTextInputFormatter.allow(decimal ? RegExp(r'[0-9.,]') : RegExp(r'[0-9]')),
           LengthLimitingTextInputFormatter(decimal ? 6 : 3),
         ],
+        onChanged: onChanged,
         textInputAction: onSubmitted == null ? TextInputAction.next : TextInputAction.done,
         onSubmitted: onSubmitted == null ? null : (_) => onSubmitted!(),
         onTap: () => controller.selection = TextSelection(baseOffset: 0, extentOffset: controller.text.length),

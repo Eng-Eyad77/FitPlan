@@ -14,6 +14,10 @@ public class SessionExerciseConfiguration : IEntityTypeConfiguration<SessionExer
             table.HasCheckConstraint(
                 "CK_SessionExercises_Order",
                 "[Order] > 0");
+
+            table.HasCheckConstraint(
+                "CK_SessionExercises_RestSeconds",
+                "[RestSeconds] IS NULL OR ([RestSeconds] >= 15 AND [RestSeconds] <= 600)");
         });
 
         //define the primary key

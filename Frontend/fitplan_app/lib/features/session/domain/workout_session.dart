@@ -40,6 +40,9 @@ abstract class SessionExercise with _$SessionExercise {
     required int order,
     int? targetSets,
     int? targetReps,
+
+    /// Rest after each set, in seconds. Null = the default (90 s).
+    int? restSeconds,
     @Default([]) List<SessionSet> sets,
     LastPerformance? lastPerformance,
     Suggestion? suggestion,
@@ -49,6 +52,9 @@ abstract class SessionExercise with _$SessionExercise {
 
   /// Done when every target set is logged (or at least one set without a target).
   bool get isDone => sets.isNotEmpty && sets.length >= (targetSets ?? 1);
+
+  /// The rest to count down after a set.
+  int get restOrDefault => restSeconds ?? RestLimits.defaultSeconds;
 }
 
 @freezed
@@ -170,6 +176,18 @@ abstract class SessionSummary with _$SessionSummary {
 
   factory SessionSummary.fromJson(Map<String, dynamic> json) => _$SessionSummaryFromJson(json);
 }
+
+/// Rest after a set, the same limits as the API (15 to 600 seconds).
+abstract final class RestLimits {
+  static const min = 15;
+  static const max = 600;
+  static const step = 15;
+  static const defaultSeconds = 90;
+}
+
+/// "1:30", "45 s", "10:00".
+String formatRest(int seconds) =>
+    seconds < 60 ? '$seconds s' : '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
 
 /// Limits from the API.
 abstract final class SessionLimits {

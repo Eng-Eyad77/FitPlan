@@ -41,6 +41,7 @@ public static class WorkoutSessionMappings
         Order = sessionExercise.Order,
         TargetSets = sessionExercise.TargetSets,
         TargetReps = sessionExercise.TargetReps,
+        RestSeconds = sessionExercise.RestSeconds,
         Sets = sessionExercise.Sets
             .OrderBy(s => s.SetNumber)
             .Select(ToSetDto)

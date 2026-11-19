@@ -57,7 +57,7 @@ class _FakePlans extends PlansRepository {
 
   @override
   Future<PlanExercise> addExercise(String planId,
-      {required String exerciseId, required int sets, required int reps, required int order}) async {
+      {required String exerciseId, required int sets, required int reps, required int order, int? restSeconds}) async {
     added.add((planId: planId, exerciseId: exerciseId, sets: sets, reps: reps));
     return PlanExercise(id: 'pe-new', exerciseId: exerciseId, name: 'push-up', gifUrl: '', bodyPart: 'chest', sets: sets, reps: reps, order: order);
   }

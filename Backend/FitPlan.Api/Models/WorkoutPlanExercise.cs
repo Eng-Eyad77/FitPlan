@@ -13,6 +13,9 @@ public class WorkoutPlanExercise
 
       public int Reps { get; set; }
 
+      // Rest after each set, in seconds (15 to 600). null = the app's default (90 s).
+      public int? RestSeconds { get; set; }
+
       public int Order { get; set; }
       
       public WorkoutPlan WorkoutPlan { get; set; } = null!;

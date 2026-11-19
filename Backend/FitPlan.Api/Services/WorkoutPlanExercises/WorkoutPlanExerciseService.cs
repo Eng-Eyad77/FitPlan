@@ -43,7 +43,8 @@ public class WorkoutPlanExerciseService(FitPlanDbContext context) : IWorkoutPlan
             ExerciseId = dto.ExerciseId,
             Sets = dto.Sets,
             Reps = dto.Reps,
-            Order = dto.Order
+            Order = dto.Order,
+            RestSeconds = dto.RestSeconds
         };
 
         context.WorkoutPlanExercises.Add(newWorkoutPlanExercise);
@@ -72,7 +73,8 @@ public class WorkoutPlanExerciseService(FitPlanDbContext context) : IWorkoutPlan
             BodyPart = exercise.BodyPart,
             Sets = newWorkoutPlanExercise.Sets,
             Reps = newWorkoutPlanExercise.Reps,
-            Order = newWorkoutPlanExercise.Order
+            Order = newWorkoutPlanExercise.Order,
+            RestSeconds = newWorkoutPlanExercise.RestSeconds
         };
 
         return Result<WorkoutPlanExerciseResponseDto>.Success(response);
@@ -104,7 +106,8 @@ public class WorkoutPlanExerciseService(FitPlanDbContext context) : IWorkoutPlan
                 Instructions = item.Exercise.Instructions,
                 Sets = item.Sets,
                 Reps = item.Reps,
-                Order = item.Order
+                Order = item.Order,
+                RestSeconds = item.RestSeconds
             })
             .ToArrayAsync();
 
@@ -133,6 +136,7 @@ public class WorkoutPlanExerciseService(FitPlanDbContext context) : IWorkoutPlan
         planExercise.Sets = dto.Sets;
         planExercise.Reps = dto.Reps;
         planExercise.Order = dto.Order;
+        planExercise.RestSeconds = dto.RestSeconds;
         plan.UpdatedAt = DateTime.UtcNow;
 
         await context.SaveChangesAsync();
@@ -147,7 +151,8 @@ public class WorkoutPlanExerciseService(FitPlanDbContext context) : IWorkoutPlan
             BodyPart = planExercise.Exercise.BodyPart,
             Sets = planExercise.Sets,
             Reps = planExercise.Reps,
-            Order = planExercise.Order
+            Order = planExercise.Order,
+            RestSeconds = planExercise.RestSeconds
         };
 
         return Result<WorkoutPlanExerciseResponseDto>.Success(response);

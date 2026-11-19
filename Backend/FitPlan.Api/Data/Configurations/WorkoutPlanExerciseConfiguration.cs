@@ -24,6 +24,10 @@ public class WorkoutPlanExerciseConfiguration :IEntityTypeConfiguration<WorkoutP
                  table.HasCheckConstraint(
                   "CK_WorkoutPlanExercises_Order",
                   "[Order] > 0");
+
+                table.HasCheckConstraint(
+                  "CK_WorkoutPlanExercises_RestSeconds",
+                  "[RestSeconds] IS NULL OR ([RestSeconds] >= 15 AND [RestSeconds] <= 600)");
         });
 
         //define the primary key

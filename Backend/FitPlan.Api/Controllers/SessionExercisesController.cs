@@ -43,6 +43,20 @@ public class SessionExercisesController(ISessionExerciseService sessionExerciseS
     }
 
 
+    [HttpPatch("{sessionExerciseId:guid}")]
+    public async Task<IActionResult> UpdateExercise(Guid sessionId, Guid sessionExerciseId, [FromBody] UpdateSessionExerciseDto updateSessionExerciseDto)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await sessionExerciseService.UpdateExerciseAsync(userId, sessionId, sessionExerciseId, updateSessionExerciseDto);
+
+        return result.IsSuccess ? NoContent() : Problem(result.Error);
+    }
+
+
     [HttpPost("{sessionExerciseId:guid}/sets")]
     public async Task<IActionResult> AddSet(Guid sessionId, Guid sessionExerciseId, [FromBody] SessionSetRequestDto sessionSetRequestDto)
     {

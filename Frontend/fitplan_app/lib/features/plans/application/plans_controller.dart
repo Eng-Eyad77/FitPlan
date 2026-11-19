@@ -61,7 +61,7 @@ class PlanExercisesController extends AsyncNotifier<List<PlanExercise>> {
   @override
   Future<List<PlanExercise>> build() => _repository.getExercises(planId);
 
-  Future<void> add({required String exerciseId, required int sets, required int reps}) async {
+  Future<void> add({required String exerciseId, required int sets, required int reps, int? restSeconds}) async {
     final current = state.value ?? const <PlanExercise>[];
     // new exercises go to the end
     final nextOrder = current.fold(0, (max, e) => e.order > max ? e.order : max) + 1;
@@ -71,17 +71,19 @@ class PlanExercisesController extends AsyncNotifier<List<PlanExercise>> {
       sets: sets,
       reps: reps,
       order: nextOrder,
+      restSeconds: restSeconds,
     );
     _set([...current, added]);
   }
 
-  Future<void> updateTarget(PlanExercise exercise, {required int sets, required int reps}) async {
+  Future<void> updateTarget(PlanExercise exercise, {required int sets, required int reps, required int? restSeconds}) async {
     final updated = await _repository.updateExercise(
       planId,
       exercise.id,
       sets: sets,
       reps: reps,
       order: exercise.order,
+      restSeconds: restSeconds,
     );
     _set([
       for (final e in state.value ?? const <PlanExercise>[]) e.id == updated.id ? updated : e,
@@ -109,7 +111,7 @@ class PlanExercisesController extends AsyncNotifier<List<PlanExercise>> {
     state = AsyncData(renumbered);
     try {
       for (final e in changed) {
-        await _repository.updateExercise(planId, e.id, sets: e.sets, reps: e.reps, order: e.order);
+        await _repository.updateExercise(planId, e.id, sets: e.sets, reps: e.reps, order: e.order, restSeconds: e.restSeconds);
       }
     } catch (_) {
       ref.invalidateSelf(); // reload what the server has

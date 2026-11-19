@@ -55,7 +55,8 @@ public class WorkoutSessionService(FitPlanDbContext context) : IWorkoutSessionSe
                     ExerciseId = planExercise.ExerciseId,
                     Order = index + 1, // 1, 2, 3... even if the plan orders have gaps
                     TargetSets = planExercise.Sets,
-                    TargetReps = planExercise.Reps
+                    TargetReps = planExercise.Reps,
+                    RestSeconds = planExercise.RestSeconds
                 })
                 .ToList();
         }

@@ -40,6 +40,7 @@ _PlanExercise _$PlanExerciseFromJson(Map<String, dynamic> json) =>
       sets: (json['sets'] as num).toInt(),
       reps: (json['reps'] as num).toInt(),
       order: (json['order'] as num).toInt(),
+      restSeconds: (json['restSeconds'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$PlanExerciseToJson(_PlanExercise instance) =>
@@ -53,4 +54,5 @@ Map<String, dynamic> _$PlanExerciseToJson(_PlanExercise instance) =>
       'sets': instance.sets,
       'reps': instance.reps,
       'order': instance.order,
+      'restSeconds': instance.restSeconds,
     };

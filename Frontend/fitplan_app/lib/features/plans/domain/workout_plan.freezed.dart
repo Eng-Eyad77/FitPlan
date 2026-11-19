@@ -301,7 +301,8 @@ as int,
 /// @nodoc
 mixin _$PlanExercise {
 
- String get id; String get exerciseId; String get name; String get gifUrl; String get bodyPart; List<String> get instructions; int get sets; int get reps; int get order;
+ String get id; String get exerciseId; String get name; String get gifUrl; String get bodyPart; List<String> get instructions; int get sets; int get reps; int get order;/// Rest after each set, in seconds. Null = the default (90 s).
+ int? get restSeconds;
 /// Create a copy of PlanExercise
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -315,20 +316,20 @@ $PlanExerciseCopyWith<PlanExercise> get copyWith => _$PlanExerciseCopyWithImpl<P
 @override
 bool operator ==(Object other) {
   final _this = this as PlanExercise;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlanExercise&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.exerciseId, _this.exerciseId) || other.exerciseId == _this.exerciseId)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.gifUrl, _this.gifUrl) || other.gifUrl == _this.gifUrl)&&(identical(other.bodyPart, _this.bodyPart) || other.bodyPart == _this.bodyPart)&&const DeepCollectionEquality().equals(other.instructions, _this.instructions)&&(identical(other.sets, _this.sets) || other.sets == _this.sets)&&(identical(other.reps, _this.reps) || other.reps == _this.reps)&&(identical(other.order, _this.order) || other.order == _this.order));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlanExercise&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.exerciseId, _this.exerciseId) || other.exerciseId == _this.exerciseId)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.gifUrl, _this.gifUrl) || other.gifUrl == _this.gifUrl)&&(identical(other.bodyPart, _this.bodyPart) || other.bodyPart == _this.bodyPart)&&const DeepCollectionEquality().equals(other.instructions, _this.instructions)&&(identical(other.sets, _this.sets) || other.sets == _this.sets)&&(identical(other.reps, _this.reps) || other.reps == _this.reps)&&(identical(other.order, _this.order) || other.order == _this.order)&&(identical(other.restSeconds, _this.restSeconds) || other.restSeconds == _this.restSeconds));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as PlanExercise;
-  return Object.hash(runtimeType,_this.id,_this.exerciseId,_this.name,_this.gifUrl,_this.bodyPart,const DeepCollectionEquality().hash(_this.instructions),_this.sets,_this.reps,_this.order);
+  return Object.hash(runtimeType,_this.id,_this.exerciseId,_this.name,_this.gifUrl,_this.bodyPart,const DeepCollectionEquality().hash(_this.instructions),_this.sets,_this.reps,_this.order,_this.restSeconds);
 }
 
 @override
 String toString() {
   final _this = this as PlanExercise;
-  return 'PlanExercise(id: ${_this.id}, exerciseId: ${_this.exerciseId}, name: ${_this.name}, gifUrl: ${_this.gifUrl}, bodyPart: ${_this.bodyPart}, instructions: ${_this.instructions}, sets: ${_this.sets}, reps: ${_this.reps}, order: ${_this.order})';
+  return 'PlanExercise(id: ${_this.id}, exerciseId: ${_this.exerciseId}, name: ${_this.name}, gifUrl: ${_this.gifUrl}, bodyPart: ${_this.bodyPart}, instructions: ${_this.instructions}, sets: ${_this.sets}, reps: ${_this.reps}, order: ${_this.order}, restSeconds: ${_this.restSeconds})';
 }
 
 
@@ -339,7 +340,7 @@ abstract mixin class $PlanExerciseCopyWith<$Res>  {
   factory $PlanExerciseCopyWith(PlanExercise value, $Res Function(PlanExercise) _then) = _$PlanExerciseCopyWithImpl;
 @useResult
 $Res call({
- String id, String exerciseId, String name, String gifUrl, String bodyPart, List<String> instructions, int sets, int reps, int order
+ String id, String exerciseId, String name, String gifUrl, String bodyPart, List<String> instructions, int sets, int reps, int order, int? restSeconds
 });
 
 
@@ -356,7 +357,7 @@ class _$PlanExerciseCopyWithImpl<$Res>
 
 /// Create a copy of PlanExercise
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? exerciseId = null,Object? name = null,Object? gifUrl = null,Object? bodyPart = null,Object? instructions = null,Object? sets = null,Object? reps = null,Object? order = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? exerciseId = null,Object? name = null,Object? gifUrl = null,Object? bodyPart = null,Object? instructions = null,Object? sets = null,Object? reps = null,Object? order = null,Object? restSeconds = freezed,}) {
   return _then(PlanExercise(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,exerciseId: null == exerciseId ? _self.exerciseId : exerciseId // ignore: cast_nullable_to_non_nullable
@@ -367,7 +368,8 @@ as String,instructions: null == instructions ? _self.instructions : instructions
 as List<String>,sets: null == sets ? _self.sets : sets // ignore: cast_nullable_to_non_nullable
 as int,reps: null == reps ? _self.reps : reps // ignore: cast_nullable_to_non_nullable
 as int,order: null == order ? _self.order : order // ignore: cast_nullable_to_non_nullable
-as int,
+as int,restSeconds: freezed == restSeconds ? _self.restSeconds : restSeconds // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 
@@ -452,10 +454,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String exerciseId,  String name,  String gifUrl,  String bodyPart,  List<String> instructions,  int sets,  int reps,  int order)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String exerciseId,  String name,  String gifUrl,  String bodyPart,  List<String> instructions,  int sets,  int reps,  int order,  int? restSeconds)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PlanExercise() when $default != null:
-return $default(_that.id,_that.exerciseId,_that.name,_that.gifUrl,_that.bodyPart,_that.instructions,_that.sets,_that.reps,_that.order);case _:
+return $default(_that.id,_that.exerciseId,_that.name,_that.gifUrl,_that.bodyPart,_that.instructions,_that.sets,_that.reps,_that.order,_that.restSeconds);case _:
   return orElse();
 
 }
@@ -473,10 +475,10 @@ return $default(_that.id,_that.exerciseId,_that.name,_that.gifUrl,_that.bodyPart
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String exerciseId,  String name,  String gifUrl,  String bodyPart,  List<String> instructions,  int sets,  int reps,  int order)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String exerciseId,  String name,  String gifUrl,  String bodyPart,  List<String> instructions,  int sets,  int reps,  int order,  int? restSeconds)  $default,) {final _that = this;
 switch (_that) {
 case _PlanExercise():
-return $default(_that.id,_that.exerciseId,_that.name,_that.gifUrl,_that.bodyPart,_that.instructions,_that.sets,_that.reps,_that.order);case _:
+return $default(_that.id,_that.exerciseId,_that.name,_that.gifUrl,_that.bodyPart,_that.instructions,_that.sets,_that.reps,_that.order,_that.restSeconds);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -493,10 +495,10 @@ return $default(_that.id,_that.exerciseId,_that.name,_that.gifUrl,_that.bodyPart
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String exerciseId,  String name,  String gifUrl,  String bodyPart,  List<String> instructions,  int sets,  int reps,  int order)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String exerciseId,  String name,  String gifUrl,  String bodyPart,  List<String> instructions,  int sets,  int reps,  int order,  int? restSeconds)?  $default,) {final _that = this;
 switch (_that) {
 case _PlanExercise() when $default != null:
-return $default(_that.id,_that.exerciseId,_that.name,_that.gifUrl,_that.bodyPart,_that.instructions,_that.sets,_that.reps,_that.order);case _:
+return $default(_that.id,_that.exerciseId,_that.name,_that.gifUrl,_that.bodyPart,_that.instructions,_that.sets,_that.reps,_that.order,_that.restSeconds);case _:
   return null;
 
 }
@@ -508,7 +510,7 @@ return $default(_that.id,_that.exerciseId,_that.name,_that.gifUrl,_that.bodyPart
 @JsonSerializable()
 
 class _PlanExercise implements PlanExercise {
-  const _PlanExercise({required this.id, required this.exerciseId, required this.name, required this.gifUrl, required this.bodyPart,  List<String> instructions = const [], required this.sets, required this.reps, required this.order}): _instructions = instructions;
+  const _PlanExercise({required this.id, required this.exerciseId, required this.name, required this.gifUrl, required this.bodyPart,  List<String> instructions = const [], required this.sets, required this.reps, required this.order, this.restSeconds}): _instructions = instructions;
   factory _PlanExercise.fromJson(Map<String, dynamic> json) => _$PlanExerciseFromJson(json);
 
 @override final  String id;
@@ -526,6 +528,8 @@ class _PlanExercise implements PlanExercise {
 @override final  int sets;
 @override final  int reps;
 @override final  int order;
+/// Rest after each set, in seconds. Null = the default (90 s).
+@override final  int? restSeconds;
 
 /// Create a copy of PlanExercise
 /// with the given fields replaced by the non-null parameter values.
@@ -540,18 +544,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PlanExercise&&(identical(other.id, id) || other.id == id)&&(identical(other.exerciseId, exerciseId) || other.exerciseId == exerciseId)&&(identical(other.name, name) || other.name == name)&&(identical(other.gifUrl, gifUrl) || other.gifUrl == gifUrl)&&(identical(other.bodyPart, bodyPart) || other.bodyPart == bodyPart)&&const DeepCollectionEquality().equals(other.instructions, _instructions)&&(identical(other.sets, sets) || other.sets == sets)&&(identical(other.reps, reps) || other.reps == reps)&&(identical(other.order, order) || other.order == order));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PlanExercise&&(identical(other.id, id) || other.id == id)&&(identical(other.exerciseId, exerciseId) || other.exerciseId == exerciseId)&&(identical(other.name, name) || other.name == name)&&(identical(other.gifUrl, gifUrl) || other.gifUrl == gifUrl)&&(identical(other.bodyPart, bodyPart) || other.bodyPart == bodyPart)&&const DeepCollectionEquality().equals(other.instructions, _instructions)&&(identical(other.sets, sets) || other.sets == sets)&&(identical(other.reps, reps) || other.reps == reps)&&(identical(other.order, order) || other.order == order)&&(identical(other.restSeconds, restSeconds) || other.restSeconds == restSeconds));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,exerciseId,name,gifUrl,bodyPart,const DeepCollectionEquality().hash(_instructions),sets,reps,order);
+    return Object.hash(runtimeType,id,exerciseId,name,gifUrl,bodyPart,const DeepCollectionEquality().hash(_instructions),sets,reps,order,restSeconds);
 }
 
 @override
 String toString() {
-    return 'PlanExercise(id: $id, exerciseId: $exerciseId, name: $name, gifUrl: $gifUrl, bodyPart: $bodyPart, instructions: $instructions, sets: $sets, reps: $reps, order: $order)';
+    return 'PlanExercise(id: $id, exerciseId: $exerciseId, name: $name, gifUrl: $gifUrl, bodyPart: $bodyPart, instructions: $instructions, sets: $sets, reps: $reps, order: $order, restSeconds: $restSeconds)';
 }
 
 
@@ -562,7 +566,7 @@ abstract mixin class _$PlanExerciseCopyWith<$Res> implements $PlanExerciseCopyWi
   factory _$PlanExerciseCopyWith(_PlanExercise value, $Res Function(_PlanExercise) _then) = __$PlanExerciseCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String exerciseId, String name, String gifUrl, String bodyPart, List<String> instructions, int sets, int reps, int order
+ String id, String exerciseId, String name, String gifUrl, String bodyPart, List<String> instructions, int sets, int reps, int order, int? restSeconds
 });
 
 
@@ -579,7 +583,7 @@ class __$PlanExerciseCopyWithImpl<$Res>
 
 /// Create a copy of PlanExercise
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? exerciseId = null,Object? name = null,Object? gifUrl = null,Object? bodyPart = null,Object? instructions = null,Object? sets = null,Object? reps = null,Object? order = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? exerciseId = null,Object? name = null,Object? gifUrl = null,Object? bodyPart = null,Object? instructions = null,Object? sets = null,Object? reps = null,Object? order = null,Object? restSeconds = freezed,}) {
   return _then(_PlanExercise(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,exerciseId: null == exerciseId ? _self.exerciseId : exerciseId // ignore: cast_nullable_to_non_nullable
@@ -590,7 +594,8 @@ as String,instructions: null == instructions ? _self._instructions : instruction
 as List<String>,sets: null == sets ? _self.sets : sets // ignore: cast_nullable_to_non_nullable
 as int,reps: null == reps ? _self.reps : reps // ignore: cast_nullable_to_non_nullable
 as int,order: null == order ? _self.order : order // ignore: cast_nullable_to_non_nullable
-as int,
+as int,restSeconds: freezed == restSeconds ? _self.restSeconds : restSeconds // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 

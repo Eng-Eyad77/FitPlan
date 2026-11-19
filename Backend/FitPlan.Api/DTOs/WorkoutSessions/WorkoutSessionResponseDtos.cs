@@ -42,6 +42,9 @@ public class SessionExerciseResponseDto
 
     public int? TargetReps { get; set; }
 
+    // null = the app's default (90 s)
+    public int? RestSeconds { get; set; }
+
     public SessionSetResponseDto[] Sets { get; set; } = [];
 
     // what the user did the last time with this exercise ("آخر مرة").

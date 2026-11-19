@@ -15,6 +15,7 @@ public static class Scripts
     public const string AddUserWeeklyGoal = "20261103111630_AddUserWeeklyGoal";
     public const string AddRefreshTokens = "20261118210358_AddRefreshTokens";
     public const string AddRecoveryCode = "20261119064155_AddRecoveryCode";
+    public const string AddRestSeconds = "20261119113833_AddRestSeconds";
 
     public static readonly KnownMigrations Known = KnownMigrations.FromApi();
 

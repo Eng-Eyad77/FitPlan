@@ -319,7 +319,8 @@ as List<CardioEntry>,
 /// @nodoc
 mixin _$SessionExercise {
 
- String get id; String get exerciseId; String get name; String get gifUrl; String get bodyPart; int get order; int? get targetSets; int? get targetReps; List<SessionSet> get sets; LastPerformance? get lastPerformance; Suggestion? get suggestion;
+ String get id; String get exerciseId; String get name; String get gifUrl; String get bodyPart; int get order; int? get targetSets; int? get targetReps;/// Rest after each set, in seconds. Null = the default (90 s).
+ int? get restSeconds; List<SessionSet> get sets; LastPerformance? get lastPerformance; Suggestion? get suggestion;
 /// Create a copy of SessionExercise
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -333,20 +334,20 @@ $SessionExerciseCopyWith<SessionExercise> get copyWith => _$SessionExerciseCopyW
 @override
 bool operator ==(Object other) {
   final _this = this as SessionExercise;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SessionExercise&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.exerciseId, _this.exerciseId) || other.exerciseId == _this.exerciseId)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.gifUrl, _this.gifUrl) || other.gifUrl == _this.gifUrl)&&(identical(other.bodyPart, _this.bodyPart) || other.bodyPart == _this.bodyPart)&&(identical(other.order, _this.order) || other.order == _this.order)&&(identical(other.targetSets, _this.targetSets) || other.targetSets == _this.targetSets)&&(identical(other.targetReps, _this.targetReps) || other.targetReps == _this.targetReps)&&const DeepCollectionEquality().equals(other.sets, _this.sets)&&(identical(other.lastPerformance, _this.lastPerformance) || other.lastPerformance == _this.lastPerformance)&&(identical(other.suggestion, _this.suggestion) || other.suggestion == _this.suggestion));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SessionExercise&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.exerciseId, _this.exerciseId) || other.exerciseId == _this.exerciseId)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.gifUrl, _this.gifUrl) || other.gifUrl == _this.gifUrl)&&(identical(other.bodyPart, _this.bodyPart) || other.bodyPart == _this.bodyPart)&&(identical(other.order, _this.order) || other.order == _this.order)&&(identical(other.targetSets, _this.targetSets) || other.targetSets == _this.targetSets)&&(identical(other.targetReps, _this.targetReps) || other.targetReps == _this.targetReps)&&(identical(other.restSeconds, _this.restSeconds) || other.restSeconds == _this.restSeconds)&&const DeepCollectionEquality().equals(other.sets, _this.sets)&&(identical(other.lastPerformance, _this.lastPerformance) || other.lastPerformance == _this.lastPerformance)&&(identical(other.suggestion, _this.suggestion) || other.suggestion == _this.suggestion));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as SessionExercise;
-  return Object.hash(runtimeType,_this.id,_this.exerciseId,_this.name,_this.gifUrl,_this.bodyPart,_this.order,_this.targetSets,_this.targetReps,const DeepCollectionEquality().hash(_this.sets),_this.lastPerformance,_this.suggestion);
+  return Object.hash(runtimeType,_this.id,_this.exerciseId,_this.name,_this.gifUrl,_this.bodyPart,_this.order,_this.targetSets,_this.targetReps,_this.restSeconds,const DeepCollectionEquality().hash(_this.sets),_this.lastPerformance,_this.suggestion);
 }
 
 @override
 String toString() {
   final _this = this as SessionExercise;
-  return 'SessionExercise(id: ${_this.id}, exerciseId: ${_this.exerciseId}, name: ${_this.name}, gifUrl: ${_this.gifUrl}, bodyPart: ${_this.bodyPart}, order: ${_this.order}, targetSets: ${_this.targetSets}, targetReps: ${_this.targetReps}, sets: ${_this.sets}, lastPerformance: ${_this.lastPerformance}, suggestion: ${_this.suggestion})';
+  return 'SessionExercise(id: ${_this.id}, exerciseId: ${_this.exerciseId}, name: ${_this.name}, gifUrl: ${_this.gifUrl}, bodyPart: ${_this.bodyPart}, order: ${_this.order}, targetSets: ${_this.targetSets}, targetReps: ${_this.targetReps}, restSeconds: ${_this.restSeconds}, sets: ${_this.sets}, lastPerformance: ${_this.lastPerformance}, suggestion: ${_this.suggestion})';
 }
 
 
@@ -357,7 +358,7 @@ abstract mixin class $SessionExerciseCopyWith<$Res>  {
   factory $SessionExerciseCopyWith(SessionExercise value, $Res Function(SessionExercise) _then) = _$SessionExerciseCopyWithImpl;
 @useResult
 $Res call({
- String id, String exerciseId, String name, String gifUrl, String bodyPart, int order, int? targetSets, int? targetReps, List<SessionSet> sets, LastPerformance? lastPerformance, Suggestion? suggestion
+ String id, String exerciseId, String name, String gifUrl, String bodyPart, int order, int? targetSets, int? targetReps, int? restSeconds, List<SessionSet> sets, LastPerformance? lastPerformance, Suggestion? suggestion
 });
 
 
@@ -374,7 +375,7 @@ class _$SessionExerciseCopyWithImpl<$Res>
 
 /// Create a copy of SessionExercise
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? exerciseId = null,Object? name = null,Object? gifUrl = null,Object? bodyPart = null,Object? order = null,Object? targetSets = freezed,Object? targetReps = freezed,Object? sets = null,Object? lastPerformance = freezed,Object? suggestion = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? exerciseId = null,Object? name = null,Object? gifUrl = null,Object? bodyPart = null,Object? order = null,Object? targetSets = freezed,Object? targetReps = freezed,Object? restSeconds = freezed,Object? sets = null,Object? lastPerformance = freezed,Object? suggestion = freezed,}) {
   return _then(SessionExercise(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,exerciseId: null == exerciseId ? _self.exerciseId : exerciseId // ignore: cast_nullable_to_non_nullable
@@ -384,6 +385,7 @@ as String,bodyPart: null == bodyPart ? _self.bodyPart : bodyPart // ignore: cast
 as String,order: null == order ? _self.order : order // ignore: cast_nullable_to_non_nullable
 as int,targetSets: freezed == targetSets ? _self.targetSets : targetSets // ignore: cast_nullable_to_non_nullable
 as int?,targetReps: freezed == targetReps ? _self.targetReps : targetReps // ignore: cast_nullable_to_non_nullable
+as int?,restSeconds: freezed == restSeconds ? _self.restSeconds : restSeconds // ignore: cast_nullable_to_non_nullable
 as int?,sets: null == sets ? _self.sets : sets // ignore: cast_nullable_to_non_nullable
 as List<SessionSet>,lastPerformance: freezed == lastPerformance ? _self.lastPerformance : lastPerformance // ignore: cast_nullable_to_non_nullable
 as LastPerformance?,suggestion: freezed == suggestion ? _self.suggestion : suggestion // ignore: cast_nullable_to_non_nullable
@@ -496,10 +498,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String exerciseId,  String name,  String gifUrl,  String bodyPart,  int order,  int? targetSets,  int? targetReps,  List<SessionSet> sets,  LastPerformance? lastPerformance,  Suggestion? suggestion)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String exerciseId,  String name,  String gifUrl,  String bodyPart,  int order,  int? targetSets,  int? targetReps,  int? restSeconds,  List<SessionSet> sets,  LastPerformance? lastPerformance,  Suggestion? suggestion)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SessionExercise() when $default != null:
-return $default(_that.id,_that.exerciseId,_that.name,_that.gifUrl,_that.bodyPart,_that.order,_that.targetSets,_that.targetReps,_that.sets,_that.lastPerformance,_that.suggestion);case _:
+return $default(_that.id,_that.exerciseId,_that.name,_that.gifUrl,_that.bodyPart,_that.order,_that.targetSets,_that.targetReps,_that.restSeconds,_that.sets,_that.lastPerformance,_that.suggestion);case _:
   return orElse();
 
 }
@@ -517,10 +519,10 @@ return $default(_that.id,_that.exerciseId,_that.name,_that.gifUrl,_that.bodyPart
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String exerciseId,  String name,  String gifUrl,  String bodyPart,  int order,  int? targetSets,  int? targetReps,  List<SessionSet> sets,  LastPerformance? lastPerformance,  Suggestion? suggestion)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String exerciseId,  String name,  String gifUrl,  String bodyPart,  int order,  int? targetSets,  int? targetReps,  int? restSeconds,  List<SessionSet> sets,  LastPerformance? lastPerformance,  Suggestion? suggestion)  $default,) {final _that = this;
 switch (_that) {
 case _SessionExercise():
-return $default(_that.id,_that.exerciseId,_that.name,_that.gifUrl,_that.bodyPart,_that.order,_that.targetSets,_that.targetReps,_that.sets,_that.lastPerformance,_that.suggestion);case _:
+return $default(_that.id,_that.exerciseId,_that.name,_that.gifUrl,_that.bodyPart,_that.order,_that.targetSets,_that.targetReps,_that.restSeconds,_that.sets,_that.lastPerformance,_that.suggestion);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -537,10 +539,10 @@ return $default(_that.id,_that.exerciseId,_that.name,_that.gifUrl,_that.bodyPart
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String exerciseId,  String name,  String gifUrl,  String bodyPart,  int order,  int? targetSets,  int? targetReps,  List<SessionSet> sets,  LastPerformance? lastPerformance,  Suggestion? suggestion)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String exerciseId,  String name,  String gifUrl,  String bodyPart,  int order,  int? targetSets,  int? targetReps,  int? restSeconds,  List<SessionSet> sets,  LastPerformance? lastPerformance,  Suggestion? suggestion)?  $default,) {final _that = this;
 switch (_that) {
 case _SessionExercise() when $default != null:
-return $default(_that.id,_that.exerciseId,_that.name,_that.gifUrl,_that.bodyPart,_that.order,_that.targetSets,_that.targetReps,_that.sets,_that.lastPerformance,_that.suggestion);case _:
+return $default(_that.id,_that.exerciseId,_that.name,_that.gifUrl,_that.bodyPart,_that.order,_that.targetSets,_that.targetReps,_that.restSeconds,_that.sets,_that.lastPerformance,_that.suggestion);case _:
   return null;
 
 }
@@ -552,7 +554,7 @@ return $default(_that.id,_that.exerciseId,_that.name,_that.gifUrl,_that.bodyPart
 @JsonSerializable()
 
 class _SessionExercise extends SessionExercise {
-  const _SessionExercise({required this.id, required this.exerciseId, required this.name, required this.gifUrl, required this.bodyPart, required this.order, this.targetSets, this.targetReps,  List<SessionSet> sets = const [], this.lastPerformance, this.suggestion}): _sets = sets,super._();
+  const _SessionExercise({required this.id, required this.exerciseId, required this.name, required this.gifUrl, required this.bodyPart, required this.order, this.targetSets, this.targetReps, this.restSeconds,  List<SessionSet> sets = const [], this.lastPerformance, this.suggestion}): _sets = sets,super._();
   factory _SessionExercise.fromJson(Map<String, dynamic> json) => _$SessionExerciseFromJson(json);
 
 @override final  String id;
@@ -563,6 +565,8 @@ class _SessionExercise extends SessionExercise {
 @override final  int order;
 @override final  int? targetSets;
 @override final  int? targetReps;
+/// Rest after each set, in seconds. Null = the default (90 s).
+@override final  int? restSeconds;
  final  List<SessionSet> _sets;
 @override@JsonKey() List<SessionSet> get sets {
   if (_sets is EqualUnmodifiableListView) return _sets;
@@ -586,18 +590,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SessionExercise&&(identical(other.id, id) || other.id == id)&&(identical(other.exerciseId, exerciseId) || other.exerciseId == exerciseId)&&(identical(other.name, name) || other.name == name)&&(identical(other.gifUrl, gifUrl) || other.gifUrl == gifUrl)&&(identical(other.bodyPart, bodyPart) || other.bodyPart == bodyPart)&&(identical(other.order, order) || other.order == order)&&(identical(other.targetSets, targetSets) || other.targetSets == targetSets)&&(identical(other.targetReps, targetReps) || other.targetReps == targetReps)&&const DeepCollectionEquality().equals(other.sets, _sets)&&(identical(other.lastPerformance, lastPerformance) || other.lastPerformance == lastPerformance)&&(identical(other.suggestion, suggestion) || other.suggestion == suggestion));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SessionExercise&&(identical(other.id, id) || other.id == id)&&(identical(other.exerciseId, exerciseId) || other.exerciseId == exerciseId)&&(identical(other.name, name) || other.name == name)&&(identical(other.gifUrl, gifUrl) || other.gifUrl == gifUrl)&&(identical(other.bodyPart, bodyPart) || other.bodyPart == bodyPart)&&(identical(other.order, order) || other.order == order)&&(identical(other.targetSets, targetSets) || other.targetSets == targetSets)&&(identical(other.targetReps, targetReps) || other.targetReps == targetReps)&&(identical(other.restSeconds, restSeconds) || other.restSeconds == restSeconds)&&const DeepCollectionEquality().equals(other.sets, _sets)&&(identical(other.lastPerformance, lastPerformance) || other.lastPerformance == lastPerformance)&&(identical(other.suggestion, suggestion) || other.suggestion == suggestion));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,exerciseId,name,gifUrl,bodyPart,order,targetSets,targetReps,const DeepCollectionEquality().hash(_sets),lastPerformance,suggestion);
+    return Object.hash(runtimeType,id,exerciseId,name,gifUrl,bodyPart,order,targetSets,targetReps,restSeconds,const DeepCollectionEquality().hash(_sets),lastPerformance,suggestion);
 }
 
 @override
 String toString() {
-    return 'SessionExercise(id: $id, exerciseId: $exerciseId, name: $name, gifUrl: $gifUrl, bodyPart: $bodyPart, order: $order, targetSets: $targetSets, targetReps: $targetReps, sets: $sets, lastPerformance: $lastPerformance, suggestion: $suggestion)';
+    return 'SessionExercise(id: $id, exerciseId: $exerciseId, name: $name, gifUrl: $gifUrl, bodyPart: $bodyPart, order: $order, targetSets: $targetSets, targetReps: $targetReps, restSeconds: $restSeconds, sets: $sets, lastPerformance: $lastPerformance, suggestion: $suggestion)';
 }
 
 
@@ -608,7 +612,7 @@ abstract mixin class _$SessionExerciseCopyWith<$Res> implements $SessionExercise
   factory _$SessionExerciseCopyWith(_SessionExercise value, $Res Function(_SessionExercise) _then) = __$SessionExerciseCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String exerciseId, String name, String gifUrl, String bodyPart, int order, int? targetSets, int? targetReps, List<SessionSet> sets, LastPerformance? lastPerformance, Suggestion? suggestion
+ String id, String exerciseId, String name, String gifUrl, String bodyPart, int order, int? targetSets, int? targetReps, int? restSeconds, List<SessionSet> sets, LastPerformance? lastPerformance, Suggestion? suggestion
 });
 
 
@@ -625,7 +629,7 @@ class __$SessionExerciseCopyWithImpl<$Res>
 
 /// Create a copy of SessionExercise
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? exerciseId = null,Object? name = null,Object? gifUrl = null,Object? bodyPart = null,Object? order = null,Object? targetSets = freezed,Object? targetReps = freezed,Object? sets = null,Object? lastPerformance = freezed,Object? suggestion = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? exerciseId = null,Object? name = null,Object? gifUrl = null,Object? bodyPart = null,Object? order = null,Object? targetSets = freezed,Object? targetReps = freezed,Object? restSeconds = freezed,Object? sets = null,Object? lastPerformance = freezed,Object? suggestion = freezed,}) {
   return _then(_SessionExercise(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,exerciseId: null == exerciseId ? _self.exerciseId : exerciseId // ignore: cast_nullable_to_non_nullable
@@ -635,6 +639,7 @@ as String,bodyPart: null == bodyPart ? _self.bodyPart : bodyPart // ignore: cast
 as String,order: null == order ? _self.order : order // ignore: cast_nullable_to_non_nullable
 as int,targetSets: freezed == targetSets ? _self.targetSets : targetSets // ignore: cast_nullable_to_non_nullable
 as int?,targetReps: freezed == targetReps ? _self.targetReps : targetReps // ignore: cast_nullable_to_non_nullable
+as int?,restSeconds: freezed == restSeconds ? _self.restSeconds : restSeconds // ignore: cast_nullable_to_non_nullable
 as int?,sets: null == sets ? _self._sets : sets // ignore: cast_nullable_to_non_nullable
 as List<SessionSet>,lastPerformance: freezed == lastPerformance ? _self.lastPerformance : lastPerformance // ignore: cast_nullable_to_non_nullable
 as LastPerformance?,suggestion: freezed == suggestion ? _self.suggestion : suggestion // ignore: cast_nullable_to_non_nullable

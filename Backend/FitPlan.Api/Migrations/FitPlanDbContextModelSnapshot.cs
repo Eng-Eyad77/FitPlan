@@ -182,6 +182,9 @@ namespace FitPlan.Api.Migrations
                     b.Property<int>("Order")
                         .HasColumnType("int");
 
+                    b.Property<int?>("RestSeconds")
+                        .HasColumnType("int");
+
                     b.Property<int?>("TargetReps")
                         .HasColumnType("int");
 
@@ -201,6 +204,8 @@ namespace FitPlan.Api.Migrations
                     b.ToTable("SessionExercises", null, t =>
                         {
                             t.HasCheckConstraint("CK_SessionExercises_Order", "[Order] > 0");
+
+                            t.HasCheckConstraint("CK_SessionExercises_RestSeconds", "[RestSeconds] IS NULL OR ([RestSeconds] >= 15 AND [RestSeconds] <= 600)");
                         });
                 });
 
@@ -335,6 +340,9 @@ namespace FitPlan.Api.Migrations
                     b.Property<int>("Reps")
                         .HasColumnType("int");
 
+                    b.Property<int?>("RestSeconds")
+                        .HasColumnType("int");
+
                     b.Property<int>("Sets")
                         .HasColumnType("int");
 
@@ -353,6 +361,8 @@ namespace FitPlan.Api.Migrations
                             t.HasCheckConstraint("CK_WorkoutPlanExercises_Order", "[Order] > 0");
 
                             t.HasCheckConstraint("CK_WorkoutPlanExercises_Reps", "[Reps] >= 1 AND [Reps] <= 20");
+
+                            t.HasCheckConstraint("CK_WorkoutPlanExercises_RestSeconds", "[RestSeconds] IS NULL OR ([RestSeconds] >= 15 AND [RestSeconds] <= 600)");
 
                             t.HasCheckConstraint("CK_WorkoutPlanExercises_Sets", "[Sets] >= 1 AND [Sets] <= 4");
                         });

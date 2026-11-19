@@ -14,6 +14,8 @@ class NumberStepper extends StatelessWidget {
     required this.min,
     required this.max,
     required this.onChanged,
+    this.step = 1,
+    this.format,
   });
 
   final String label;
@@ -21,6 +23,10 @@ class NumberStepper extends StatelessWidget {
   final int min;
   final int max;
   final ValueChanged<int> onChanged;
+  final int step;
+
+  /// How the value is shown, "1:30" for a rest. Plain number when null.
+  final String Function(int value)? format;
 
   @override
   Widget build(BuildContext context) {
@@ -40,13 +46,13 @@ class NumberStepper extends StatelessWidget {
               _StepButton(
                 icon: Icons.remove_rounded,
                 label: 'Decrease $label',
-                onTap: value > min ? () => onChanged(value - 1) : null,
+                onTap: value > min ? () => onChanged((value - step).clamp(min, max)) : null,
               ),
-              Text('$value', style: AppText.number),
+              Text(format?.call(value) ?? '$value', style: AppText.number),
               _StepButton(
                 icon: Icons.add_rounded,
                 label: 'Increase $label',
-                onTap: value < max ? () => onChanged(value + 1) : null,
+                onTap: value < max ? () => onChanged((value + step).clamp(min, max)) : null,
               ),
             ],
           ),
