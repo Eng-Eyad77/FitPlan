@@ -10,34 +10,49 @@ import '../../../exercises/presentation/exercise_details_sheet.dart';
 import '../../../exercises/presentation/widgets/exercise_thumb.dart';
 import '../../application/active_session_controller.dart';
 import '../../application/rest_timer.dart';
+import '../../application/session_drafts.dart';
 import '../../domain/workout_session.dart';
+import 'rest_sheet.dart';
 import 'set_edit_sheet.dart';
 import 'set_rows.dart';
 
-/// The exercise being done right now: what to do, what you did last time, and the sets.
+/// The open exercise in the list: what to do, what you did last time, and the sets.
 class ExerciseCard extends ConsumerStatefulWidget {
-  const ExerciseCard({super.key, required this.exercise, this.onNext});
+  const ExerciseCard({
+    super.key,
+    required this.exercise,
+    this.isActive = false,
+    this.onNext,
+    this.onCollapse,
+    this.onCompleted,
+  });
 
   final SessionExercise exercise;
 
-  /// Shown as "Next exercise" once every target set is logged.
+  /// The exercise to do now (the first one not done), marked without moving it.
+  final bool isActive;
+
+  /// Shown as "Next exercise" once it is done (an exercise without a target).
   final VoidCallback? onNext;
+
+  /// Closes the card. What was typed stays.
+  final VoidCallback? onCollapse;
+
+  /// The last target set was just logged.
+  final VoidCallback? onCompleted;
 
   @override
   ConsumerState<ExerciseCard> createState() => _ExerciseCardState();
 }
 
 class _ExerciseCardState extends ConsumerState<ExerciseCard> {
-  /// Extra empty rows the user asked for with "+ Add set".
-  int _extraRows = 0;
-
   SessionExercise get _exercise => widget.exercise;
 
-  @override
-  void didUpdateWidget(ExerciseCard old) {
-    super.didUpdateWidget(old);
-    if (old.exercise.id != widget.exercise.id) _extraRows = 0;
-  }
+  SessionDrafts get _drafts => ref.read(sessionDraftsProvider);
+
+  /// Extra empty rows the user asked for with "+ Add set" (kept while the card is closed).
+  int get _extraRows => _drafts.extraRows(_exercise.id);
+  set _extraRows(int rows) => _drafts.setExtraRows(_exercise.id, rows);
 
   ActiveSessionController get _controller => ref.read(activeSessionControllerProvider.notifier);
 
@@ -72,11 +87,16 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard> {
     return (kg: null, reps: _exercise.targetReps);
   }
 
-  Future<bool> _logSet(int reps, double? weightKg) async {
+  Future<bool> _logSet(int rowNumber, int reps, double? weightKg) async {
+    final rest = Duration(seconds: _exercise.restOrDefault);
+    final target = _exercise.targetSets;
+    final before = _exercise.sets.length;
     try {
       await _controller.addSet(_exercise.id, reps: reps, weightKg: weightKg);
+      _drafts.clearValue(_exercise.id, rowNumber);
       if (_extraRows > 0 && mounted) setState(() => _extraRows--);
-      ref.read(restTimerProvider.notifier).start();
+      ref.read(restTimerProvider.notifier).start(rest);
+      if (target != null && before + 1 == target) widget.onCompleted?.call();
       return true;
     } catch (error) {
       if (mounted) showError(context, error);
@@ -94,6 +114,16 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard> {
         case SetDeleted():
           await _controller.deleteSet(_exercise.id, set.id);
       }
+    } catch (error) {
+      if (mounted) showError(context, error);
+    }
+  }
+
+  Future<void> _changeRest() async {
+    final seconds = await showRestSheet(context, title: capitalize(_exercise.name), seconds: _exercise.restOrDefault);
+    if (seconds == null || seconds == _exercise.restSeconds || !mounted) return;
+    try {
+      await _controller.setRest(_exercise.id, seconds);
     } catch (error) {
       if (mounted) showError(context, error);
     }
@@ -137,7 +167,7 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard> {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: AppRadius.cardBorder,
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: widget.isActive ? AppColors.accent.withValues(alpha: 0.6) : AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -161,6 +191,10 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (widget.isActive) ...[
+                      const NowBadge(),
+                      const SizedBox(height: AppSpacing.xs),
+                    ],
                     Text(capitalize(_exercise.name), style: AppText.heading),
                     const SizedBox(height: 2),
                     Text(capitalize(_exercise.bodyPart), style: AppText.caption),
@@ -171,9 +205,17 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard> {
                         style: AppText.secondary.copyWith(color: AppColors.accent),
                       ),
                     ],
+                    const SizedBox(height: AppSpacing.xs),
+                    _RestChip(seconds: _exercise.restOrDefault, onTap: _changeRest),
                   ],
                 ),
               ),
+              if (widget.onCollapse != null)
+                IconButton(
+                  tooltip: 'Close ${capitalize(_exercise.name)}',
+                  onPressed: widget.onCollapse,
+                  icon: const Icon(Icons.expand_less_rounded, color: AppColors.textTertiary),
+                ),
               PopupMenuButton<void>(
                 tooltip: 'Exercise options',
                 icon: const Icon(Icons.more_vert_rounded, color: AppColors.textTertiary),
@@ -211,13 +253,20 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard> {
                 setNumber: number,
                 initialKg: prefill.kg,
                 initialReps: prefill.reps,
+                typed: _drafts.value(_exercise.id, number),
+                onTyped: (kg, reps) => _drafts.setValue(_exercise.id, number, kg: kg, reps: reps),
                 highlighted: i == 0,
-                onDone: _logSet,
+                onDone: (reps, kg) => _logSet(number, reps, kg),
               );
             }),
             const SizedBox(height: AppSpacing.sm),
           ],
-          Row(
+          // wraps on narrow screens instead of overflowing
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.xs,
             children: [
               if (canAddRow)
                 TextButton.icon(
@@ -225,7 +274,6 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard> {
                   icon: const Icon(Icons.add_rounded),
                   label: const Text('Add set'),
                 ),
-              const Spacer(),
               if (widget.onNext != null && _exercise.isDone)
                 FilledButton.tonalIcon(
                   onPressed: widget.onNext,
@@ -241,6 +289,64 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard> {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// "NOW" on the exercise to do next.
+class NowBadge extends StatelessWidget {
+  const NowBadge({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: AppColors.accentTint(0.16),
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+      ),
+      child: Text('NOW', style: AppText.overline.copyWith(color: AppColors.accent)),
+    );
+  }
+}
+
+/// "Rest 1:30" with a timer icon. Tap to change it for this workout.
+class _RestChip extends StatelessWidget {
+  const _RestChip({required this.seconds, required this.onTap});
+
+  final int seconds;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: 'Rest ${formatRest(seconds)} between sets. Tap to change.',
+      excludeSemantics: true,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.timer_outlined, size: 16, color: AppColors.textSecondary),
+              const SizedBox(width: 4),
+              Flexible(
+                child: Text(
+                  'Rest ${formatRest(seconds)}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppText.caption.copyWith(color: AppColors.textSecondary),
+                ),
+              ),
+              const SizedBox(width: 4),
+              const Icon(Icons.edit_outlined, size: 14, color: AppColors.textTertiary),
+            ],
+          ),
+        ),
       ),
     );
   }

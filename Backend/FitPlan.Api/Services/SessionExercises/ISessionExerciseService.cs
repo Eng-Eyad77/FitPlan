@@ -10,6 +10,8 @@ public interface ISessionExerciseService
 
     Task<Result<bool>> RemoveExerciseAsync(Guid userId, Guid sessionId, Guid sessionExerciseId);
 
+    Task<Result<bool>> UpdateExerciseAsync(Guid userId, Guid sessionId, Guid sessionExerciseId, UpdateSessionExerciseDto dto);
+
     Task<Result<SessionSetResponseDto>> AddSetAsync(Guid userId, Guid sessionId, Guid sessionExerciseId, SessionSetRequestDto dto);
 
     Task<Result<SessionSetResponseDto>> UpdateSetAsync(Guid userId, Guid sessionId, Guid sessionExerciseId, Guid setId, SessionSetRequestDto dto);

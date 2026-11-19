@@ -66,11 +66,12 @@ class PlansRepository {
     required int sets,
     required int reps,
     required int order,
+    int? restSeconds,
   }) async {
     final response = await apiCall(
       () => _dio.post<Map<String, dynamic>>(
         '/api/workout-plans/$planId/exercises',
-        data: {'exerciseId': exerciseId, 'sets': sets, 'reps': reps, 'order': order},
+        data: {'exerciseId': exerciseId, 'sets': sets, 'reps': reps, 'order': order, 'restSeconds': restSeconds},
       ),
     );
     return PlanExercise.fromJson(response.data!);
@@ -82,11 +83,13 @@ class PlansRepository {
     required int sets,
     required int reps,
     required int order,
+    // a PUT replaces everything: always send the current rest, or it is cleared
+    required int? restSeconds,
   }) async {
     final response = await apiCall(
       () => _dio.put<Map<String, dynamic>>(
         '/api/workout-plans/$planId/exercises/$id',
-        data: {'sets': sets, 'reps': reps, 'order': order},
+        data: {'sets': sets, 'reps': reps, 'order': order, 'restSeconds': restSeconds},
       ),
     );
     return PlanExercise.fromJson(response.data!);

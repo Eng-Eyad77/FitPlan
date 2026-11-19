@@ -35,7 +35,7 @@ Future<WorkoutPlan?> addExerciseToPlan(BuildContext context, WidgetRef ref, Exer
     await ref.read(planExercisesProvider(plan.id).future);
     await ref
         .read(planExercisesProvider(plan.id).notifier)
-        .add(exerciseId: exercise.id, sets: target.sets, reps: target.reps);
+        .add(exerciseId: exercise.id, sets: target.sets, reps: target.reps, restSeconds: target.restSeconds);
     return plan;
   } catch (error) {
     if (context.mounted) showError(context, error);

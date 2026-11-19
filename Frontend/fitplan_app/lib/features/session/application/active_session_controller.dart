@@ -67,6 +67,11 @@ class ActiveSessionController extends AsyncNotifier<WorkoutSession?> {
     ));
   }
 
+  Future<void> setRest(String sessionExerciseId, int restSeconds) async {
+    await _repository.updateRest(_session.id, sessionExerciseId, restSeconds);
+    _updateExercise(sessionExerciseId, (e) => e.copyWith(restSeconds: restSeconds));
+  }
+
   // ---- sets ----
 
   Future<void> addSet(String sessionExerciseId, {required int reps, double? weightKg}) async {

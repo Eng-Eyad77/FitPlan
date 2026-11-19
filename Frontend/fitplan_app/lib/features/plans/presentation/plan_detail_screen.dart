@@ -11,6 +11,7 @@ import '../../../shared/widgets/feedback.dart';
 import '../../exercises/domain/exercise.dart';
 import '../../exercises/presentation/exercise_details_sheet.dart';
 import '../../exercises/presentation/widgets/exercise_thumb.dart';
+import '../../session/domain/workout_session.dart' show formatRest;
 import '../../session/presentation/start_workout.dart';
 import '../application/plans_controller.dart';
 import '../domain/workout_plan.dart';
@@ -35,7 +36,7 @@ class PlanDetailScreen extends ConsumerWidget {
     try {
       await ref
           .read(planExercisesProvider(planId).notifier)
-          .add(exerciseId: exercise.id, sets: target.sets, reps: target.reps);
+          .add(exerciseId: exercise.id, sets: target.sets, reps: target.reps, restSeconds: target.restSeconds);
     } catch (error) {
       if (context.mounted) showError(context, error);
     }
@@ -182,6 +183,7 @@ class _PlanExerciseTile extends ConsumerWidget {
       title: capitalize(exercise.name),
       sets: exercise.sets,
       reps: exercise.reps,
+      restSeconds: exercise.restSeconds,
       canRemove: true,
     );
     if (target == null || !context.mounted) return;
@@ -191,7 +193,7 @@ class _PlanExerciseTile extends ConsumerWidget {
       if (target.remove) {
         await controller.remove(exercise.id);
       } else {
-        await controller.updateTarget(exercise, sets: target.sets, reps: target.reps);
+        await controller.updateTarget(exercise, sets: target.sets, reps: target.reps, restSeconds: target.restSeconds);
       }
     } catch (error) {
       if (context.mounted) showError(context, error);
@@ -248,7 +250,9 @@ class _PlanExerciseTile extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(AppRadius.pill),
                 ),
                 child: Text(
-                  '${exercise.sets} × ${exercise.reps}',
+                  exercise.restSeconds == null
+                      ? '${exercise.sets} × ${exercise.reps}'
+                      : '${exercise.sets} × ${exercise.reps} · ${formatRest(exercise.restSeconds!)}',
                   style: AppText.bodyStrong.copyWith(color: AppColors.accent, fontSize: 14),
                 ),
               ),

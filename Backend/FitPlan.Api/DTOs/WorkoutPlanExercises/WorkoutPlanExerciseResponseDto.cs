@@ -18,4 +18,6 @@ public class WorkoutPlanExerciseResponseDto
     public int Sets { get; set; }
     public int Reps { get; set; }
     public int Order { get; set; }
+
+    public int? RestSeconds { get; set; }
 }

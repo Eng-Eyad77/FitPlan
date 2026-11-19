@@ -12,9 +12,11 @@ import '../../exercises/domain/exercise.dart';
 import '../../exercises/presentation/widgets/exercise_thumb.dart';
 import '../application/active_session_controller.dart';
 import '../application/rest_timer.dart';
+import '../application/session_drafts.dart';
 import '../domain/workout_session.dart';
 import 'cardio_sheet.dart';
 import 'finish_sheet.dart';
+import 'plan_additions_sheet.dart';
 import 'widgets/elapsed_clock.dart';
 import 'widgets/exercise_card.dart';
 import 'widgets/rest_timer_bar.dart';
@@ -27,18 +29,52 @@ class SessionScreen extends ConsumerStatefulWidget {
   ConsumerState<SessionScreen> createState() => _SessionScreenState();
 }
 
+enum _CardioChoice { add, finishWithout }
+
 class _SessionScreenState extends ConsumerState<SessionScreen> {
-  /// The exercise shown in the big card. Null = the first one not done yet.
-  String? _focusedId;
+  /// The one open card. Null = all closed. The list itself never changes order.
+  String? _openId;
+
+  /// The first build opens the exercise to do now.
+  bool _opened = false;
+
+  /// Finished: keep the screen blank behind the last sheets instead of "No workout".
+  bool _finishing = false;
+
+  final _openKey = GlobalKey();
 
   ActiveSessionController get _controller => ref.read(activeSessionControllerProvider.notifier);
 
-  SessionExercise? _focused(WorkoutSession session) {
-    final list = session.exercises;
-    if (list.isEmpty) return null;
-    return list.where((e) => e.id == _focusedId).firstOrNull ??
-        list.where((e) => !e.isDone).firstOrNull ??
-        list.last;
+  static List<SessionExercise> _inOrder(WorkoutSession session) =>
+      [...session.exercises]..sort((a, b) => a.order.compareTo(b.order));
+
+  /// The first exercise not done yet, in the saved order.
+  static SessionExercise? _active(List<SessionExercise> list) => list.where((e) => !e.isDone).firstOrNull;
+
+  /// The next one not done after [id], wrapping round to earlier ones.
+  static SessionExercise? _nextNotDone(List<SessionExercise> list, String id) {
+    final index = list.indexWhere((e) => e.id == id);
+    return [...list.skip(index + 1), ...list.take(index < 0 ? 0 : index)].where((e) => !e.isDone).firstOrNull;
+  }
+
+  void _open(String? id) {
+    setState(() => _openId = id);
+    if (id == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final target = _openKey.currentContext;
+      if (target != null && target.mounted) {
+        Scrollable.ensureVisible(target, duration: const Duration(milliseconds: 300), alignment: 0.05);
+      }
+    });
+  }
+
+  void _toggle(String id) => _open(_openId == id ? null : id);
+
+  /// Its last target set was logged: close it and open the next one not done.
+  void _completed(String id) {
+    final session = ref.read(activeSessionControllerProvider).value;
+    if (session == null || !mounted) return;
+    _open(_nextNotDone(_inOrder(session), id)?.id);
   }
 
   Future<void> _addExercise(WorkoutSession session) async {
@@ -50,7 +86,7 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
     try {
       await _controller.addExercise(exercise.id);
       final added = ref.read(activeSessionControllerProvider).value?.exercises.lastOrNull;
-      if (mounted) setState(() => _focusedId = added?.id);
+      if (mounted) _open(added?.id);
     } catch (error) {
       if (mounted) showError(context, error);
     }
@@ -77,20 +113,72 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
     try {
       await _controller.cancel();
       ref.read(restTimerProvider.notifier).skip();
+      ref.read(sessionDraftsProvider).clear();
       if (mounted) context.pop();
     } catch (error) {
       if (mounted) showError(context, error);
     }
   }
 
+  /// No cardio yet: offer it once, never force it. Null = stay in the workout.
+  Future<_CardioChoice?> _askCardio() => showModalBottomSheet<_CardioChoice>(
+        context: context,
+        builder: (context) => SafeArea(
+          child: Padding(
+            padding: AppSpacing.screen.copyWith(bottom: AppSpacing.lg),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text('No cardio today?', style: AppText.heading),
+                const SizedBox(height: AppSpacing.xs),
+                const Text('A few minutes of cardio is a good way to finish. It is up to you.',
+                    style: AppText.secondary),
+                const SizedBox(height: AppSpacing.lg),
+                FilledButton.icon(
+                  onPressed: () => Navigator.pop(context, _CardioChoice.add),
+                  icon: const Icon(Icons.directions_run_rounded),
+                  label: const Text('Add cardio'),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                OutlinedButton(
+                  onPressed: () => Navigator.pop(context, _CardioChoice.finishWithout),
+                  child: const Text('Finish without cardio'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+  /// Cardio reminder, then notes and finish, then the plan question, then the summary.
   Future<void> _finish(WorkoutSession session) async {
     if (!session.hasAnythingLogged) {
       showMessage(context, 'Log at least one set or some cardio first, or discard the workout.');
       return;
     }
-    final summary = await showFinishSheet(context, session);
+    if (session.cardio.isEmpty) {
+      final choice = await _askCardio();
+      if (choice == null || !mounted) return;
+      if (choice == _CardioChoice.add) {
+        await showCardioSheet(context);
+        if (!mounted) return;
+        // closed without adding: back to the workout
+        if (ref.read(activeSessionControllerProvider).value?.cardio.isEmpty ?? true) return;
+      }
+    }
+
+    // the latest state, before finishing clears it
+    final finished = ref.read(activeSessionControllerProvider).value ?? session;
+    final summary = await showFinishSheet(context, finished);
     if (summary == null || !mounted) return;
+    setState(() => _finishing = true);
     ref.read(restTimerProvider.notifier).skip();
+    ref.read(sessionDraftsProvider).clear();
+
+    // the workout is saved; declining here changes nothing
+    await offerPlanAdditions(context, ref, finished);
+    if (!mounted) return;
     context.pushReplacement(Routes.sessionSummary, extra: summary);
   }
 
@@ -100,6 +188,7 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
     final session = state.value;
 
     if (session == null) {
+      if (_finishing) return const Scaffold(body: SizedBox.shrink());
       return Scaffold(
         appBar: AppBar(),
         body: state.isLoading
@@ -118,18 +207,14 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
       );
     }
 
-    final focused = _focused(session);
-    // pin it: finishing its last set must not jump to the next one under the user's finger
-    // (also re-pins after the focused exercise was removed)
-    _focusedId = focused?.id;
-    final others = session.exercises.where((e) => e.id != focused?.id).toList();
-    final doneCount = session.exercises.where((e) => e.isDone).length;
-    final total = session.exercises.length;
-    final focusedIndex = focused == null ? -1 : session.exercises.indexOf(focused);
-    final nextNotDone = session.exercises
-        .skip(focusedIndex + 1)
-        .where((e) => !e.isDone)
-        .firstOrNull;
+    final exercises = _inOrder(session);
+    final active = _active(exercises);
+    if (!_opened) {
+      _opened = true;
+      _openId = active?.id;
+    }
+    final doneCount = exercises.where((e) => e.isDone).length;
+    final total = exercises.length;
 
     return Scaffold(
         appBar: AppBar(
@@ -182,25 +267,36 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
         body: ListView(
           padding: AppSpacing.screen.copyWith(top: AppSpacing.lg, bottom: AppSpacing.xxxl),
           children: [
-            if (focused == null)
+            if (exercises.isEmpty)
               _EmptyWorkoutCard(onAdd: () => _addExercise(session))
             else ...[
-              Text('EXERCISE ${focusedIndex + 1} OF $total', style: AppText.overline),
+              Text('$doneCount OF $total DONE', style: AppText.overline),
               const SizedBox(height: AppSpacing.md),
-              ExerciseCard(
-                key: ValueKey(focused.id),
-                exercise: focused,
-                onNext: nextNotDone == null ? null : () => setState(() => _focusedId = nextNotDone.id),
-              ),
-            ],
-            if (others.isNotEmpty) ...[
-              const SizedBox(height: AppSpacing.xxl),
-              const Text('Exercises', style: AppText.heading),
-              const SizedBox(height: AppSpacing.md),
-              for (final e in others)
-                _ExerciseTile(exercise: e, onTap: () => setState(() => _focusedId = e.id)),
-            ],
-            if (focused != null) ...[
+              for (final (index, e) in exercises.indexed)
+                if (e.id == _openId)
+                  Padding(
+                    key: _openKey,
+                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                    child: ExerciseCard(
+                      key: ValueKey(e.id),
+                      exercise: e,
+                      isActive: e.id == active?.id,
+                      onCollapse: () => _toggle(e.id),
+                      onCompleted: () => _completed(e.id),
+                      onNext: switch (_nextNotDone(exercises, e.id)) {
+                        final next? => () => _open(next.id),
+                        null => null,
+                      },
+                    ),
+                  )
+                else
+                  _ExerciseTile(
+                    key: ValueKey('tile-${e.id}'),
+                    number: index + 1,
+                    exercise: e,
+                    isActive: e.id == active?.id,
+                    onTap: () => _toggle(e.id),
+                  ),
               const SizedBox(height: AppSpacing.sm),
               OutlinedButton.icon(
                 onPressed: () => _addExercise(session),
@@ -276,11 +372,19 @@ class _EmptyWorkoutCard extends StatelessWidget {
   }
 }
 
-/// A row in the exercises list (not the one in focus). Tap to switch to it.
+/// A closed exercise in the list. Tap to open it; its place never changes.
 class _ExerciseTile extends StatelessWidget {
-  const _ExerciseTile({required this.exercise, required this.onTap});
+  const _ExerciseTile({
+    super.key,
+    required this.number,
+    required this.exercise,
+    required this.isActive,
+    required this.onTap,
+  });
 
+  final int number;
   final SessionExercise exercise;
+  final bool isActive;
   final VoidCallback onTap;
 
   @override
@@ -289,46 +393,61 @@ class _ExerciseTile extends StatelessWidget {
     final progress = exercise.targetSets == null
         ? '$logged ${logged == 1 ? 'set' : 'sets'}'
         : '$logged / ${exercise.targetSets} sets';
+    final name = capitalize(exercise.name);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: Material(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Row(
-              children: [
-                ExerciseThumb(url: exercise.gifUrl, size: 48),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        capitalize(exercise.name),
-                        style: AppText.bodyStrong,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        exercise.targetSets == null
-                            ? progress
-                            : '$progress · target ${exercise.targetSets} × ${exercise.targetReps}',
-                        style: AppText.caption,
-                      ),
-                    ],
+      child: Semantics(
+        button: true,
+        label: '$number. $name, $progress${exercise.isDone ? ', done' : ''}${isActive ? ', do this now' : ''}. Tap to open.',
+        excludeSemantics: true,
+        child: Material(
+          color: AppColors.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            side: isActive
+                ? BorderSide(color: AppColors.accent.withValues(alpha: 0.6))
+                : BorderSide.none,
+          ),
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Row(
+                children: [
+                  ExerciseThumb(url: exercise.gifUrl, size: 48),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (isActive) ...[
+                          const NowBadge(),
+                          const SizedBox(height: 2),
+                        ],
+                        Text(
+                          '$number. $name',
+                          style: AppText.bodyStrong,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          exercise.targetSets == null
+                              ? progress
+                              : '$progress · target ${exercise.targetSets} × ${exercise.targetReps}',
+                          style: AppText.caption,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                Icon(
-                  exercise.isDone ? Icons.check_circle_rounded : Icons.chevron_right_rounded,
-                  color: exercise.isDone ? AppColors.accent : AppColors.textTertiary,
-                ),
-              ],
+                  Icon(
+                    exercise.isDone ? Icons.check_circle_rounded : Icons.expand_more_rounded,
+                    color: exercise.isDone ? AppColors.accent : AppColors.textTertiary,
+                  ),
+                ],
+              ),
             ),
           ),
         ),

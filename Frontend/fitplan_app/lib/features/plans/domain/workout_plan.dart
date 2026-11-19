@@ -31,6 +31,9 @@ abstract class PlanExercise with _$PlanExercise {
     required int sets,
     required int reps,
     required int order,
+
+    /// Rest after each set, in seconds. Null = the default (90 s).
+    int? restSeconds,
   }) = _PlanExercise;
 
   factory PlanExercise.fromJson(Map<String, dynamic> json) => _$PlanExerciseFromJson(json);
