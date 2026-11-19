@@ -294,6 +294,28 @@ If the outcome is anything else, reject the deploy and don't run the script agai
 
 If the run waits for another reason, find out why before you approve. The first deploy of `/health/live` waits this way, because the running API doesn't have that endpoint yet. To stop a deploy, reject the run. GitHub lets a run wait up to 30 days for approval.
 
+#### Loading the exercise list
+
+A new database has no exercises. The migrator loads them from the source, `oss.exercisedb.dev`, without copying Production data. The list is saved to a file outside the repository, because the source's content isn't ours to publish.
+
+```bash
+dotnet run --project Backend/FitPlan.Migrator -- fetch-exercises <new file.json>
+```
+
+`fetch-exercises` reads every page, checks the rows and prints the file's SHA-256 and the count per body part. It doesn't connect to a database.
+
+```bash
+dotnet run --project Backend/FitPlan.Migrator -- import-exercises <file.json> --sha256 <approved hash> --target dev
+```
+
+`import-exercises` checks the file and its hash again, then adds only the exercises the database doesn't have. It runs as `fitplan-migrator`, in one transaction. It never changes or deletes a row, so running it twice adds nothing. Open a temporary firewall rule first, the same as for a migration. Production takes `--target prod --confirm FitPlanDb` and needs its own approval.
+
+```bash
+dotnet run --project Backend/FitPlan.Migrator -- check-gifs <file.json>
+```
+
+`check-gifs` reads the first bytes of every GIF link and lists the ones that are missing. The host drops some connections, so each link is retried. A link that never answers is reported as `Unreachable` and the exit code is 4, so an incomplete check is never mistaken for a clean one. On 2026-11-19: 1,324 work and 176 are missing (404), the same 176 as in the audit.
+
 ### Environment settings
 
 | Setting | `dev` | `dev-schema` | `production` |

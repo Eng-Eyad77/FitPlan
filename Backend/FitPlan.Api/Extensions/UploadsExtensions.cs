@@ -2,7 +2,7 @@ namespace FitPlan.Api.Extensions;
 
 public static class UploadsExtensions
 {
-    // Where user uploads (profile pictures) are saved and served from under /uploads.
+    // Where user uploads (profile pictures) are saved. They are not public files: only the API serves them.
     // Locally: wwwroot/uploads. On Azure the deployed app folder can be read-only and is replaced on every
     // deploy, so production sets Uploads:Root to a folder outside it (e.g. D:\home\data\uploads).
     public static string GetUploadsRoot(this IConfiguration configuration, IWebHostEnvironment environment) =>

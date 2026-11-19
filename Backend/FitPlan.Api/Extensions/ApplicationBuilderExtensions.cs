@@ -1,5 +1,4 @@
 
-using Microsoft.Extensions.FileProviders;
 
 namespace FitPlan.Api.Extensions;
 
@@ -36,14 +35,8 @@ public static class ApplicationBuilderExtensions
         // after authentication, so a signed-in user is limited by account rather than IP
         app.UseRateLimiter();
 
-        // profile pictures, served from the uploads folder (outside the app folder in production)
-        var uploadsRoot = app.Configuration.GetUploadsRoot(app.Environment);
-        Directory.CreateDirectory(uploadsRoot);
-        app.UseStaticFiles(new StaticFileOptions
-        {
-            FileProvider = new PhysicalFileProvider(uploadsRoot),
-            RequestPath = "/uploads"
-        });
+        // Profile pictures are no longer public files under /uploads (F-04, closed in Phase 6): only
+        // GET api/profile/me/picture serves them, to their signed-in owner.
 
         app.MapControllers();
         app.MapHealthEndpoints();

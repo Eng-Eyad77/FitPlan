@@ -35,6 +35,9 @@ abstract final class Routes {
 
   /// Pops with the chosen Exercise. extra: `Set<String>` of exercise ids already added.
   static const exercisePicker = '/exercises/pick';
+
+  /// The whole library, to look through without a plan. Adding asks which plan.
+  static const exerciseLibrary = '/exercises';
   static const session = '/session';
 
   /// extra: the SessionSummary returned when finishing.
@@ -73,6 +76,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: Routes.resetPassword, builder: (_, _) => const ResetPasswordScreen()),
       // outside the tab shell: covers the tab bar, with a back button
       GoRoute(path: Routes.profile, builder: (_, _) => const ProfileScreen()),
+      GoRoute(
+        path: Routes.exerciseLibrary,
+        builder: (_, _) => const ExercisePickerScreen(browse: true),
+      ),
       GoRoute(
         path: Routes.exercisePicker,
         builder: (_, state) =>

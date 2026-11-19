@@ -12,5 +12,7 @@ public interface IExerciseService
         string? bodyPart,
         string? search);
 
+    Task<IReadOnlyList<string>> GetBodyPartsAsync();
+
     Task<Result<ExerciseDto>> GetExerciseByIdAsync(string id);
 }

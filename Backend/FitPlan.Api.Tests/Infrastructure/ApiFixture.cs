@@ -113,7 +113,7 @@ public sealed class ApiFixture : IAsyncLifetime
         return new TestUser(auth!.Id, username, password, CreateClient(auth.AccessToken));
     }
 
-    public async Task<string> AddExerciseAsync(string name = "Bench Press")
+    public async Task<string> AddExerciseAsync(string name = "Bench Press", string bodyPart = "chest")
     {
         var id = "test-" + Guid.NewGuid().ToString("N");
 
@@ -124,7 +124,7 @@ public sealed class ApiFixture : IAsyncLifetime
                 Id = id,
                 Name = name,
                 GifUrl = "https://example.test/exercise.gif",
-                BodyPart = "chest",
+                BodyPart = bodyPart,
                 Instructions = ["Lift", "Lower"]
             });
             await context.SaveChangesAsync();
