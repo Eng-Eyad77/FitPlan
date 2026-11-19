@@ -135,11 +135,22 @@ const _$SuggestionReasonEnumMap = {
 
 _CardioEntry _$CardioEntryFromJson(Map<String, dynamic> json) => _CardioEntry(
   id: json['id'] as String,
-  machine: $enumDecode(_$CardioMachineEnumMap, json['machine']),
+  machine: $enumDecode(
+    _$CardioMachineEnumMap,
+    json['machine'],
+    unknownValue: CardioMachine.unknown,
+  ),
   durationSeconds: (json['durationSeconds'] as num).toInt(),
   speedKmh: (json['speedKmh'] as num?)?.toDouble(),
   inclinePercent: (json['inclinePercent'] as num?)?.toDouble(),
   distanceKm: (json['distanceKm'] as num?)?.toDouble(),
+  level: (json['level'] as num?)?.toInt(),
+  floors: (json['floors'] as num?)?.toInt(),
+  cadenceRpm: (json['cadenceRpm'] as num?)?.toInt(),
+  strokeRate: (json['strokeRate'] as num?)?.toInt(),
+  distanceMeters: (json['distanceMeters'] as num?)?.toInt(),
+  poolLengthMeters: (json['poolLengthMeters'] as num?)?.toInt(),
+  laps: (json['laps'] as num?)?.toInt(),
   estimatedCalories: (json['estimatedCalories'] as num?)?.toInt(),
 );
 
@@ -151,16 +162,25 @@ Map<String, dynamic> _$CardioEntryToJson(_CardioEntry instance) =>
       'speedKmh': instance.speedKmh,
       'inclinePercent': instance.inclinePercent,
       'distanceKm': instance.distanceKm,
+      'level': instance.level,
+      'floors': instance.floors,
+      'cadenceRpm': instance.cadenceRpm,
+      'strokeRate': instance.strokeRate,
+      'distanceMeters': instance.distanceMeters,
+      'poolLengthMeters': instance.poolLengthMeters,
+      'laps': instance.laps,
       'estimatedCalories': instance.estimatedCalories,
     };
 
 const _$CardioMachineEnumMap = {
   CardioMachine.treadmill: 'Treadmill',
+  CardioMachine.stairClimber: 'StairClimber',
   CardioMachine.stationaryBike: 'StationaryBike',
   CardioMachine.elliptical: 'Elliptical',
-  CardioMachine.stairClimber: 'StairClimber',
   CardioMachine.rower: 'Rower',
+  CardioMachine.swimming: 'Swimming',
   CardioMachine.other: 'Other',
+  CardioMachine.unknown: 'unknown',
 };
 
 _SessionSummary _$SessionSummaryFromJson(Map<String, dynamic> json) =>

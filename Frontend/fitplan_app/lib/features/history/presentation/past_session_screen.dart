@@ -276,12 +276,7 @@ class _CardioRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final details = [
-      formatDuration(entry.durationSeconds),
-      if (entry.speedKmh != null) '${formatKg(entry.speedKmh!)} km/h',
-      if (entry.inclinePercent != null) '${formatKg(entry.inclinePercent!)}% incline',
-      if (entry.distanceKm != null) '${formatKg(entry.distanceKm!)} km',
-    ].join(' · ');
+    final details = [formatDuration(entry.durationSeconds), ...entry.details].join(' · ');
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),

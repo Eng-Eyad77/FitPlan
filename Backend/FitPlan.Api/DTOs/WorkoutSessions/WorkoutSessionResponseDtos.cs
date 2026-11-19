@@ -110,6 +110,20 @@ public class CardioEntryResponseDto
 
     public decimal? DistanceKm { get; set; }
 
+    public int? Level { get; set; }
+
+    public int? Floors { get; set; }
+
+    public int? CadenceRpm { get; set; }
+
+    public int? StrokeRate { get; set; }
+
+    public int? DistanceMeters { get; set; }
+
+    public int? PoolLengthMeters { get; set; }
+
+    public int? Laps { get; set; }
+
     // an estimate, null if the user has no body weight recorded
     public int? EstimatedCalories { get; set; }
 }

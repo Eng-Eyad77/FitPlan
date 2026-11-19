@@ -18,6 +18,17 @@ public class CardioEntryService(FitPlanDbContext context, IBodyWeightService bod
             return Result<CardioEntryResponseDto>.Failure(error);
         }
 
+        // Other is only kept for old entries
+        if (dto.Machine == CardioMachine.Other)
+        {
+            return Result<CardioEntryResponseDto>.Failure(Errors.CardioMachineRetired);
+        }
+
+        if (Check(dto) is { } invalid)
+        {
+            return Result<CardioEntryResponseDto>.Failure(invalid);
+        }
+
         var cardio = new CardioEntry
         {
             Id = Guid.NewGuid(),
@@ -49,6 +60,17 @@ public class CardioEntryService(FitPlanDbContext context, IBodyWeightService bod
             return Result<CardioEntryResponseDto>.Failure(Errors.CardioEntryNotFound);
         }
 
+        // an old Other entry can still be corrected, but nothing can become Other
+        if (dto.Machine == CardioMachine.Other && cardio.Machine != CardioMachine.Other)
+        {
+            return Result<CardioEntryResponseDto>.Failure(Errors.CardioMachineRetired);
+        }
+
+        if (Check(dto) is { } invalid)
+        {
+            return Result<CardioEntryResponseDto>.Failure(invalid);
+        }
+
         await ApplyAsync(cardio, dto, userId);
         await context.SaveChangesAsync();
 
@@ -78,6 +100,17 @@ public class CardioEntryService(FitPlanDbContext context, IBodyWeightService bod
     }
 
 
+    // the details must belong to the machine, and a swim worked out from laps must stay in range
+    private static Error? Check(CardioEntryRequestDto dto)
+    {
+        if (CardioFields.Check(dto) is { } error)
+        {
+            return error;
+        }
+
+        return CardioFields.SwimDistanceMeters(dto) > 50000 ? Errors.CardioDistanceTooLong : null;
+    }
+
     // copies the request values and (re)calculates the calories with the user's current weight
     private async Task ApplyAsync(CardioEntry cardio, CardioEntryRequestDto dto, Guid userId)
     {
@@ -86,13 +119,14 @@ public class CardioEntryService(FitPlanDbContext context, IBodyWeightService bod
         cardio.SpeedKmh = dto.SpeedKmh;
         cardio.InclinePercent = dto.InclinePercent;
         cardio.DistanceKm = dto.DistanceKm;
+        cardio.Level = dto.Level;
+        cardio.Floors = dto.Floors;
+        cardio.CadenceRpm = dto.CadenceRpm;
+        cardio.StrokeRate = dto.StrokeRate;
+        cardio.DistanceMeters = CardioFields.SwimDistanceMeters(dto);
+        cardio.PoolLengthMeters = dto.PoolLengthMeters;
+        cardio.Laps = dto.Laps;
 
-        cardio.EstimatedCalories = CalorieEstimator.Estimate(
-            cardio.Machine,
-            cardio.DurationSeconds,
-            cardio.SpeedKmh,
-            cardio.InclinePercent,
-            cardio.DistanceKm,
-            await bodyWeightService.GetCurrentWeightAsync(userId));
+        cardio.EstimatedCalories = CalorieEstimator.Estimate(cardio, await bodyWeightService.GetCurrentWeightAsync(userId));
     }
 }

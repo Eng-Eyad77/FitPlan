@@ -54,9 +54,15 @@ namespace FitPlan.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int?>("CadenceRpm")
+                        .HasColumnType("int");
+
                     b.Property<decimal?>("DistanceKm")
                         .HasPrecision(6, 2)
                         .HasColumnType("decimal(6,2)");
+
+                    b.Property<int?>("DistanceMeters")
+                        .HasColumnType("int");
 
                     b.Property<int>("DurationSeconds")
                         .HasColumnType("int");
@@ -64,14 +70,26 @@ namespace FitPlan.Api.Migrations
                     b.Property<int?>("EstimatedCalories")
                         .HasColumnType("int");
 
+                    b.Property<int?>("Floors")
+                        .HasColumnType("int");
+
                     b.Property<decimal?>("InclinePercent")
                         .HasPrecision(5, 2)
                         .HasColumnType("decimal(5,2)");
+
+                    b.Property<int?>("Laps")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("Level")
+                        .HasColumnType("int");
 
                     b.Property<string>("Machine")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<int?>("PoolLengthMeters")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("RecordedAt")
                         .HasColumnType("datetime2");
@@ -79,6 +97,9 @@ namespace FitPlan.Api.Migrations
                     b.Property<decimal?>("SpeedKmh")
                         .HasPrecision(5, 2)
                         .HasColumnType("decimal(5,2)");
+
+                    b.Property<int?>("StrokeRate")
+                        .HasColumnType("int");
 
                     b.Property<Guid>("WorkoutSessionId")
                         .HasColumnType("uniqueidentifier");
@@ -89,15 +110,29 @@ namespace FitPlan.Api.Migrations
 
                     b.ToTable("CardioEntries", null, t =>
                         {
+                            t.HasCheckConstraint("CK_CardioEntries_CadenceRpm", "[CadenceRpm] >= 20 AND [CadenceRpm] <= 200");
+
                             t.HasCheckConstraint("CK_CardioEntries_DistanceKm", "[DistanceKm] > 0 AND [DistanceKm] <= 100");
+
+                            t.HasCheckConstraint("CK_CardioEntries_DistanceMeters", "[DistanceMeters] >= 1 AND [DistanceMeters] <= 50000");
 
                             t.HasCheckConstraint("CK_CardioEntries_DurationSeconds", "[DurationSeconds] >= 1 AND [DurationSeconds] <= 18000");
 
                             t.HasCheckConstraint("CK_CardioEntries_EstimatedCalories", "[EstimatedCalories] >= 0");
 
+                            t.HasCheckConstraint("CK_CardioEntries_Floors", "[Floors] >= 1 AND [Floors] <= 1000");
+
                             t.HasCheckConstraint("CK_CardioEntries_InclinePercent", "[InclinePercent] >= 0 AND [InclinePercent] <= 40");
 
+                            t.HasCheckConstraint("CK_CardioEntries_Laps", "[Laps] >= 1 AND [Laps] <= 2000");
+
+                            t.HasCheckConstraint("CK_CardioEntries_Level", "[Level] >= 1 AND [Level] <= 30");
+
+                            t.HasCheckConstraint("CK_CardioEntries_PoolLengthMeters", "[PoolLengthMeters] >= 10 AND [PoolLengthMeters] <= 100");
+
                             t.HasCheckConstraint("CK_CardioEntries_SpeedKmh", "[SpeedKmh] > 0 AND [SpeedKmh] <= 30");
+
+                            t.HasCheckConstraint("CK_CardioEntries_StrokeRate", "[StrokeRate] >= 10 AND [StrokeRate] <= 60");
                         });
                 });
 

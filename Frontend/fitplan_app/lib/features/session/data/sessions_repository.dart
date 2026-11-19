@@ -160,26 +160,18 @@ class HistoryPage {
 }
 
 /// What the cardio sheet sends. Only machine and duration are required.
+/// A cardio entry to save. Only the details of [machine] are sent; the API refuses the others.
 class CardioInput {
-  const CardioInput({
-    required this.machine,
-    required this.durationSeconds,
-    this.speedKmh,
-    this.inclinePercent,
-    this.distanceKm,
-  });
+  const CardioInput({required this.machine, required this.durationSeconds, this.values = const {}});
 
   final CardioMachine machine;
   final int durationSeconds;
-  final double? speedKmh;
-  final double? inclinePercent;
-  final double? distanceKm;
+  final Map<CardioField, num> values;
 
   Map<String, dynamic> toJson() => {
         'machine': machine.apiValue,
         'durationSeconds': durationSeconds,
-        'speedKmh': speedKmh,
-        'inclinePercent': inclinePercent,
-        'distanceKm': distanceKm,
+        for (final field in machine.fields)
+          if (values[field] case final value?) field.jsonKey: field.decimal ? value.toDouble() : value.toInt(),
       };
 }

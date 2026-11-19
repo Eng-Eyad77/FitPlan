@@ -84,6 +84,13 @@ public static class Errors
     public static readonly Error CardioEntryNotFound =
         new("CardioEntryNotFound", "Cardio entry not found.", ErrorType.NotFound);
 
+    // Other is kept for old entries only.
+    public static readonly Error CardioMachineRetired =
+        new("CardioMachineRetired", "Other can't be chosen any more. Pick the machine, or Swimming.", ErrorType.Validation);
+
+    public static readonly Error CardioDistanceTooLong =
+        new("CardioDistanceTooLong", "The distance can be at most 50,000 metres.", ErrorType.Validation);
+
     // Body Weight
     public static readonly Error SessionNotCompleted =
         new("SessionNotCompleted", "This workout session is still in progress.", ErrorType.Conflict);

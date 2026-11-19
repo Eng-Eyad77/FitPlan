@@ -30,6 +30,34 @@ public class CardioEntryConfiguration : IEntityTypeConfiguration<CardioEntry>
             table.HasCheckConstraint(
                 "CK_CardioEntries_EstimatedCalories",
                 "[EstimatedCalories] >= 0");
+
+            table.HasCheckConstraint(
+                "CK_CardioEntries_Level",
+                "[Level] >= 1 AND [Level] <= 30");
+
+            table.HasCheckConstraint(
+                "CK_CardioEntries_Floors",
+                "[Floors] >= 1 AND [Floors] <= 1000");
+
+            table.HasCheckConstraint(
+                "CK_CardioEntries_CadenceRpm",
+                "[CadenceRpm] >= 20 AND [CadenceRpm] <= 200");
+
+            table.HasCheckConstraint(
+                "CK_CardioEntries_StrokeRate",
+                "[StrokeRate] >= 10 AND [StrokeRate] <= 60");
+
+            table.HasCheckConstraint(
+                "CK_CardioEntries_DistanceMeters",
+                "[DistanceMeters] >= 1 AND [DistanceMeters] <= 50000");
+
+            table.HasCheckConstraint(
+                "CK_CardioEntries_PoolLengthMeters",
+                "[PoolLengthMeters] >= 10 AND [PoolLengthMeters] <= 100");
+
+            table.HasCheckConstraint(
+                "CK_CardioEntries_Laps",
+                "[Laps] >= 1 AND [Laps] <= 2000");
         });
 
         //define the primary key
