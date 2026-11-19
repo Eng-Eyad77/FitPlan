@@ -1512,7 +1512,7 @@ as SuggestionReason,
 /// @nodoc
 mixin _$CardioEntry {
 
- String get id; CardioMachine get machine; int get durationSeconds; double? get speedKmh; double? get inclinePercent; double? get distanceKm; int? get estimatedCalories;
+ String get id;@JsonKey(unknownEnumValue: CardioMachine.unknown) CardioMachine get machine; int get durationSeconds; double? get speedKmh; double? get inclinePercent; double? get distanceKm; int? get level; int? get floors; int? get cadenceRpm; int? get strokeRate; int? get distanceMeters; int? get poolLengthMeters; int? get laps; int? get estimatedCalories;
 /// Create a copy of CardioEntry
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1526,20 +1526,20 @@ $CardioEntryCopyWith<CardioEntry> get copyWith => _$CardioEntryCopyWithImpl<Card
 @override
 bool operator ==(Object other) {
   final _this = this as CardioEntry;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CardioEntry&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.machine, _this.machine) || other.machine == _this.machine)&&(identical(other.durationSeconds, _this.durationSeconds) || other.durationSeconds == _this.durationSeconds)&&(identical(other.speedKmh, _this.speedKmh) || other.speedKmh == _this.speedKmh)&&(identical(other.inclinePercent, _this.inclinePercent) || other.inclinePercent == _this.inclinePercent)&&(identical(other.distanceKm, _this.distanceKm) || other.distanceKm == _this.distanceKm)&&(identical(other.estimatedCalories, _this.estimatedCalories) || other.estimatedCalories == _this.estimatedCalories));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CardioEntry&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.machine, _this.machine) || other.machine == _this.machine)&&(identical(other.durationSeconds, _this.durationSeconds) || other.durationSeconds == _this.durationSeconds)&&(identical(other.speedKmh, _this.speedKmh) || other.speedKmh == _this.speedKmh)&&(identical(other.inclinePercent, _this.inclinePercent) || other.inclinePercent == _this.inclinePercent)&&(identical(other.distanceKm, _this.distanceKm) || other.distanceKm == _this.distanceKm)&&(identical(other.level, _this.level) || other.level == _this.level)&&(identical(other.floors, _this.floors) || other.floors == _this.floors)&&(identical(other.cadenceRpm, _this.cadenceRpm) || other.cadenceRpm == _this.cadenceRpm)&&(identical(other.strokeRate, _this.strokeRate) || other.strokeRate == _this.strokeRate)&&(identical(other.distanceMeters, _this.distanceMeters) || other.distanceMeters == _this.distanceMeters)&&(identical(other.poolLengthMeters, _this.poolLengthMeters) || other.poolLengthMeters == _this.poolLengthMeters)&&(identical(other.laps, _this.laps) || other.laps == _this.laps)&&(identical(other.estimatedCalories, _this.estimatedCalories) || other.estimatedCalories == _this.estimatedCalories));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as CardioEntry;
-  return Object.hash(runtimeType,_this.id,_this.machine,_this.durationSeconds,_this.speedKmh,_this.inclinePercent,_this.distanceKm,_this.estimatedCalories);
+  return Object.hash(runtimeType,_this.id,_this.machine,_this.durationSeconds,_this.speedKmh,_this.inclinePercent,_this.distanceKm,_this.level,_this.floors,_this.cadenceRpm,_this.strokeRate,_this.distanceMeters,_this.poolLengthMeters,_this.laps,_this.estimatedCalories);
 }
 
 @override
 String toString() {
   final _this = this as CardioEntry;
-  return 'CardioEntry(id: ${_this.id}, machine: ${_this.machine}, durationSeconds: ${_this.durationSeconds}, speedKmh: ${_this.speedKmh}, inclinePercent: ${_this.inclinePercent}, distanceKm: ${_this.distanceKm}, estimatedCalories: ${_this.estimatedCalories})';
+  return 'CardioEntry(id: ${_this.id}, machine: ${_this.machine}, durationSeconds: ${_this.durationSeconds}, speedKmh: ${_this.speedKmh}, inclinePercent: ${_this.inclinePercent}, distanceKm: ${_this.distanceKm}, level: ${_this.level}, floors: ${_this.floors}, cadenceRpm: ${_this.cadenceRpm}, strokeRate: ${_this.strokeRate}, distanceMeters: ${_this.distanceMeters}, poolLengthMeters: ${_this.poolLengthMeters}, laps: ${_this.laps}, estimatedCalories: ${_this.estimatedCalories})';
 }
 
 
@@ -1550,7 +1550,7 @@ abstract mixin class $CardioEntryCopyWith<$Res>  {
   factory $CardioEntryCopyWith(CardioEntry value, $Res Function(CardioEntry) _then) = _$CardioEntryCopyWithImpl;
 @useResult
 $Res call({
- String id, CardioMachine machine, int durationSeconds, double? speedKmh, double? inclinePercent, double? distanceKm, int? estimatedCalories
+ String id,@JsonKey(unknownEnumValue: CardioMachine.unknown) CardioMachine machine, int durationSeconds, double? speedKmh, double? inclinePercent, double? distanceKm, int? level, int? floors, int? cadenceRpm, int? strokeRate, int? distanceMeters, int? poolLengthMeters, int? laps, int? estimatedCalories
 });
 
 
@@ -1567,7 +1567,7 @@ class _$CardioEntryCopyWithImpl<$Res>
 
 /// Create a copy of CardioEntry
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? machine = null,Object? durationSeconds = null,Object? speedKmh = freezed,Object? inclinePercent = freezed,Object? distanceKm = freezed,Object? estimatedCalories = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? machine = null,Object? durationSeconds = null,Object? speedKmh = freezed,Object? inclinePercent = freezed,Object? distanceKm = freezed,Object? level = freezed,Object? floors = freezed,Object? cadenceRpm = freezed,Object? strokeRate = freezed,Object? distanceMeters = freezed,Object? poolLengthMeters = freezed,Object? laps = freezed,Object? estimatedCalories = freezed,}) {
   return _then(CardioEntry(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,machine: null == machine ? _self.machine : machine // ignore: cast_nullable_to_non_nullable
@@ -1575,7 +1575,14 @@ as CardioMachine,durationSeconds: null == durationSeconds ? _self.durationSecond
 as int,speedKmh: freezed == speedKmh ? _self.speedKmh : speedKmh // ignore: cast_nullable_to_non_nullable
 as double?,inclinePercent: freezed == inclinePercent ? _self.inclinePercent : inclinePercent // ignore: cast_nullable_to_non_nullable
 as double?,distanceKm: freezed == distanceKm ? _self.distanceKm : distanceKm // ignore: cast_nullable_to_non_nullable
-as double?,estimatedCalories: freezed == estimatedCalories ? _self.estimatedCalories : estimatedCalories // ignore: cast_nullable_to_non_nullable
+as double?,level: freezed == level ? _self.level : level // ignore: cast_nullable_to_non_nullable
+as int?,floors: freezed == floors ? _self.floors : floors // ignore: cast_nullable_to_non_nullable
+as int?,cadenceRpm: freezed == cadenceRpm ? _self.cadenceRpm : cadenceRpm // ignore: cast_nullable_to_non_nullable
+as int?,strokeRate: freezed == strokeRate ? _self.strokeRate : strokeRate // ignore: cast_nullable_to_non_nullable
+as int?,distanceMeters: freezed == distanceMeters ? _self.distanceMeters : distanceMeters // ignore: cast_nullable_to_non_nullable
+as int?,poolLengthMeters: freezed == poolLengthMeters ? _self.poolLengthMeters : poolLengthMeters // ignore: cast_nullable_to_non_nullable
+as int?,laps: freezed == laps ? _self.laps : laps // ignore: cast_nullable_to_non_nullable
+as int?,estimatedCalories: freezed == estimatedCalories ? _self.estimatedCalories : estimatedCalories // ignore: cast_nullable_to_non_nullable
 as int?,
   ));
 }
@@ -1661,10 +1668,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  CardioMachine machine,  int durationSeconds,  double? speedKmh,  double? inclinePercent,  double? distanceKm,  int? estimatedCalories)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(unknownEnumValue: CardioMachine.unknown)  CardioMachine machine,  int durationSeconds,  double? speedKmh,  double? inclinePercent,  double? distanceKm,  int? level,  int? floors,  int? cadenceRpm,  int? strokeRate,  int? distanceMeters,  int? poolLengthMeters,  int? laps,  int? estimatedCalories)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CardioEntry() when $default != null:
-return $default(_that.id,_that.machine,_that.durationSeconds,_that.speedKmh,_that.inclinePercent,_that.distanceKm,_that.estimatedCalories);case _:
+return $default(_that.id,_that.machine,_that.durationSeconds,_that.speedKmh,_that.inclinePercent,_that.distanceKm,_that.level,_that.floors,_that.cadenceRpm,_that.strokeRate,_that.distanceMeters,_that.poolLengthMeters,_that.laps,_that.estimatedCalories);case _:
   return orElse();
 
 }
@@ -1682,10 +1689,10 @@ return $default(_that.id,_that.machine,_that.durationSeconds,_that.speedKmh,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  CardioMachine machine,  int durationSeconds,  double? speedKmh,  double? inclinePercent,  double? distanceKm,  int? estimatedCalories)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(unknownEnumValue: CardioMachine.unknown)  CardioMachine machine,  int durationSeconds,  double? speedKmh,  double? inclinePercent,  double? distanceKm,  int? level,  int? floors,  int? cadenceRpm,  int? strokeRate,  int? distanceMeters,  int? poolLengthMeters,  int? laps,  int? estimatedCalories)  $default,) {final _that = this;
 switch (_that) {
 case _CardioEntry():
-return $default(_that.id,_that.machine,_that.durationSeconds,_that.speedKmh,_that.inclinePercent,_that.distanceKm,_that.estimatedCalories);case _:
+return $default(_that.id,_that.machine,_that.durationSeconds,_that.speedKmh,_that.inclinePercent,_that.distanceKm,_that.level,_that.floors,_that.cadenceRpm,_that.strokeRate,_that.distanceMeters,_that.poolLengthMeters,_that.laps,_that.estimatedCalories);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1702,10 +1709,10 @@ return $default(_that.id,_that.machine,_that.durationSeconds,_that.speedKmh,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  CardioMachine machine,  int durationSeconds,  double? speedKmh,  double? inclinePercent,  double? distanceKm,  int? estimatedCalories)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(unknownEnumValue: CardioMachine.unknown)  CardioMachine machine,  int durationSeconds,  double? speedKmh,  double? inclinePercent,  double? distanceKm,  int? level,  int? floors,  int? cadenceRpm,  int? strokeRate,  int? distanceMeters,  int? poolLengthMeters,  int? laps,  int? estimatedCalories)?  $default,) {final _that = this;
 switch (_that) {
 case _CardioEntry() when $default != null:
-return $default(_that.id,_that.machine,_that.durationSeconds,_that.speedKmh,_that.inclinePercent,_that.distanceKm,_that.estimatedCalories);case _:
+return $default(_that.id,_that.machine,_that.durationSeconds,_that.speedKmh,_that.inclinePercent,_that.distanceKm,_that.level,_that.floors,_that.cadenceRpm,_that.strokeRate,_that.distanceMeters,_that.poolLengthMeters,_that.laps,_that.estimatedCalories);case _:
   return null;
 
 }
@@ -1716,16 +1723,23 @@ return $default(_that.id,_that.machine,_that.durationSeconds,_that.speedKmh,_tha
 /// @nodoc
 @JsonSerializable()
 
-class _CardioEntry implements CardioEntry {
-  const _CardioEntry({required this.id, required this.machine, required this.durationSeconds, this.speedKmh, this.inclinePercent, this.distanceKm, this.estimatedCalories});
+class _CardioEntry extends CardioEntry {
+  const _CardioEntry({required this.id, @JsonKey(unknownEnumValue: CardioMachine.unknown) required this.machine, required this.durationSeconds, this.speedKmh, this.inclinePercent, this.distanceKm, this.level, this.floors, this.cadenceRpm, this.strokeRate, this.distanceMeters, this.poolLengthMeters, this.laps, this.estimatedCalories}): super._();
   factory _CardioEntry.fromJson(Map<String, dynamic> json) => _$CardioEntryFromJson(json);
 
 @override final  String id;
-@override final  CardioMachine machine;
+@override@JsonKey(unknownEnumValue: CardioMachine.unknown) final  CardioMachine machine;
 @override final  int durationSeconds;
 @override final  double? speedKmh;
 @override final  double? inclinePercent;
 @override final  double? distanceKm;
+@override final  int? level;
+@override final  int? floors;
+@override final  int? cadenceRpm;
+@override final  int? strokeRate;
+@override final  int? distanceMeters;
+@override final  int? poolLengthMeters;
+@override final  int? laps;
 @override final  int? estimatedCalories;
 
 /// Create a copy of CardioEntry
@@ -1741,18 +1755,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CardioEntry&&(identical(other.id, id) || other.id == id)&&(identical(other.machine, machine) || other.machine == machine)&&(identical(other.durationSeconds, durationSeconds) || other.durationSeconds == durationSeconds)&&(identical(other.speedKmh, speedKmh) || other.speedKmh == speedKmh)&&(identical(other.inclinePercent, inclinePercent) || other.inclinePercent == inclinePercent)&&(identical(other.distanceKm, distanceKm) || other.distanceKm == distanceKm)&&(identical(other.estimatedCalories, estimatedCalories) || other.estimatedCalories == estimatedCalories));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CardioEntry&&(identical(other.id, id) || other.id == id)&&(identical(other.machine, machine) || other.machine == machine)&&(identical(other.durationSeconds, durationSeconds) || other.durationSeconds == durationSeconds)&&(identical(other.speedKmh, speedKmh) || other.speedKmh == speedKmh)&&(identical(other.inclinePercent, inclinePercent) || other.inclinePercent == inclinePercent)&&(identical(other.distanceKm, distanceKm) || other.distanceKm == distanceKm)&&(identical(other.level, level) || other.level == level)&&(identical(other.floors, floors) || other.floors == floors)&&(identical(other.cadenceRpm, cadenceRpm) || other.cadenceRpm == cadenceRpm)&&(identical(other.strokeRate, strokeRate) || other.strokeRate == strokeRate)&&(identical(other.distanceMeters, distanceMeters) || other.distanceMeters == distanceMeters)&&(identical(other.poolLengthMeters, poolLengthMeters) || other.poolLengthMeters == poolLengthMeters)&&(identical(other.laps, laps) || other.laps == laps)&&(identical(other.estimatedCalories, estimatedCalories) || other.estimatedCalories == estimatedCalories));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,machine,durationSeconds,speedKmh,inclinePercent,distanceKm,estimatedCalories);
+    return Object.hash(runtimeType,id,machine,durationSeconds,speedKmh,inclinePercent,distanceKm,level,floors,cadenceRpm,strokeRate,distanceMeters,poolLengthMeters,laps,estimatedCalories);
 }
 
 @override
 String toString() {
-    return 'CardioEntry(id: $id, machine: $machine, durationSeconds: $durationSeconds, speedKmh: $speedKmh, inclinePercent: $inclinePercent, distanceKm: $distanceKm, estimatedCalories: $estimatedCalories)';
+    return 'CardioEntry(id: $id, machine: $machine, durationSeconds: $durationSeconds, speedKmh: $speedKmh, inclinePercent: $inclinePercent, distanceKm: $distanceKm, level: $level, floors: $floors, cadenceRpm: $cadenceRpm, strokeRate: $strokeRate, distanceMeters: $distanceMeters, poolLengthMeters: $poolLengthMeters, laps: $laps, estimatedCalories: $estimatedCalories)';
 }
 
 
@@ -1763,7 +1777,7 @@ abstract mixin class _$CardioEntryCopyWith<$Res> implements $CardioEntryCopyWith
   factory _$CardioEntryCopyWith(_CardioEntry value, $Res Function(_CardioEntry) _then) = __$CardioEntryCopyWithImpl;
 @override @useResult
 $Res call({
- String id, CardioMachine machine, int durationSeconds, double? speedKmh, double? inclinePercent, double? distanceKm, int? estimatedCalories
+ String id,@JsonKey(unknownEnumValue: CardioMachine.unknown) CardioMachine machine, int durationSeconds, double? speedKmh, double? inclinePercent, double? distanceKm, int? level, int? floors, int? cadenceRpm, int? strokeRate, int? distanceMeters, int? poolLengthMeters, int? laps, int? estimatedCalories
 });
 
 
@@ -1780,7 +1794,7 @@ class __$CardioEntryCopyWithImpl<$Res>
 
 /// Create a copy of CardioEntry
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? machine = null,Object? durationSeconds = null,Object? speedKmh = freezed,Object? inclinePercent = freezed,Object? distanceKm = freezed,Object? estimatedCalories = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? machine = null,Object? durationSeconds = null,Object? speedKmh = freezed,Object? inclinePercent = freezed,Object? distanceKm = freezed,Object? level = freezed,Object? floors = freezed,Object? cadenceRpm = freezed,Object? strokeRate = freezed,Object? distanceMeters = freezed,Object? poolLengthMeters = freezed,Object? laps = freezed,Object? estimatedCalories = freezed,}) {
   return _then(_CardioEntry(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,machine: null == machine ? _self.machine : machine // ignore: cast_nullable_to_non_nullable
@@ -1788,7 +1802,14 @@ as CardioMachine,durationSeconds: null == durationSeconds ? _self.durationSecond
 as int,speedKmh: freezed == speedKmh ? _self.speedKmh : speedKmh // ignore: cast_nullable_to_non_nullable
 as double?,inclinePercent: freezed == inclinePercent ? _self.inclinePercent : inclinePercent // ignore: cast_nullable_to_non_nullable
 as double?,distanceKm: freezed == distanceKm ? _self.distanceKm : distanceKm // ignore: cast_nullable_to_non_nullable
-as double?,estimatedCalories: freezed == estimatedCalories ? _self.estimatedCalories : estimatedCalories // ignore: cast_nullable_to_non_nullable
+as double?,level: freezed == level ? _self.level : level // ignore: cast_nullable_to_non_nullable
+as int?,floors: freezed == floors ? _self.floors : floors // ignore: cast_nullable_to_non_nullable
+as int?,cadenceRpm: freezed == cadenceRpm ? _self.cadenceRpm : cadenceRpm // ignore: cast_nullable_to_non_nullable
+as int?,strokeRate: freezed == strokeRate ? _self.strokeRate : strokeRate // ignore: cast_nullable_to_non_nullable
+as int?,distanceMeters: freezed == distanceMeters ? _self.distanceMeters : distanceMeters // ignore: cast_nullable_to_non_nullable
+as int?,poolLengthMeters: freezed == poolLengthMeters ? _self.poolLengthMeters : poolLengthMeters // ignore: cast_nullable_to_non_nullable
+as int?,laps: freezed == laps ? _self.laps : laps // ignore: cast_nullable_to_non_nullable
+as int?,estimatedCalories: freezed == estimatedCalories ? _self.estimatedCalories : estimatedCalories // ignore: cast_nullable_to_non_nullable
 as int?,
   ));
 }

@@ -25,4 +25,26 @@ public class CardioEntryRequestDto
 
     [Range(0.01, 100.0)]
     public decimal? DistanceKm { get; set; }
+
+    // Each machine takes only its own details (CardioFields); the others must be left out.
+    [Range(1, 30)]
+    public int? Level { get; set; }
+
+    [Range(1, 1000)]
+    public int? Floors { get; set; }
+
+    [Range(20, 200)]
+    public int? CadenceRpm { get; set; }
+
+    [Range(10, 60)]
+    public int? StrokeRate { get; set; }
+
+    [Range(1, 50000)]
+    public int? DistanceMeters { get; set; }
+
+    [Range(10, 100)]
+    public int? PoolLengthMeters { get; set; }
+
+    [Range(1, 2000)]
+    public int? Laps { get; set; }
 }

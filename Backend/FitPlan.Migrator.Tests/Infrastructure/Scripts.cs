@@ -16,6 +16,7 @@ public static class Scripts
     public const string AddRefreshTokens = "20261118210358_AddRefreshTokens";
     public const string AddRecoveryCode = "20261119064155_AddRecoveryCode";
     public const string AddRestSeconds = "20261119113833_AddRestSeconds";
+    public const string AddCardioMachineDetails = "20261119122349_AddCardioMachineDetails";
 
     public static readonly KnownMigrations Known = KnownMigrations.FromApi();
 

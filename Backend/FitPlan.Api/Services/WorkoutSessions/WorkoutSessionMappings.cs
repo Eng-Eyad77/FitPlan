@@ -74,6 +74,13 @@ public static class WorkoutSessionMappings
         SpeedKmh = cardio.SpeedKmh,
         InclinePercent = cardio.InclinePercent,
         DistanceKm = cardio.DistanceKm,
+        Level = cardio.Level,
+        Floors = cardio.Floors,
+        CadenceRpm = cardio.CadenceRpm,
+        StrokeRate = cardio.StrokeRate,
+        DistanceMeters = cardio.DistanceMeters,
+        PoolLengthMeters = cardio.PoolLengthMeters,
+        Laps = cardio.Laps,
         EstimatedCalories = cardio.EstimatedCalories
     };
 
