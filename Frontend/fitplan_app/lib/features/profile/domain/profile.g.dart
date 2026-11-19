@@ -13,6 +13,7 @@ _Profile _$ProfileFromJson(Map<String, dynamic> json) => _Profile(
   profilePictureUrl: json['profilePictureUrl'] as String?,
   currentWeightKg: (json['currentWeightKg'] as num?)?.toDouble(),
   weeklyGoal: (json['weeklyGoal'] as num?)?.toInt(),
+  hasRecoveryCode: json['hasRecoveryCode'] as bool? ?? true,
   createdAt: DateTime.parse(json['createdAt'] as String),
   updatedAt: DateTime.parse(json['updatedAt'] as String),
 );
@@ -24,6 +25,7 @@ Map<String, dynamic> _$ProfileToJson(_Profile instance) => <String, dynamic>{
   'profilePictureUrl': instance.profilePictureUrl,
   'currentWeightKg': instance.currentWeightKg,
   'weeklyGoal': instance.weeklyGoal,
+  'hasRecoveryCode': instance.hasRecoveryCode,
   'createdAt': instance.createdAt.toIso8601String(),
   'updatedAt': instance.updatedAt.toIso8601String(),
 };

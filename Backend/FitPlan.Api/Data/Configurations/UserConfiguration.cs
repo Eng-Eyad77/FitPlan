@@ -34,6 +34,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(p => p.PasswordHash)
                                 .IsRequired();
 
+        // the recovery code hash (PasswordHasher output is about 84 characters)
+        builder.Property(p => p.RecoveryCodeHash)
+                                .HasMaxLength(200);
+
         //the bio Configurations
         builder.Property(p => p.Bio)
                             .HasMaxLength(500);

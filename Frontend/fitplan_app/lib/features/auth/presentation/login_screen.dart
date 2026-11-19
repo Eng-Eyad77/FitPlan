@@ -80,7 +80,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 validator: (value) =>
                     (value == null || value.isEmpty) ? 'Enter your password' : null,
               ),
-              const SizedBox(height: AppSpacing.xl),
+              Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: TextButton(
+                  onPressed: _loading ? null : () => context.go(Routes.resetPassword),
+                  child: const Text('Forgot password?'),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
               if (_error != null) ...[
                 AuthErrorBanner(message: _error!),
                 const SizedBox(height: AppSpacing.lg),

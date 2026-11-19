@@ -1,9 +1,11 @@
 using FitPlan.Api.Common.Results;
 using FitPlan.Api.Data;
 using FitPlan.Api.DTOs.Profile;
-using FitPlan.Api.Extensions;
 using FitPlan.Api.Models;
+using FitPlan.Api.Services.Auth;
 using FitPlan.Api.Services.BodyWeight;
+using FitPlan.Api.Services.Pictures;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 
@@ -11,14 +13,11 @@ namespace FitPlan.Api.Services.Profile;
 
 public class ProfileService(
     FitPlanDbContext context,
-    IWebHostEnvironment webHost,
-    IConfiguration configuration,
+    ProfilePictureStorage pictures,
+    TimeProvider time,
     IBodyWeightService bodyWeightService) : IProfileService
 {
     private const long MaxFileSize = 5 * 1024 * 1024; // 5 MB in bytes
-
-    private static readonly string[] AllowedExtensions = [".jpg", ".jpeg", ".png"];
-    private static readonly string[] AllowedMimeTypes = ["image/jpeg", "image/png"];
 
 
     public async Task<Result<ProfileDto>> GetUserProfileAsync(Guid userId)
@@ -86,9 +85,16 @@ public class ProfileService(
             return Result<ProfileDto>.Failure(Errors.FileTooLarge);
         }
 
-        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+        // F-20: the bytes decide, not the file name or the declared type
+        byte[] bytes;
+        await using (var stream = file.OpenReadStream())
+        using (var buffer = new MemoryStream())
+        {
+            await stream.CopyToAsync(buffer);
+            bytes = buffer.ToArray();
+        }
 
-        if (!AllowedExtensions.Contains(extension) || !AllowedMimeTypes.Contains(file.ContentType))
+        if (ProfilePictureStorage.DetectImage(bytes) is not { } image)
         {
             return Result<ProfileDto>.Failure(Errors.InvalidFile);
         }
@@ -102,22 +108,11 @@ public class ProfileService(
 
         var oldPictureUrl = user.ProfilePictureUrl;
 
-        var uniqueFileName = $"{Guid.NewGuid()}{extension}";
-
-        var targetFolder = GetProfilePicturesFolder();
-
-        Directory.CreateDirectory(targetFolder);
-
-        await using (var stream = new FileStream(Path.Combine(targetFolder, uniqueFileName), FileMode.Create))
-        {
-            await file.CopyToAsync(stream);
-        }
-
-        user.ProfilePictureUrl = $"/uploads/profile-pictures/{uniqueFileName}";
+        user.ProfilePictureUrl = await pictures.SaveAsync(bytes, image.Extension);
         user.UpdatedAt = DateTime.UtcNow;
         await context.SaveChangesAsync();
 
-        DeletePictureFile(oldPictureUrl);
+        pictures.Delete(oldPictureUrl);
 
         return Result<ProfileDto>.Success(await ToProfileDtoAsync(user));
     }
@@ -138,29 +133,84 @@ public class ProfileService(
         user.UpdatedAt = DateTime.UtcNow;
         await context.SaveChangesAsync();
 
-        DeletePictureFile(pictureWantToDelete);
+        pictures.Delete(pictureWantToDelete);
 
         return Result<ProfileDto>.Success(await ToProfileDtoAsync(user));
     }
 
 
-    private string GetProfilePicturesFolder() =>
-        Path.Combine(configuration.GetUploadsRoot(webHost), "profile-pictures");
-
-    private void DeletePictureFile(string? pictureUrl)
+    public async Task<Result<(string Path, string ContentType)>> GetProfilePictureAsync(Guid userId)
     {
-        if (string.IsNullOrWhiteSpace(pictureUrl))
-        {
-            return;
-        }
+        var pictureUrl = await context.Users
+            .Where(u => u.Id == userId)
+            .Select(u => u.ProfilePictureUrl)
+            .FirstOrDefaultAsync();
 
-        var filePath = Path.Combine(GetProfilePicturesFolder(), Path.GetFileName(pictureUrl));
-
-        if (File.Exists(filePath))
-        {
-            File.Delete(filePath);
-        }
+        return pictures.Find(pictureUrl) is { } file
+            ? Result<(string, string)>.Success(file)
+            : Result<(string, string)>.Failure(Errors.PictureNotFound);
     }
+
+
+    // A new recovery code replaces the old one, which stops working.
+    public async Task<Result<RecoveryCodeDto>> CreateRecoveryCodeAsync(Guid userId, PasswordConfirmationDto request)
+    {
+        var user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user is null)
+        {
+            return Result<RecoveryCodeDto>.Failure(Errors.UserNotFound);
+        }
+
+        if (!PasswordMatches(user, request.Password))
+        {
+            return Result<RecoveryCodeDto>.Failure(Errors.WrongPassword);
+        }
+
+        var code = RecoveryCodes.Generate();
+        RecoveryCodes.Assign(user, code, time.GetUtcNow().UtcDateTime);
+        await context.SaveChangesAsync();
+
+        return Result<RecoveryCodeDto>.Success(new RecoveryCodeDto(code));
+    }
+
+
+    // F-02: removes the user and everything they own: plans, workouts with their exercises, sets and
+    // cardio, weights, logins and the picture. Workouts don't cascade from the user, so they go first,
+    // in the same transaction.
+    public async Task<Result<bool>> DeleteAccountAsync(Guid userId, PasswordConfirmationDto request)
+    {
+        var user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user is null)
+        {
+            return Result<bool>.Failure(Errors.UserNotFound);
+        }
+
+        if (!PasswordMatches(user, request.Password))
+        {
+            return Result<bool>.Failure(Errors.WrongPassword);
+        }
+
+        var pictureUrl = user.ProfilePictureUrl;
+
+        // the retry strategy needs the whole transaction inside it, so a retry repeats all of it
+        await context.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
+        {
+            await using var transaction = await context.Database.BeginTransactionAsync();
+            await context.WorkoutSessions.Where(s => s.UserId == userId).ExecuteDeleteAsync();
+            await context.Users.Where(u => u.Id == userId).ExecuteDeleteAsync();
+            await transaction.CommitAsync();
+        });
+
+        pictures.Delete(pictureUrl);
+
+        return Result<bool>.Success(true);
+    }
+
+
+    private static bool PasswordMatches(User user, string password) =>
+        new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, password) != PasswordVerificationResult.Failed;
 
     private async Task<ProfileDto> ToProfileDtoAsync(User user) => new()
     {
@@ -170,6 +220,7 @@ public class ProfileService(
         ProfilePictureUrl = user.ProfilePictureUrl,
         CurrentWeightKg = await bodyWeightService.GetCurrentWeightAsync(user.Id),
         WeeklyGoal = user.WeeklyGoal,
+        HasRecoveryCode = user.RecoveryCodeHash is not null,
         CreatedAt = user.CreatedAt,
         UpdatedAt = user.UpdatedAt
     };

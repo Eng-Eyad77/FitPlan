@@ -7,5 +7,7 @@ public record class AuthResponseDto
     string AccessToken,
     // Added in Phase 5. Older app versions ignore these two fields.
     string RefreshToken,
-    DateTime RefreshTokenExpiresAt
+    DateTime RefreshTokenExpiresAt,
+    // Only after sign-up and a password reset: the new recovery code, shown to the user once.
+    string? RecoveryCode = null
 );

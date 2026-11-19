@@ -43,6 +43,16 @@ public class AuthController(IAuthService authService) : ApiControllerBase
         return result.IsSuccess ? Ok(result.Data) : Problem(result.Error);
     }
 
+    // A forgotten password, proved with the recovery code. Shares the sign-in limit against guessing.
+    [HttpPost("reset-password")]
+    [EnableRateLimiting(RateLimitingExtensions.SignInPolicy)]
+    public async Task<IActionResult> ResetPassword(ResetPasswordRequestDto request)
+    {
+        var result = await authService.ResetPasswordAsync(request);
+
+        return result.IsSuccess ? Ok(result.Data) : Problem(result.Error);
+    }
+
     // Ends this login on the server: its refresh tokens stop working.
     [HttpPost("logout")]
     [EnableRateLimiting(RateLimitingExtensions.RefreshPolicy)]

@@ -65,6 +65,56 @@ public class ProfileController(IProfileService profileService) : ApiControllerBa
     }
 
 
+    // D12: only the signed-in owner can see their picture. The file name changes with each upload,
+    // so the app can cache it by the profile's ProfilePictureUrl.
+    [HttpGet("me/picture")]
+    public async Task<IActionResult> GetProfilePicture()
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await profileService.GetProfilePictureAsync(userId);
+        if (!result.IsSuccess)
+        {
+            return Problem(result.Error);
+        }
+
+        Response.Headers.CacheControl = "private, max-age=86400";
+        return PhysicalFile(result.Data.Path, result.Data.ContentType);
+    }
+
+
+    [HttpPost("me/recovery-code")]
+    public async Task<IActionResult> CreateRecoveryCode(PasswordConfirmationDto request)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await profileService.CreateRecoveryCodeAsync(userId, request);
+
+        return result.IsSuccess ? Ok(result.Data) : Problem(result.Error);
+    }
+
+
+    // F-02. POST, not DELETE, because it carries the password in its body.
+    [HttpPost("me/delete")]
+    public async Task<IActionResult> DeleteAccount(PasswordConfirmationDto request)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await profileService.DeleteAccountAsync(userId, request);
+
+        return result.IsSuccess ? NoContent() : Problem(result.Error);
+    }
+
+
     [HttpDelete("me/picture")]
     public async Task<IActionResult> DeleteProfilePicture()
     {
