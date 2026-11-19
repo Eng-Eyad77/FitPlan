@@ -25,9 +25,9 @@ class _FakeRepository extends AuthRepository {
   int loginCalls = 0;
 
   @override
-  Future<AuthSession> register({required String username, required String password}) async {
+  Future<AuthResult> register({required String username, required String password}) async {
     registerCalls++;
-    return _answer(registerResult);
+    return (session: _answer(registerResult), recoveryCode: null);
   }
 
   @override

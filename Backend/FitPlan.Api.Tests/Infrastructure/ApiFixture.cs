@@ -63,9 +63,14 @@ public sealed class ApiFixture : IAsyncLifetime
 
     public IServiceProvider Services => factory.Services;
 
+    public string UploadsRoot => uploadsRoot;
+
     public HttpClient CreateClient(string? accessToken = null)
     {
         var client = factory.CreateClient();
+
+        // Each client is a different caller, so the per-IP sign-in limit doesn't spill between tests.
+        client.DefaultRequestHeaders.Add("X-Forwarded-For", NewCallerIp());
 
         if (accessToken is not null)
         {
@@ -86,6 +91,10 @@ public sealed class ApiFixture : IAsyncLifetime
         using var scope = factory.Services.CreateScope();
         return await action(scope.ServiceProvider.GetRequiredService<FitPlanDbContext>());
     }
+
+    // 198.18.0.0/15 is reserved for testing.
+    public static string NewCallerIp() =>
+        $"198.{18 + Random.Shared.Next(2)}.{Random.Shared.Next(256)}.{Random.Shared.Next(1, 255)}";
 
     public static string NewUsername() => "test-" + Guid.NewGuid().ToString("N")[..16];
 

@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -59,6 +61,27 @@ class ProfileRepository {
         await apiCall(() => _dio.delete<Map<String, dynamic>>('/api/profile/me/picture'));
     return Profile.fromJson(response.data!);
   }
+
+  /// The picture itself. Only its signed-in owner can load it (D12), so it goes through the API
+  /// client with the session, not an image URL.
+  Future<Uint8List> getPictureBytes() async {
+    final response = await apiCall(
+      () => _dio.get<List<int>>('/api/profile/me/picture', options: Options(responseType: ResponseType.bytes)),
+    );
+    return Uint8List.fromList(response.data!);
+  }
+
+  /// Replaces the recovery code. Throws ApiException "WrongPassword" for a wrong password.
+  Future<String> createRecoveryCode(String password) async {
+    final response = await apiCall(
+      () => _dio.post<Map<String, dynamic>>('/api/profile/me/recovery-code', data: {'password': password}),
+    );
+    return response.data!['recoveryCode'] as String;
+  }
+
+  /// Deletes the account and everything in it. Throws ApiException "WrongPassword".
+  Future<void> deleteAccount(String password) =>
+      apiCall(() => _dio.post<void>('/api/profile/me/delete', data: {'password': password}));
 
   Future<void> addBodyWeight(double weightKg) async {
     await apiCall(() => _dio.post<void>('/api/body-weight', data: {'weightKg': weightKg}));

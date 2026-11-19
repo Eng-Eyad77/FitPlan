@@ -5,8 +5,9 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'auth_session.freezed.dart';
 part 'auth_session.g.dart';
 
-/// The logged-in user, exactly as the API returns it from /api/auth/login and /register:
-/// { "id": "...", "username": "eyad", "accessToken": "eyJ..." }
+/// The logged-in user, exactly as the API returns it from /api/auth/login, /register and /refresh:
+/// { "id": "...", "username": "eyad", "accessToken": "eyJ...", "refreshToken": "..." }
+/// A session saved by an older app version has no refresh token, so it ends when its JWT does.
 @freezed
 abstract class AuthSession with _$AuthSession {
   const AuthSession._();
@@ -15,6 +16,7 @@ abstract class AuthSession with _$AuthSession {
     required String id,
     required String username,
     required String accessToken,
+    String? refreshToken,
   }) = _AuthSession;
 
   factory AuthSession.fromJson(Map<String, dynamic> json) =>

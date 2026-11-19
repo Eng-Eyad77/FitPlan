@@ -19,6 +19,11 @@ public class User
     // Workouts per week the user aims for (1-7). null = no goal set.
     public int? WeeklyGoal { get; set; }
 
+    // Hash of the one-time recovery code (D11). null = the user has none.
+    public string? RecoveryCodeHash { get; set; }
+
+    public DateTime? RecoveryCodeCreatedAt { get; set; }
+
     public required DateTime CreatedAt { get; set; }
 
     public required DateTime UpdatedAt { get; set; }

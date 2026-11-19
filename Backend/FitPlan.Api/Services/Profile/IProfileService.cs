@@ -15,4 +15,10 @@ public interface IProfileService
     Task<Result<ProfileDto>> UploadProfilePictureAsync(Guid userId, IFormFile file);
 
     Task<Result<ProfileDto>> DeleteProfilePictureAsync(Guid userId);
+
+    Task<Result<(string Path, string ContentType)>> GetProfilePictureAsync(Guid userId);
+
+    Task<Result<RecoveryCodeDto>> CreateRecoveryCodeAsync(Guid userId, PasswordConfirmationDto request);
+
+    Task<Result<bool>> DeleteAccountAsync(Guid userId, PasswordConfirmationDto request);
 }

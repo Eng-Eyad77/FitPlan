@@ -10,7 +10,7 @@ Any action on Production in this file needs Eyad's approval first, step by step.
 | --- | --- | --- |
 | Database (`FitPlanDb`, `FitPlanDb-dev`) | Azure's automatic backups, locally redundant | 7 days, point in time |
 | Database, long term | None in Azure. A manual export (below) is the only long-term copy. | As long as you keep the file |
-| Profile pictures (`/home/data/uploads`) | **None.** Database backups don't include them. | Not covered yet (F-06) |
+| Profile pictures (`/home/data/uploads`) | A manual zip download (below). Database backups don't include them. | As long as you keep the file |
 
 Both databases use the free offer. **A database restored from a backup is never free.** Microsoft doesn't allow the free offer on a restored or copied database, so every restore creates a paid database. Restore to Basic, the cheapest tier, unless the data is larger than 2 GB.
 
@@ -21,6 +21,7 @@ Both databases use the free offer. **A database restored from a backup is never 
 | Point-in-time restore of `FitPlanDb-dev` to Basic | 2026-11-16 | 28 minutes 5 seconds for 22 MB. The new database was Basic, not free. Schema fingerprint and row counts of every table matched Dev. Deleted after about 12 minutes. |
 | Export of `FitPlanDb-dev` to a `.bacpac` | 2026-11-16 | 79 seconds, 6 KB file. Dev holds one user and no exercises, so this proves the steps, not the time for real data. |
 | Import of that file into local SQL Server Express | 2026-11-16 | 58 seconds. Schema fingerprint and row counts of every table matched Dev. |
+| Profile pictures of `fitplan-api-dev`: zip, delete, restore | 2026-11-19 | 1 file (180 bytes) in a 332-byte zip. After the file was deleted, the API answered `PictureNotFound`. After the restore, it served the picture again, byte for byte the same. |
 
 ## Restore a database to a point in time
 
@@ -101,6 +102,31 @@ The target database must be new or empty.
   ```
 
   A subscription can hold up to 10 free databases. This path hasn't been tested yet.
+
+## Back up and restore profile pictures
+
+Pictures live on the web app's `/home` storage, not in the database. Download them as a zip through the app's Kudu site, signed in with your `az login` account. Nothing is stored in Azure, and it costs nothing.
+
+1. Check how much there is:
+
+   ```bash
+   T=$(az account get-access-token --query accessToken -o tsv)
+   curl -s -H "Authorization: Bearer $T" "https://<app>.scm.azurewebsites.net/api/vfs/data/uploads/profile-pictures/"
+   ```
+
+2. Download everything under `/home/data/uploads`:
+
+   ```bash
+   curl -o <backup-folder>/uploads-<app>-<date>.zip -H "Authorization: Bearer $T" "https://<app>.scm.azurewebsites.net/api/zip/data/uploads/"
+   ```
+
+3. To restore, upload the zip to the same place. Files in the zip are written back, and other files stay:
+
+   ```bash
+   curl -X PUT --data-binary @<backup-folder>/uploads-<app>-<date>.zip -H "Authorization: Bearer $T" "https://<app>.scm.azurewebsites.net/api/zip/data/uploads/"
+   ```
+
+`<app>` is `fitplan-api-dev` or `fitplan-api-eyad`. A picture whose user was deleted after the backup comes back as a file nobody points to, which is harmless.
 
 ## Rebuild Dev from scratch
 

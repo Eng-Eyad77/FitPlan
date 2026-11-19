@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../features/auth/application/auth_controller.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
+import '../features/auth/presentation/reset_password_screen.dart';
 import '../features/exercises/presentation/exercise_picker_screen.dart';
 import '../features/history/presentation/history_screen.dart';
 import '../features/history/presentation/past_session_screen.dart';
@@ -23,6 +24,7 @@ abstract final class Routes {
   static const splash = '/splash';
   static const login = '/login';
   static const register = '/register';
+  static const resetPassword = '/reset-password';
   static const home = '/home';
   static const plans = '/plans';
   static const history = '/history';
@@ -57,7 +59,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (session.isLoading && !session.hasValue) return Routes.splash;
 
       final loggedIn = session.value != null;
-      final onAuthScreen = location == Routes.login || location == Routes.register;
+      final onAuthScreen =
+          location == Routes.login || location == Routes.register || location == Routes.resetPassword;
 
       if (!loggedIn) return onAuthScreen ? null : Routes.login;
       if (onAuthScreen || location == Routes.splash) return Routes.home;
@@ -67,6 +70,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: Routes.splash, builder: (_, _) => const SplashScreen()),
       GoRoute(path: Routes.login, builder: (_, _) => const LoginScreen()),
       GoRoute(path: Routes.register, builder: (_, _) => const RegisterScreen()),
+      GoRoute(path: Routes.resetPassword, builder: (_, _) => const ResetPasswordScreen()),
       // outside the tab shell: covers the tab bar, with a back button
       GoRoute(path: Routes.profile, builder: (_, _) => const ProfileScreen()),
       GoRoute(

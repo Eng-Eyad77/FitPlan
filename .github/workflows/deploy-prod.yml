@@ -1,7 +1,8 @@
 # Deploys the API to Production after every merge into main, and only after a person approves.
 # It builds no iOS or Android app. The deploy identity can only reach the Production web app: it has
-# no database access and can't change SQL firewall rules. Production has no migration path yet, so a
-# release that changes migrations is refused before anyone is asked to approve it.
+# no database access and can't change SQL firewall rules. A release that changes migrations isn't
+# applied here: the summary tells the reviewer to apply them with FitPlan.Migrator (docs/WORKFLOW.md)
+# before approving.
 name: Deploy Prod
 
 on:
@@ -26,7 +27,7 @@ jobs:
     uses: ./.github/workflows/ci.yml
 
   schema-check:
-    name: Refuse schema changes
+    name: Check schema changes
     needs: checks
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -51,7 +52,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Compare migrations with the commit running in Production
-        # A difference stops the release here. An unknown running version is shown to the reviewer.
+        # A difference or an unknown running version is shown to the reviewer, who decides.
         run: |
           report() { echo "$1" | tee -a "$GITHUB_STEP_SUMMARY"; }
 
@@ -79,9 +80,8 @@ jobs:
           case "$result" in
             0) report "Migrations unchanged: no migration differs from the running commit $deployed." ;;
             1)
-              report "Migrations changed since the running commit $deployed. Production has no migration path yet, so this release is refused."
-              echo "::error::Migrations differ from the running Production commit. Production has no migration path yet."
-              exit 1 ;;
+              report "Migrations changed since the running commit $deployed. Apply them to Production with FitPlan.Migrator before you approve (docs/WORKFLOW.md, Applying a migration to Production). Approving without that deploys code the database doesn't match yet."
+              echo "::warning::Migrations differ from the running Production commit. Apply them before you approve." ;;
             *)
               report "Migrations unverified: Git couldn't compare with the running commit $deployed. Check the evidence before you approve."
               echo "::warning::Git couldn't compare migrations with the running Production commit." ;;

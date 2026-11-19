@@ -29,6 +29,8 @@ public class FitPlanDbContext : DbContext
 
     public DbSet<BodyWeightEntry> BodyWeightEntries => Set<BodyWeightEntry>();
 
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+
 
     // Applies to every DateTime property in every entity, including ones we add later.
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
