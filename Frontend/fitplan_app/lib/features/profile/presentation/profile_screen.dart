@@ -56,12 +56,16 @@ class _ProfileBody extends ConsumerWidget {
         _WeightCard(weightKg: profile.currentWeightKg),
         const SizedBox(height: AppSpacing.lg),
         _BioCard(bio: profile.bio),
+        const SizedBox(height: AppSpacing.lg),
+        _RecoveryCodeCard(hasCode: profile.hasRecoveryCode),
         const SizedBox(height: AppSpacing.xxxl),
         OutlinedButton.icon(
           onPressed: () => ref.read(authControllerProvider.notifier).logout(),
           icon: const Icon(Icons.logout_rounded, color: AppColors.danger),
           label: const Text('Log out'),
         ),
+        const SizedBox(height: AppSpacing.md),
+        const _DeleteAccountButton(),
       ].animate(interval: 50.ms).fadeIn(duration: 260.ms).slideY(begin: 0.05, end: 0),
     );
   }
@@ -161,9 +165,13 @@ class _HeaderState extends ConsumerState<_Header> {
       children: [
         Semantics(
           button: true,
-          label: 'Change profile photo',
+          label: profile.profilePictureUrl == null ? 'Change profile photo' : 'View profile photo',
           child: GestureDetector(
-            onTap: _busy ? null : _openPhotoSheet,
+            onTap: _busy
+                ? null
+                : profile.profilePictureUrl == null
+                    ? _openPhotoSheet
+                    : () => _openPreview(profile),
             child: Stack(
               alignment: Alignment.center,
               children: [
@@ -182,10 +190,13 @@ class _HeaderState extends ConsumerState<_Header> {
                       shape: BoxShape.circle,
                       color: AppColors.background,
                     ),
-                    child: ProfileAvatar(
-                      initial: profile.initial,
-                      imageUrl: profile.pictureFullUrl,
-                      size: 100,
+                    child: Hero(
+                      tag: _pictureHero,
+                      child: ProfileAvatar(
+                        initial: profile.initial,
+                        pictureUrl: profile.profilePictureUrl,
+                        size: 100,
+                      ),
                     ),
                   ),
                 ),
@@ -197,15 +208,22 @@ class _HeaderState extends ConsumerState<_Header> {
                 Positioned(
                   right: 0,
                   bottom: 0,
-                  child: Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.button,
-                      border: Border.all(color: AppColors.background, width: 3),
+                  child: Semantics(
+                    button: true,
+                    label: 'Change profile photo',
+                    child: GestureDetector(
+                      onTap: _busy ? null : _openPhotoSheet,
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppColors.button,
+                          border: Border.all(color: AppColors.background, width: 3),
+                        ),
+                        child: const Icon(Icons.photo_camera_rounded, size: 17, color: AppColors.onButton),
+                      ),
                     ),
-                    child: const Icon(Icons.photo_camera_rounded, size: 17, color: AppColors.onButton),
                   ),
                 ),
               ],
@@ -219,7 +237,236 @@ class _HeaderState extends ConsumerState<_Header> {
           'Member since ${DateFormat.yMMMM().format(profile.createdAt.toLocal())}',
           style: AppText.secondary,
         ),
+        TextButton.icon(
+          onPressed: _busy ? null : _openPhotoSheet,
+          icon: const Icon(Icons.photo_camera_outlined, size: 18),
+          label: Text(profile.profilePictureUrl == null ? 'Add photo' : 'Change photo'),
+        ),
       ],
+    );
+  }
+
+  void _openPreview(Profile profile) {
+    Navigator.of(context, rootNavigator: true).push(
+      PageRouteBuilder<void>(
+        opaque: false,
+        barrierColor: Colors.black,
+        pageBuilder: (_, _, _) => _PicturePreview(profile: profile),
+        transitionsBuilder: (_, animation, _, child) => FadeTransition(opacity: animation, child: child),
+      ),
+    );
+  }
+}
+
+const _pictureHero = 'profile-picture';
+
+/// The profile picture full screen. Pinch or double-tap to zoom.
+class _PicturePreview extends ConsumerStatefulWidget {
+  const _PicturePreview({required this.profile});
+
+  final Profile profile;
+
+  @override
+  ConsumerState<_PicturePreview> createState() => _PicturePreviewState();
+}
+
+class _PicturePreviewState extends ConsumerState<_PicturePreview> {
+  final _zoom = TransformationController();
+
+  @override
+  void dispose() {
+    _zoom.dispose();
+    super.dispose();
+  }
+
+  void _toggleZoom(TapDownDetails details) {
+    if (_zoom.value.getMaxScaleOnAxis() > 1) {
+      _zoom.value = Matrix4.identity();
+    } else {
+      final point = details.localPosition;
+      _zoom.value = Matrix4.identity()
+        ..translateByDouble(-point.dx, -point.dy, 0, 1)
+        ..scaleByDouble(2.5, 2.5, 1, 1);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bytes = ref.watch(profilePictureProvider(widget.profile.profilePictureUrl!)).value;
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        leading: IconButton(
+          tooltip: 'Close',
+          icon: const Icon(Icons.close_rounded),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
+      extendBodyBehindAppBar: true,
+      body: Center(
+        child: bytes == null
+            ? const CircularProgressIndicator(color: AppColors.accent)
+            : GestureDetector(
+                onDoubleTapDown: _toggleZoom,
+                onDoubleTap: () {},
+                child: InteractiveViewer(
+                  transformationController: _zoom,
+                  maxScale: 5,
+                  child: Hero(
+                    tag: _pictureHero,
+                    child: Image.memory(bytes, fit: BoxFit.contain, semanticLabel: 'Profile photo'),
+                  ),
+                ),
+              ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------- recovery code and account
+
+/// Asks for the password again before something that matters. Returns null when cancelled.
+Future<String?> _askPassword(
+  BuildContext context, {
+  required String title,
+  required String message,
+  required String action,
+  bool danger = false,
+}) {
+  final controller = TextEditingController();
+  return showDialog<String>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(title, style: AppText.heading),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(message, style: AppText.secondary),
+          const SizedBox(height: AppSpacing.lg),
+          TextField(
+            controller: controller,
+            obscureText: true,
+            autofocus: true,
+            autofillHints: const [AutofillHints.password],
+            decoration: const InputDecoration(labelText: 'Password'),
+            onSubmitted: (value) => Navigator.of(dialogContext).pop(value),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Cancel')),
+        FilledButton(
+          style: danger ? FilledButton.styleFrom(backgroundColor: AppColors.danger, foregroundColor: Colors.black) : null,
+          onPressed: () => Navigator.of(dialogContext).pop(controller.text),
+          child: Text(action),
+        ),
+      ],
+    ),
+  ).whenComplete(controller.dispose);
+}
+
+class _RecoveryCodeCard extends ConsumerStatefulWidget {
+  const _RecoveryCodeCard({required this.hasCode});
+
+  final bool hasCode;
+
+  @override
+  ConsumerState<_RecoveryCodeCard> createState() => _RecoveryCodeCardState();
+}
+
+class _RecoveryCodeCardState extends ConsumerState<_RecoveryCodeCard> {
+  bool _busy = false;
+
+  Future<void> _create() async {
+    final password = await _askPassword(
+      context,
+      title: 'New recovery code',
+      message: 'Your old code will stop working. Enter your password to continue.',
+      action: 'Create code',
+    );
+    if (password == null || password.isEmpty || !mounted) return;
+
+    setState(() => _busy = true);
+    try {
+      await ref.read(profileControllerProvider.notifier).createRecoveryCode(password);
+    } catch (error) {
+      if (mounted) showError(context, error);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _Card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Recovery code', style: AppText.secondary),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            widget.hasCode
+                ? 'You can reset a forgotten password with your recovery code. Lost it? Create a new one.'
+                : "You don't have a recovery code yet. Without one, a forgotten password means a lost account.",
+            style: AppText.body.copyWith(color: widget.hasCode ? AppColors.textSecondary : AppColors.danger),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          LoadingButton(
+            label: widget.hasCode ? 'Create a new code' : 'Create a recovery code',
+            loading: _busy,
+            onPressed: _create,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DeleteAccountButton extends ConsumerStatefulWidget {
+  const _DeleteAccountButton();
+
+  @override
+  ConsumerState<_DeleteAccountButton> createState() => _DeleteAccountButtonState();
+}
+
+class _DeleteAccountButtonState extends ConsumerState<_DeleteAccountButton> {
+  bool _busy = false;
+
+  Future<void> _delete() async {
+    final password = await _askPassword(
+      context,
+      title: 'Delete your account?',
+      message: 'This deletes your plans, workouts, weights and photo for good. It can\'t be undone. '
+          'Enter your password to confirm.',
+      action: 'Delete',
+      danger: true,
+    );
+    if (password == null || password.isEmpty || !mounted) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _busy = true);
+    try {
+      await ref.read(profileControllerProvider.notifier).deleteAccount(password);
+      // the router is on the login screen now
+      messenger.showSnackBar(const SnackBar(content: Text('Your account was deleted.')));
+    } catch (error) {
+      if (mounted) showError(context, error);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton.icon(
+      onPressed: _busy ? null : _delete,
+      icon: _busy
+          ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
+          : const Icon(Icons.delete_forever_outlined, color: AppColors.danger),
+      label: Text('Delete account', style: AppText.body.copyWith(color: AppColors.danger)),
     );
   }
 }

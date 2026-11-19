@@ -6,6 +6,7 @@ import '../../../core/network/api_exception.dart';
 import '../../../core/storage/session_storage.dart';
 import '../data/auth_repository.dart';
 import '../domain/auth_session.dart';
+import 'recovery_code.dart';
 
 final authControllerProvider =
     AsyncNotifierProvider<AuthController, AuthSession?>(AuthController.new);
@@ -96,14 +97,32 @@ class AuthController extends AsyncNotifier<AuthSession?> {
   Future<void> register(String username, String password) async {
     final repository = ref.read(authRepositoryProvider);
     AuthSession session;
+    String? recoveryCode;
     try {
-      session = await repository.register(username: username, password: password);
+      (:session, :recoveryCode) = await repository.register(username: username, password: password);
     } on ApiException catch (error) {
       if (!_mayAlreadyExist(error)) rethrow;
+      // the account exists but its code was lost with the answer: the profile offers a new one
       session = await _loginInstead(repository, username, password, error);
     }
+    ref.read(recoveryCodeToShowProvider.notifier).show(recoveryCode);
     await _start(session);
   }
+
+  /// A forgotten password. The user is signed in afterwards and sees their new recovery code.
+  /// Throws ApiException (wrong code, too many attempts, network) so the screen can show it.
+  Future<void> resetPassword(String username, String recoveryCode, String newPassword) async {
+    final result = await ref.read(authRepositoryProvider).resetPassword(
+          username: username,
+          recoveryCode: recoveryCode,
+          newPassword: newPassword,
+        );
+    ref.read(recoveryCodeToShowProvider.notifier).show(result.recoveryCode);
+    await _start(result.session);
+  }
+
+  /// After the account was deleted on the server: nothing is left to log out of there.
+  Future<void> forgetDeletedAccount() => _clear();
 
   static bool _mayAlreadyExist(ApiException error) =>
       error.code == ApiException.timeout || error.code == ApiException.usernameAlreadyExists;
@@ -133,6 +152,7 @@ class AuthController extends AsyncNotifier<AuthSession?> {
   }
 
   Future<void> _clear() async {
+    ref.read(recoveryCodeToShowProvider.notifier).show(null);
     await ref.read(sessionStorageProvider).clear();
     state = const AsyncData(null);
   }

@@ -15,12 +15,23 @@ public static class Errors
     public static readonly Error InvalidRefreshToken =
         new("InvalidRefreshToken", "Your session has ended. Log in again.", ErrorType.Unauthorized);
 
+    // Wrong recovery code, or a username without one. One message, so it reveals nothing.
+    public static readonly Error InvalidRecoveryCode =
+        new("InvalidRecoveryCode", "The username or recovery code is wrong.", ErrorType.Validation);
+
+    // Asked again while signed in. Not 401: that would end the session in the app.
+    public static readonly Error WrongPassword =
+        new("WrongPassword", "Your password is wrong.", ErrorType.Validation);
+
     // Users & Profile
     public static readonly Error UserNotFound =
         new("UserNotFound", "User not found.", ErrorType.NotFound);
 
     public static readonly Error InvalidFile =
         new("InvalidFile", "The uploaded file is invalid. Only JPG and PNG images are allowed.", ErrorType.Validation);
+
+    public static readonly Error PictureNotFound =
+        new("PictureNotFound", "There is no profile picture.", ErrorType.NotFound);
 
     public static readonly Error FileTooLarge =
         new("FileTooLarge", "The file size exceeds the 5 MB limit.", ErrorType.PayloadTooLarge);

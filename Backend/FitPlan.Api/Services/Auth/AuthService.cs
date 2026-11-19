@@ -73,6 +73,10 @@ public class AuthService(FitPlanDbContext context, IConfiguration configuration,
 
         user.PasswordHash = new PasswordHasher<User>().HashPassword(user, request.Password);
 
+        // every account starts with a recovery code, shown once in the sign-up answer
+        var recoveryCode = RecoveryCodes.Generate();
+        RecoveryCodes.Assign(user, recoveryCode, user.CreatedAt);
+
         context.Users.Add(user);
 
         // Handle two concurrent registrations with the same username (unique index on Username).
@@ -85,7 +89,32 @@ public class AuthService(FitPlanDbContext context, IConfiguration configuration,
             return Result<AuthResponseDto>.Failure(Errors.UsernameAlreadyExists);
         }
 
-        return Result<AuthResponseDto>.Success(await IssueAsync(user, Guid.NewGuid()));
+        return Result<AuthResponseDto>.Success((await IssueAsync(user, Guid.NewGuid())) with { RecoveryCode = recoveryCode });
+    }
+
+    // A forgotten password: the recovery code proves who it is. The code is used up and a new one is
+    // returned, every other login of the user ends, and the user is signed in with the new password.
+    public async Task<Result<AuthResponseDto>> ResetPasswordAsync(ResetPasswordRequestDto request)
+    {
+        var user = await context.Users.FirstOrDefaultAsync(u => u.Username == request.Username);
+
+        if (user is null || !RecoveryCodes.Matches(user, request.RecoveryCode))
+        {
+            return Result<AuthResponseDto>.Failure(Errors.InvalidRecoveryCode);
+        }
+
+        var now = time.GetUtcNow().UtcDateTime;
+        user.PasswordHash = new PasswordHasher<User>().HashPassword(user, request.NewPassword);
+        var recoveryCode = RecoveryCodes.Generate();
+        RecoveryCodes.Assign(user, recoveryCode, now);
+        user.UpdatedAt = now;
+        await context.SaveChangesAsync();
+
+        await context.RefreshTokens
+            .Where(t => t.UserId == user.Id && t.RevokedAt == null)
+            .ExecuteUpdateAsync(s => s.SetProperty(t => t.RevokedAt, now));
+
+        return Result<AuthResponseDto>.Success((await IssueAsync(user, Guid.NewGuid())) with { RecoveryCode = recoveryCode });
     }
 
     public async Task<Result<AuthResponseDto>> LoginAsync(LoginRequestDto request)

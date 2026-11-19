@@ -17,6 +17,9 @@ public class ProfileDto
     // workouts per week the user aims for, null if not set
     public int? WeeklyGoal { get; set; }
 
+    // false for accounts made before recovery codes: the app suggests creating one
+    public bool HasRecoveryCode { get; set; }
+
     public DateTime CreatedAt { get; set; }
 
     public DateTime UpdatedAt { get; set; }

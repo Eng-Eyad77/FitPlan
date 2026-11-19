@@ -59,7 +59,7 @@ class HomeScreen extends ConsumerWidget {
                       onTap: () => context.push(Routes.profile),
                       child: ProfileAvatar(
                         initial: username.isEmpty ? '?' : username[0].toUpperCase(),
-                        imageUrl: profile?.pictureFullUrl,
+                        pictureUrl: profile?.profilePictureUrl,
                         size: AppSpacing.minTouch,
                       ),
                     ),

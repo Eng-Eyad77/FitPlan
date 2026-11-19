@@ -14,4 +14,6 @@ public interface IAuthService
 
     Task LogoutAsync(string refreshToken);
 
+    Task<Result<AuthResponseDto>> ResetPasswordAsync(ResetPasswordRequestDto request);
+
 }

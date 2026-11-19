@@ -63,6 +63,8 @@ public sealed class ApiFixture : IAsyncLifetime
 
     public IServiceProvider Services => factory.Services;
 
+    public string UploadsRoot => uploadsRoot;
+
     public HttpClient CreateClient(string? accessToken = null)
     {
         var client = factory.CreateClient();

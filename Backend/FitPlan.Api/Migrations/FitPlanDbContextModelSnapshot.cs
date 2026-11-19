@@ -258,6 +258,13 @@ namespace FitPlan.Api.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<DateTime?>("RecoveryCodeCreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RecoveryCodeHash")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
