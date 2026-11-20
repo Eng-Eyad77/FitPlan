@@ -6,8 +6,8 @@ on:
   workflow_dispatch:
     inputs:
       api_base_url:
-        description: API address the app talks to
-        default: https://fitplan-api-eyad.azurewebsites.net
+        description: API address the app talks to (Dev until the launch release, D17)
+        default: https://fitplan-api-dev.azurewebsites.net
 
 jobs:
   ios:
