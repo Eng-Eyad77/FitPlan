@@ -6,6 +6,7 @@ import 'package:fitplan_app/features/auth/domain/auth_session.dart';
 import 'package:fitplan_app/features/profile/application/profile_controller.dart';
 import 'package:fitplan_app/features/profile/domain/profile.dart';
 import 'package:fitplan_app/features/session/application/active_session_controller.dart';
+import 'package:fitplan_app/features/session/application/session_drafts.dart';
 import 'package:fitplan_app/features/session/data/sessions_repository.dart';
 import 'package:fitplan_app/features/session/domain/workout_session.dart';
 import 'package:fitplan_app/features/session/presentation/cardio_sheet.dart';
@@ -38,6 +39,16 @@ class _NoAuth extends SessionStorage {
   Future<AuthSession?> read() async => null;
 }
 
+class _NoDrafts extends SessionDraftsStore {
+  _NoDrafts() : super(const FlutterSecureStorage());
+
+  @override
+  Future<Map<String, dynamic>?> read() async => null;
+
+  @override
+  Future<void> write(Map<String, dynamic>? data) async {}
+}
+
 class _NoProfile extends ProfileController {
   @override
   Future<Profile> build() => Completer<Profile>().future; // never loads: no weight known
@@ -51,6 +62,7 @@ Future<_FakeSessions> _openSheet(WidgetTester tester) async {
     overrides: [
       sessionsRepositoryProvider.overrideWithValue(sessions),
       sessionStorageProvider.overrideWithValue(_NoAuth()),
+      sessionDraftsStoreProvider.overrideWithValue(_NoDrafts()),
       profileControllerProvider.overrideWith(_NoProfile.new),
     ],
     child: MaterialApp(

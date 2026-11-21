@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../auth/application/recovery_code.dart';
 import '../../progress/application/progress_providers.dart';
+import '../../session/application/active_session_controller.dart';
 import '../data/profile_repository.dart';
 import '../domain/profile.dart';
 
@@ -69,5 +70,13 @@ class ProfileController extends AsyncNotifier<Profile> {
     ref.invalidate(bodyWeightHistoryProvider);
     // the profile carries currentWeightKg, reload it
     state = AsyncData(await _repository.getProfile());
+    // the server now filled in the calories of the workout in progress; show them
+    if (ref.read(activeSessionControllerProvider).value != null) {
+      try {
+        await ref.read(activeSessionControllerProvider.notifier).refresh();
+      } catch (_) {
+        // the workout screen loads it again anyway
+      }
+    }
   }
 }

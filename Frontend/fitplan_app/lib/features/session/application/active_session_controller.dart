@@ -5,6 +5,7 @@ import '../../history/application/history_controller.dart';
 import '../../progress/application/progress_providers.dart';
 import '../data/sessions_repository.dart';
 import '../domain/workout_session.dart';
+import 'session_drafts.dart';
 
 final activeSessionControllerProvider =
     AsyncNotifierProvider<ActiveSessionController, WorkoutSession?>(ActiveSessionController.new);
@@ -17,9 +18,12 @@ class ActiveSessionController extends AsyncNotifier<WorkoutSession?> {
   SessionsRepository get _repository => ref.read(sessionsRepositoryProvider);
 
   @override
-  Future<WorkoutSession?> build() {
+  Future<WorkoutSession?> build() async {
     ref.watch(authControllerProvider.select((auth) => auth.value?.id));
-    return _repository.getActive();
+    final session = await _repository.getActive();
+    // the values typed before the app was closed, ready before the cards are built
+    if (session != null) await ref.read(sessionDraftsProvider).restore(session);
+    return session;
   }
 
   WorkoutSession get _session {

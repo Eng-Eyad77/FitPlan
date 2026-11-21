@@ -148,6 +148,37 @@ public class CardioTests(ApiFixture api)
     }
 
     [Fact]
+    public async Task Weight_added_during_the_workout_fills_in_its_missing_calories()
+    {
+        var (user, sessionId) = await StartAsync();
+
+        // logged before the user had any weight: no estimate yet
+        var swim = await AddAsync(user, sessionId, "Swimming", new { distanceMeters = 1500 });
+        Assert.Null((await swim.Content.ReadFromJsonAsync<CardioEntryResponseDto>(Json))!.EstimatedCalories);
+
+        (await user.Client.PostAsJsonAsync("/api/body-weight", new { weightKg = 80 })).EnsureSuccessStatusCode();
+
+        var session = await user.Client.GetFromJsonAsync<WorkoutSessionResponseDto>($"/api/sessions/{sessionId}", Json);
+        Assert.Equal(412, Assert.Single(session!.Cardio).EstimatedCalories);
+
+        var summary = await user.Client.PostAsJsonAsync($"/api/sessions/{sessionId}/complete", new { });
+        Assert.Equal(412, (await summary.Content.ReadFromJsonAsync<WorkoutSessionSummaryDto>(Json))!.EstimatedCalories);
+    }
+
+    [Fact]
+    public async Task Weight_added_later_does_not_change_a_finished_workout()
+    {
+        var (user, sessionId) = await StartAsync();
+        await AddAsync(user, sessionId, "Swimming", new { distanceMeters = 1500 });
+        (await user.Client.PostAsJsonAsync($"/api/sessions/{sessionId}/complete", new { })).EnsureSuccessStatusCode();
+
+        (await user.Client.PostAsJsonAsync("/api/body-weight", new { weightKg = 80 })).EnsureSuccessStatusCode();
+
+        var session = await user.Client.GetFromJsonAsync<WorkoutSessionResponseDto>($"/api/sessions/{sessionId}", Json);
+        Assert.Null(Assert.Single(session!.Cardio).EstimatedCalories);
+    }
+
+    [Fact]
     public void The_treadmill_estimate_is_unchanged()
     {
         // ACSM by hand, 80 kg: walking 5 km/h at 3% for 30 min = (8.33 + 4.5 + 3.5) ml/kg/min × 0.4 × 30 = 196;
