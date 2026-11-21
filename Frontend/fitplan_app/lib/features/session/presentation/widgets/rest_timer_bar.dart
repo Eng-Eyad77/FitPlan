@@ -68,7 +68,7 @@ class _CountdownState extends ConsumerState<_Countdown> {
       HapticFeedback.heavyImpact();
       // keep "Go!" on screen for a moment, then hide the bar
       Future.delayed(const Duration(seconds: 4), () {
-        if (mounted && _finished) ref.read(restTimerProvider.notifier).skip();
+        if (mounted && _finished) ref.read(restTimerProvider.notifier).clearEnded();
       });
     }
     setState(() {});

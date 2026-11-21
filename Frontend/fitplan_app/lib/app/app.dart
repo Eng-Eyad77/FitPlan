@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/theme/app_theme.dart';
 import '../features/auth/presentation/recovery_code_notice.dart';
+import '../features/session/application/rest_timer.dart';
 import '../shared/widgets/waking_server_banner.dart';
 import 'router.dart';
 
@@ -11,6 +12,9 @@ class FitPlanApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // The rest timer runs from launch, not only on the workout screen: it clears the rest
+    // notifications when the app opens on any screen, and handles their buttons (Phase 9).
+    ref.listen(restTimerProvider, (_, _) {});
     return MaterialApp.router(
       title: 'FitPlan',
       debugShowCheckedModeBanner: false,
