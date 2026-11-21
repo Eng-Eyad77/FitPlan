@@ -17,8 +17,27 @@ class FitPlanApp extends ConsumerWidget {
       theme: AppTheme.dark,
       themeMode: ThemeMode.dark,
       routerConfig: ref.watch(routerProvider),
-      builder: (context, child) =>
-          WakingServerBanner(child: RecoveryCodeNotice(child: child ?? const SizedBox.shrink())),
+      builder: (context, child) => DismissKeyboard(
+        child: WakingServerBanner(child: RecoveryCodeNotice(child: child ?? const SizedBox.shrink())),
+      ),
+    );
+  }
+}
+
+/// Tapping anywhere outside a text field closes the keyboard.
+/// The iPhone number pad has no Done key, so without this it stays open over the screen.
+/// Buttons and fields still get their taps first.
+class DismissKeyboard extends StatelessWidget {
+  const DismissKeyboard({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: child,
     );
   }
 }

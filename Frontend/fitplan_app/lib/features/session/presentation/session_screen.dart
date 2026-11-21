@@ -265,6 +265,8 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
                 ),
         ),
         body: ListView(
+          // scrolling the workout closes the keyboard
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: AppSpacing.screen.copyWith(top: AppSpacing.lg, bottom: AppSpacing.xxxl),
           children: [
             if (exercises.isEmpty)

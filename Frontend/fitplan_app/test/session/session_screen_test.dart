@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:fitplan_app/app/app.dart';
 import 'package:fitplan_app/app/router.dart';
 import 'package:fitplan_app/core/network/api_exception.dart';
 import 'package:fitplan_app/core/storage/session_storage.dart';
@@ -8,6 +9,7 @@ import 'package:fitplan_app/features/plans/domain/workout_plan.dart';
 import 'package:fitplan_app/features/plans/presentation/target_sheet.dart';
 import 'package:fitplan_app/features/session/application/plan_additions.dart';
 import 'package:fitplan_app/features/session/application/rest_timer.dart';
+import 'package:fitplan_app/features/session/application/session_drafts.dart';
 import 'package:fitplan_app/features/session/data/sessions_repository.dart';
 import 'package:fitplan_app/features/session/domain/workout_session.dart';
 import 'package:fitplan_app/features/session/presentation/session_screen.dart';
@@ -108,6 +110,18 @@ class _MemoryTimerStore extends RestTimerStore {
   Future<void> write(RestTimer? timer) async => saved = timer;
 }
 
+class _MemoryDraftsStore extends SessionDraftsStore {
+  _MemoryDraftsStore([this.saved]) : super(const FlutterSecureStorage());
+
+  Map<String, dynamic>? saved;
+
+  @override
+  Future<Map<String, dynamic>?> read() async => saved;
+
+  @override
+  Future<void> write(Map<String, dynamic>? data) async => saved = data;
+}
+
 class _NoAuth extends SessionStorage {
   _NoAuth() : super(const FlutterSecureStorage());
 
@@ -125,16 +139,25 @@ WorkoutSession _session(List<SessionExercise> exercises, {String? planId, List<C
       cardio: cardio,
     );
 
-typedef _Setup = ({_FakeSessions sessions, _FakePlans plans, _MemoryTimerStore timers, ProviderContainer container});
+typedef _Setup = ({
+  _FakeSessions sessions,
+  _FakePlans plans,
+  _MemoryTimerStore timers,
+  _MemoryDraftsStore drafts,
+  ProviderContainer container,
+});
 
-Future<_Setup> _open(WidgetTester tester, WorkoutSession session, {_FakePlans? plans}) async {
+Future<_Setup> _open(WidgetTester tester, WorkoutSession session,
+    {_FakePlans? plans, _MemoryDraftsStore? drafts}) async {
   final sessions = _FakeSessions(session);
   final planRepo = plans ?? _FakePlans();
   final timers = _MemoryTimerStore();
+  final draftStore = drafts ?? _MemoryDraftsStore();
   final container = ProviderContainer(overrides: [
     sessionsRepositoryProvider.overrideWithValue(sessions),
     plansRepositoryProvider.overrideWithValue(planRepo),
     restTimerStoreProvider.overrideWithValue(timers),
+    sessionDraftsStoreProvider.overrideWithValue(draftStore),
     sessionStorageProvider.overrideWithValue(_NoAuth()),
   ]);
   addTearDown(container.dispose);
@@ -154,7 +177,7 @@ Future<_Setup> _open(WidgetTester tester, WorkoutSession session, {_FakePlans? p
   ));
   router.push(Routes.session);
   await _settle(tester);
-  return (sessions: sessions, plans: planRepo, timers: timers, container: container);
+  return (sessions: sessions, plans: planRepo, timers: timers, drafts: draftStore, container: container);
 }
 
 /// The workout clock ticks every second, so pumpAndSettle would never finish.
@@ -202,6 +225,52 @@ void main() {
 
     expect(find.text('77.5'), findsOneWidget);
     expect(find.text('8'), findsOneWidget);
+  });
+
+  testWidgets('typed values are saved on the phone and come back after the app was closed', (tester) async {
+    final workout = _session([_ex('alpha', 1, targetSets: 2), _ex('bravo', 2, targetSets: 2)]);
+    final first = await _open(tester, workout);
+
+    await tester.enterText(find.byType(TextField).first, '62.5');
+    await tester.enterText(find.byType(TextField).at(1), '9');
+    await _settle(tester);
+    final saved = first.drafts.saved;
+    expect(saved, isNotNull);
+
+    // a fresh app run: new providers, same phone storage, plus a leftover from another workout
+    final leftover = {
+      ...saved!,
+      'values': {...saved['values'] as Map<String, dynamic>, 'old#1': {'kg': '999', 'reps': '1'}},
+    };
+    await tester.pumpWidget(const SizedBox.shrink());
+    final second = await _open(tester, workout, drafts: _MemoryDraftsStore(leftover));
+
+    expect(find.text('62.5'), findsOneWidget);
+    expect(find.text('9'), findsOneWidget);
+    expect(find.text('999'), findsNothing);
+
+    // logging the set removes it from the saved values
+    await tester.tap(find.byTooltip('Log set 1'));
+    await _settle(tester);
+    final values = second.drafts.saved?['values'] as Map<String, dynamic>? ?? const {};
+    expect(values.keys.where((k) => k.startsWith('alpha#1')), isEmpty);
+  });
+
+  testWidgets('tapping outside a field closes the keyboard', (tester) async {
+    final field = FocusNode();
+    addTearDown(field.dispose);
+    await tester.pumpWidget(MaterialApp(
+      home: DismissKeyboard(
+        child: Scaffold(body: Column(children: [TextField(focusNode: field), const SizedBox(height: 300)])),
+      ),
+    ));
+    await tester.tap(find.byType(TextField));
+    await tester.pump();
+    expect(field.hasFocus, isTrue);
+
+    await tester.tapAt(const Offset(150, 400));
+    await tester.pump();
+    expect(field.hasFocus, isFalse);
   });
 
   testWidgets('the last target set closes the card, opens the next, and rests as set', (tester) async {
