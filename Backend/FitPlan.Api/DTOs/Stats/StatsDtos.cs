@@ -180,3 +180,25 @@ public class NewRecordDto
 
     public decimal PreviousBest { get; set; }
 }
+
+
+// ---------- lifetime volume (Phase 10) ----------
+
+public class VolumeStatsDto
+{
+    // sum of (reps × weight) of every set in every finished workout; bodyweight sets count as 0
+    public decimal TotalVolumeKg { get; set; }
+
+    // all of them, smallest first
+    public VolumeMilestoneDto[] Milestones { get; set; } = [];
+}
+
+public class VolumeMilestoneDto
+{
+    public required string Key { get; set; }
+
+    public decimal ThresholdKg { get; set; }
+
+    // null = not reached yet. Once reached it stays, even if the total drops after a delete.
+    public DateTime? ReachedAt { get; set; }
+}

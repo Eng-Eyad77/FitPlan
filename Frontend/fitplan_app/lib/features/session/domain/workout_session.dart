@@ -246,6 +246,8 @@ abstract class SessionSummary with _$SessionSummary {
     required double totalVolumeKg,
     required int cardioDurationSeconds,
     required int estimatedCalories,
+    // only when finishing: the lifetime-volume milestones this workout crossed (Phase 10)
+    @Default([]) List<String> newMilestones,
   }) = _SessionSummary;
 
   factory SessionSummary.fromJson(Map<String, dynamic> json) => _$SessionSummaryFromJson(json);

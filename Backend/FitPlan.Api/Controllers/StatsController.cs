@@ -7,8 +7,21 @@ namespace FitPlan.Api.Controllers;
 
 [Authorize]
 [Route("api/stats")]
-public class StatsController(IStatsService statsService) : ApiControllerBase
+public class StatsController(IStatsService statsService, IVolumeService volumeService) : ApiControllerBase
 {
+    // lifetime volume and its milestones
+    [HttpGet("volume")]
+    public async Task<IActionResult> GetVolume()
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        return Ok(await volumeService.GetAsync(userId));
+    }
+
+
     // GET api/stats/overview?weeks=12&utcOffsetMinutes=180&weekStartsOn=Sunday
     [HttpGet("overview")]
     public async Task<IActionResult> GetOverview([FromQuery] StatsOverviewQuery query)

@@ -152,4 +152,8 @@ public class WorkoutSessionSummaryDto
     public int CardioDurationSeconds { get; set; }
 
     public int EstimatedCalories { get; set; }
+
+    // Only in the answer to finishing a workout: the lifetime-volume milestones this workout
+    // crossed (keys, smallest first), so the app celebrates each one once. Empty elsewhere.
+    public string[] NewMilestones { get; set; } = [];
 }

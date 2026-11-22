@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/api_client.dart';
 import '../domain/stats.dart';
+import '../domain/volume.dart';
 
 final statsRepositoryProvider = Provider<StatsRepository>(
   (ref) => StatsRepository(ref.watch(dioProvider)),
@@ -49,6 +50,11 @@ class StatsRepository {
       () => _dio.get<Map<String, dynamic>>('/api/stats/sessions/$sessionId/comparison'),
     );
     return SessionComparison.fromJson(response.data!);
+  }
+
+  Future<VolumeStats> getVolume() async {
+    final response = await apiCall(() => _dio.get<Map<String, dynamic>>('/api/stats/volume'));
+    return VolumeStats.fromJson(response.data!);
   }
 
   Future<List<BodyWeightEntry>> getBodyWeightHistory() async {
