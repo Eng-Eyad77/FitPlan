@@ -43,8 +43,12 @@ app.add_file_references([attributes_file, intents_file, channel_file])
 # iPhones still open the app and just don't get the Lock Screen countdown
 app.build_configurations.each do |config|
   flags = Array(config.build_settings['OTHER_LDFLAGS'] || '$(inherited)')
-  flags += ['-weak_framework', 'ActivityKit', '-weak_framework', 'AppIntents']
-  config.build_settings['OTHER_LDFLAGS'] = flags.uniq { |f| f }
+  # pairs: "-weak_framework" before each name (no uniq, which would drop the second flag)
+  %w[ActivityKit AppIntents].each do |framework|
+    next if flags.each_cons(2).include?(['-weak_framework', framework])
+    flags += ['-weak_framework', framework]
+  end
+  config.build_settings['OTHER_LDFLAGS'] = flags
 end
 
 # Runner has Debug, Profile and Release; the extension needs the same three
