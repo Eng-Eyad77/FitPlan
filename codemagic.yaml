@@ -19,6 +19,11 @@ workflows:
       # the generated .freezed.dart / .g.dart files are committed, so no build_runner step
       - name: Get packages
         script: flutter pub get
+      # Phase 9C/9D: adds the Lock Screen countdown (a widget extension) to the Xcode project on the Mac
+      - name: Add the rest Live Activity extension
+        script: |
+          gem list -i xcodeproj >/dev/null || gem install xcodeproj --no-document
+          ruby ios/scripts/add_rest_activity.rb
       - name: Build the app without signing (Sideloadly signs it with your Apple ID)
         script: flutter build ios --release --no-codesign --dart-define=API_BASE_URL=$API_BASE_URL
       - name: Package as .ipa

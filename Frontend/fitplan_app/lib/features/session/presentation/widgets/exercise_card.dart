@@ -9,6 +9,8 @@ import '../../../../shared/widgets/feedback.dart';
 import '../../../exercises/presentation/exercise_details_sheet.dart';
 import '../../../exercises/presentation/widgets/exercise_thumb.dart';
 import '../../application/active_session_controller.dart';
+import '../../application/next_set.dart';
+import '../../application/rest_notifications.dart';
 import '../../application/rest_timer.dart';
 import '../../application/session_drafts.dart';
 import '../../domain/workout_session.dart';
@@ -95,8 +97,20 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard> {
       await _controller.addSet(_exercise.id, reps: reps, weightKg: weightKg);
       _drafts.clearValue(_exercise.id, rowNumber);
       if (_extraRows > 0 && mounted) setState(() => _extraRows--);
-      ref.read(restTimerProvider.notifier).start(rest);
-      if (target != null && before + 1 == target) widget.onCompleted?.call();
+      // the next set, pre-filled with this one's values as its row is, so the notification can log it
+      final next = NextSet(
+        sessionId: ref.read(activeSessionControllerProvider).value?.id ?? '',
+        sessionExerciseId: _exercise.id,
+        name: capitalize(_exercise.name),
+        setNumber: before + 1,
+        reps: reps,
+        weightKg: weightKg,
+        targetSets: target,
+        restSeconds: _exercise.restOrDefault,
+      ).following;
+      final completed = target != null && before + 1 == target;
+      ref.read(restTimerProvider.notifier).start(rest, next == null ? RestTexts.nextExercise : null, next);
+      if (completed) widget.onCompleted?.call();
       return true;
     } catch (error) {
       if (mounted) showError(context, error);

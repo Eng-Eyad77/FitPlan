@@ -7,7 +7,10 @@ import 'package:fitplan_app/features/auth/domain/auth_session.dart';
 import 'package:fitplan_app/features/plans/data/plans_repository.dart';
 import 'package:fitplan_app/features/plans/domain/workout_plan.dart';
 import 'package:fitplan_app/features/plans/presentation/target_sheet.dart';
+import 'package:fitplan_app/features/session/application/active_session_controller.dart';
+import 'package:fitplan_app/features/session/application/next_set.dart';
 import 'package:fitplan_app/features/session/application/plan_additions.dart';
+import 'package:fitplan_app/features/session/application/rest_notifications.dart';
 import 'package:fitplan_app/features/session/application/rest_timer.dart';
 import 'package:fitplan_app/features/session/application/session_drafts.dart';
 import 'package:fitplan_app/features/session/data/sessions_repository.dart';
@@ -41,14 +44,18 @@ class _FakeSessions extends SessionsRepository {
   WorkoutSession? session;
   final rests = <String, int?>{};
   var completed = false;
+  final addedSets = <({String exerciseId, int reps, double? kg})>[];
+  var offline = false;
 
   @override
   Future<WorkoutSession?> getActive() async => session;
 
   @override
   Future<SessionSet> addSet(String sessionId, String sessionExerciseId, {required int reps, double? weightKg}) async {
+    if (offline) throw const ApiException(code: ApiException.networkError, message: 'offline');
+    addedSets.add((exerciseId: sessionExerciseId, reps: reps, kg: weightKg));
     final e = session!.exercises.firstWhere((e) => e.id == sessionExerciseId);
-    return SessionSet(id: '${e.id}-new${e.sets.length}', setNumber: e.sets.length + 1, reps: reps, weightKg: weightKg);
+    return SessionSet(id: '${e.id}-new${addedSets.length}', setNumber: e.sets.length + 1, reps: reps, weightKg: weightKg);
   }
 
   @override
@@ -110,6 +117,63 @@ class _MemoryTimerStore extends RestTimerStore {
   Future<void> write(RestTimer? timer) async => saved = timer;
 }
 
+/// Records what would be shown, instead of the phone's notifications.
+class _FakeNotifier implements RestNotifier {
+  RestTimer? shown;
+  var asked = 0;
+
+  /// The "Rest is over" notification as the phone would show it.
+  ({DateTime at, String title, String body})? get scheduled => switch (shown) {
+        null => null,
+        final timer => (at: timer.endsAt, title: RestTexts.alertTitle, body: RestTexts.alertBody(timer)),
+      };
+
+  @override
+  Future<void> askPermission() async => asked++;
+
+  @override
+  Future<void> show(RestTimer timer) async => shown = timer;
+
+  var countdownUpdates = 0;
+
+  @override
+  Future<void> updateCountdown(RestTimer timer) async => countdownUpdates++;
+
+  /// The iPhone Lock Screen countdown.
+  RestTimer? live;
+
+  @override
+  Future<void> showLive(RestTimer timer) async => live = timer;
+
+  @override
+  Future<void> endLive() async => live = null;
+
+  /// What the Lock Screen buttons did, handed over once.
+  LiveChange? liveChange;
+
+  @override
+  Future<LiveChange?> takeLiveChange() async {
+    final change = liveChange;
+    liveChange = null;
+    return change;
+  }
+
+  @override
+  Future<void> cancel() async => shown = null;
+}
+
+class _MemoryPendingStore extends PendingSetsStore {
+  _MemoryPendingStore([List<NextSet>? sets]) : sets = sets ?? [], super(const FlutterSecureStorage());
+
+  List<NextSet> sets;
+
+  @override
+  Future<List<NextSet>> read() async => [...sets];
+
+  @override
+  Future<void> write(List<NextSet> sets) async => this.sets = [...sets];
+}
+
 class _MemoryDraftsStore extends SessionDraftsStore {
   _MemoryDraftsStore([this.saved]) : super(const FlutterSecureStorage());
 
@@ -144,16 +208,22 @@ typedef _Setup = ({
   _FakePlans plans,
   _MemoryTimerStore timers,
   _MemoryDraftsStore drafts,
+  _FakeNotifier notifier,
+  _MemoryPendingStore pending,
   ProviderContainer container,
 });
 
 Future<_Setup> _open(WidgetTester tester, WorkoutSession session,
-    {_FakePlans? plans, _MemoryDraftsStore? drafts}) async {
-  final sessions = _FakeSessions(session);
+    {_FakePlans? plans, _MemoryDraftsStore? drafts, _MemoryPendingStore? pending, _FakeSessions? repository}) async {
+  final sessions = repository ?? _FakeSessions(session);
+  final pendingStore = pending ?? _MemoryPendingStore();
   final planRepo = plans ?? _FakePlans();
   final timers = _MemoryTimerStore();
   final draftStore = drafts ?? _MemoryDraftsStore();
+  final notifier = _FakeNotifier();
   final container = ProviderContainer(overrides: [
+    restNotifierProvider.overrideWithValue(notifier),
+    pendingSetsStoreProvider.overrideWithValue(pendingStore),
     sessionsRepositoryProvider.overrideWithValue(sessions),
     plansRepositoryProvider.overrideWithValue(planRepo),
     restTimerStoreProvider.overrideWithValue(timers),
@@ -177,7 +247,15 @@ Future<_Setup> _open(WidgetTester tester, WorkoutSession session,
   ));
   router.push(Routes.session);
   await _settle(tester);
-  return (sessions: sessions, plans: planRepo, timers: timers, drafts: draftStore, container: container);
+  return (
+    sessions: sessions,
+    plans: planRepo,
+    timers: timers,
+    drafts: draftStore,
+    notifier: notifier,
+    pending: pendingStore,
+    container: container,
+  );
 }
 
 /// The workout clock ticks every second, so pumpAndSettle would never finish.
@@ -190,6 +268,9 @@ Future<void> _settle(WidgetTester tester) async {
 double _top(WidgetTester tester, String text) => tester.getTopLeft(find.textContaining(text).first).dy;
 
 void main() {
+  // the rest timer listens to the app going to the background
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   testWidgets('the list keeps the saved order and only one card is open', (tester) async {
     await _open(tester, _session([_ex('alpha', 1, targetSets: 2), _ex('bravo', 2, targetSets: 2), _ex('charlie', 3)]));
 
@@ -254,6 +335,267 @@ void main() {
     await _settle(tester);
     final values = second.drafts.saved?['values'] as Map<String, dynamic>? ?? const {};
     expect(values.keys.where((k) => k.startsWith('alpha#1')), isEmpty);
+  });
+
+  testWidgets('9A: the rest notification is scheduled only while the app is hidden', (tester) async {
+    final setup = await _open(tester, _session([_ex('alpha', 1, targetSets: 3, restSeconds: 60)]));
+
+    await tester.tap(find.byTooltip('Log set 1'));
+    await _settle(tester);
+    final timer = setup.container.read(restTimerProvider)!;
+    expect(setup.notifier.asked, 1); // asked at the first rest, not at launch
+    expect(setup.notifier.scheduled, isNull); // the app is on screen: the bar shows the rest
+
+    // home screen or locked phone
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    expect(setup.notifier.scheduled?.at, timer.endsAt);
+    expect(setup.notifier.scheduled?.title, 'Rest is over');
+    expect(setup.notifier.scheduled?.body, 'Alpha · set 2 · 10 reps');
+
+    // back in the app: the bar takes over again
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    expect(setup.notifier.scheduled, isNull);
+
+    // Android keeps the app running when hidden: the bar clearing itself must not cancel it
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    setup.container.read(restTimerProvider.notifier).skip();
+    expect(setup.notifier.scheduled, isNotNull);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    expect(setup.notifier.scheduled, isNull);
+    await _settle(tester);
+
+    // skipped rest: nothing left to show, even when hidden
+    setup.container.read(restTimerProvider.notifier).start(const Duration(seconds: 60));
+    setup.container.read(restTimerProvider.notifier).skip();
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    expect(setup.notifier.scheduled, isNull);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+  });
+
+  testWidgets('9A: after the last target set the notification points to the next exercise', (tester) async {
+    final setup = await _open(tester, _session([_ex('alpha', 1, targetSets: 1), _ex('bravo', 2)]));
+
+    await tester.tap(find.byTooltip('Log set 1'));
+    await _settle(tester);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    expect(setup.notifier.scheduled?.body, 'Time for your next exercise');
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+  });
+
+  testWidgets('9E: the notification offers the next set with the values the row would pre-fill', (tester) async {
+    final setup = await _open(tester, _session([_ex('alpha', 1, targetSets: 3, restSeconds: 60, logged: 1)]));
+
+    // set 2 pre-fills from set 1 (50 kg × 10); logging it leaves set 3 up next
+    await tester.tap(find.byTooltip('Log set 2'));
+    await _settle(tester);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    final next = setup.notifier.shown!.upNext!;
+    expect((next.sessionId, next.sessionExerciseId, next.setNumber), ('s1', 'alpha', 3));
+    expect((next.weightKg, next.reps, next.restSeconds, next.targetSets), (50.0, 10, 60, 3));
+    expect(setup.notifier.scheduled?.body, 'Alpha · set 3 · 50 kg × 10');
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await _settle(tester);
+
+    // values typed into set 3 before leaving the app win
+    await tester.enterText(find.byType(TextField).first, '55');
+    await tester.enterText(find.byType(TextField).at(1), '8');
+    await _settle(tester);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    expect(setup.notifier.scheduled?.body, 'Alpha · set 3 · 55 kg × 8');
+    expect(setup.timers.saved?.upNext?.weightKg, 55); // the buttons read the saved one
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+  });
+
+  testWidgets('9E: sets logged from the notification are sent when the app opens, never twice', (tester) async {
+    NextSet set(String exercise, int number, {String session = 's1'}) => NextSet(
+          sessionId: session,
+          sessionExerciseId: exercise,
+          name: exercise,
+          setNumber: number,
+          reps: 8,
+          weightKg: 60,
+          restSeconds: 90,
+        );
+    final pending = _MemoryPendingStore([
+      set('alpha', 2), // alpha has 1 logged: this is the next one
+      set('alpha', 3), // follows it
+      set('bravo', 1, session: 'old'), // from a finished workout
+      set('bravo', 3), // bravo has none logged: out of order
+      set('gone', 1), // removed from the workout
+    ]);
+    final setup = await _open(
+      tester,
+      _session([_ex('alpha', 1, targetSets: 4, logged: 1), _ex('bravo', 2, targetSets: 3)]),
+      pending: pending,
+    );
+
+    expect(setup.sessions.addedSets, [
+      (exerciseId: 'alpha', reps: 8, kg: 60.0),
+      (exerciseId: 'alpha', reps: 8, kg: 60.0),
+    ]);
+    expect(pending.sets, isEmpty);
+    final alpha = setup.container.read(activeSessionControllerProvider).value!.exercises.first;
+    expect(alpha.sets.length, 3);
+  });
+
+  testWidgets('9E: without a connection the logged sets wait for the next try', (tester) async {
+    final workout = _session([_ex('alpha', 1, targetSets: 4, logged: 1)]);
+    final sessions = _FakeSessions(workout)..offline = true;
+    final waiting = NextSet(
+        sessionId: 's1', sessionExerciseId: 'alpha', name: 'Alpha', setNumber: 2, reps: 8, weightKg: 60, restSeconds: 90);
+    final pending = _MemoryPendingStore([waiting]);
+    final setup = await _open(tester, workout, pending: pending, repository: sessions);
+    expect(pending.sets.single.setNumber, 2);
+
+    sessions.offline = false;
+    await setup.container.read(activeSessionControllerProvider.notifier).sendPendingSets();
+    expect(sessions.addedSets.single, (exerciseId: 'alpha', reps: 8, kg: 60.0));
+    expect(pending.sets, isEmpty);
+  });
+
+  group('9B/9E: notification buttons', () {
+    final now = DateTime(2026, 11, 21, 12);
+    final up = NextSet(
+        sessionId: 's1', sessionExerciseId: 'alpha', name: 'Alpha', setNumber: 3, reps: 10, weightKg: 50,
+        targetSets: 4, restSeconds: 75);
+
+    ({RestActions actions, _MemoryTimerStore timers, _MemoryPendingStore pending, _FakeNotifier notifier}) make(
+        RestTimer? saved) {
+      final timers = _MemoryTimerStore(saved);
+      final pending = _MemoryPendingStore();
+      final notifier = _FakeNotifier();
+      return (
+        actions: RestActions(timers: timers, pending: pending, notifier: notifier, now: () => now),
+        timers: timers,
+        pending: pending,
+        notifier: notifier,
+      );
+    }
+
+    test('+15 s moves the end and updates both notifications', () async {
+      final timer = RestTimer(endsAt: now.add(const Duration(seconds: 20)), total: const Duration(seconds: 90));
+      final t = make(timer);
+      await t.actions.handle(RestActionIds.addTime, null);
+      expect(t.timers.saved?.endsAt, now.add(const Duration(seconds: 35)));
+      expect(t.notifier.shown?.endsAt, now.add(const Duration(seconds: 35)));
+    });
+
+    test('+15 s after the rest ended does nothing', () async {
+      final t = make(RestTimer(endsAt: now.subtract(const Duration(seconds: 1)), total: const Duration(seconds: 90)));
+      await t.actions.handle(RestActionIds.addTime, null);
+      expect(t.notifier.shown, isNull);
+    });
+
+    test('skip ends the rest and removes the notifications', () async {
+      final t = make(RestTimer(endsAt: now.add(const Duration(seconds: 20)), total: const Duration(seconds: 90)));
+      t.notifier.shown = t.timers.saved;
+      await t.actions.handle(RestActionIds.skip, null);
+      expect(t.timers.saved, isNull);
+      expect(t.notifier.shown, isNull);
+    });
+
+    test('log set queues it and starts the next rest, with the set after it up next', () async {
+      final t = make(null);
+      await t.actions.handle(RestActionIds.logSet, up.encode());
+      expect(t.pending.sets.single.setNumber, 3);
+      final timer = t.timers.saved!;
+      expect(timer.endsAt, now.add(const Duration(seconds: 75)));
+      expect(timer.upNext?.setNumber, 4);
+      expect(t.notifier.shown?.endsAt, timer.endsAt);
+
+      // a second tap on the same set is not queued again
+      await t.actions.handle(RestActionIds.logSet, up.encode());
+      expect(t.pending.sets.length, 1);
+    });
+
+    test('log set of the last target set points to the next exercise', () async {
+      final t = make(null);
+      await t.actions.handle(RestActionIds.logSet, up.withValues(setNumber: 4).encode());
+      expect(t.timers.saved?.upNext, isNull);
+      expect(RestTexts.alertBody(t.timers.saved!), 'Time for your next exercise');
+    });
+
+    test('a damaged or out-of-range set is never queued', () async {
+      final t = make(null);
+      await t.actions.handle(RestActionIds.logSet, 'not json');
+      await t.actions.handle(RestActionIds.logSet, up.withValues(reps: 1000).encode());
+      await t.actions.handle(RestActionIds.logSet, up.withValues(weightKg: 9999).encode());
+      expect(t.pending.sets, isEmpty);
+      expect(t.timers.saved, isNull);
+    });
+
+    test('typed values follow the row rules: an empty kg is no weight', () {
+      expect(up.withTyped(kg: ' ', reps: '12')?.weightKg, isNull);
+      expect(up.withTyped(kg: '62,5', reps: '12')?.weightKg, 62.5);
+      expect(up.withTyped(kg: '60', reps: ''), isNull);
+      expect(up.withTyped(kg: 'abc', reps: '8'), isNull);
+    });
+
+    test('the timer keeps the next set through saving', () {
+      final timer = RestTimer(endsAt: now, total: const Duration(seconds: 60), upNext: up);
+      final back = RestTimer.fromJson(timer.toJson())!;
+      expect(back.upNext?.label, 'Alpha · set 3');
+      expect(back.upNext?.values, '50 kg × 10');
+    });
+  });
+
+  testWidgets('9C: the Lock Screen countdown starts with the rest, follows changes and ends with it', (tester) async {
+    final setup = await _open(tester, _session([_ex('alpha', 1, targetSets: 3, restSeconds: 60)]));
+
+    await tester.tap(find.byTooltip('Log set 1'));
+    await _settle(tester);
+    // started while the app is on screen, as iOS requires
+    final timer = setup.container.read(restTimerProvider)!;
+    expect(setup.notifier.live?.endsAt, timer.endsAt);
+
+    setup.container.read(restTimerProvider.notifier).addTime(const Duration(seconds: 15));
+    expect(setup.notifier.live?.endsAt, timer.endsAt.add(const Duration(seconds: 15)));
+
+    setup.container.read(restTimerProvider.notifier).skip();
+    expect(setup.notifier.live, isNull);
+  });
+
+  testWidgets('9C: "+15s" and "Skip" on the Lock Screen are taken over when the app comes back', (tester) async {
+    final setup = await _open(tester, _session([_ex('alpha', 1, targetSets: 3, restSeconds: 60)]));
+    await tester.tap(find.byTooltip('Log set 1'));
+    await _settle(tester);
+    final timer = setup.container.read(restTimerProvider)!;
+
+    void leaveAndComeBack() {
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    }
+
+    // +15s tapped on the Lock Screen
+    setup.notifier.liveChange = (skipped: false, endsAt: timer.endsAt.add(const Duration(seconds: 15)));
+    leaveAndComeBack();
+    await _settle(tester);
+    final moved = setup.container.read(restTimerProvider)!;
+    expect(moved.endsAt, timer.endsAt.add(const Duration(seconds: 15)));
+    expect(moved.total, timer.total + const Duration(seconds: 15));
+    expect(moved.upNext?.setNumber, 2); // still knows the next set
+    expect(setup.timers.saved?.endsAt, moved.endsAt);
+
+    // Skip tapped on the Lock Screen
+    setup.notifier.liveChange = (skipped: true, endsAt: null);
+    leaveAndComeBack();
+    await _settle(tester);
+    expect(setup.container.read(restTimerProvider), isNull);
+    expect(setup.timers.saved, isNull);
   });
 
   testWidgets('tapping outside a field closes the keyboard', (tester) async {
@@ -415,7 +757,10 @@ void main() {
 
   test('a saved rest that is still running comes back after a restart; an ended one is dropped', () async {
     final running = RestTimer(endsAt: DateTime.now().add(const Duration(seconds: 40)), total: const Duration(seconds: 90));
-    final container = ProviderContainer(overrides: [restTimerStoreProvider.overrideWithValue(_MemoryTimerStore(running))]);
+    final container = ProviderContainer(overrides: [
+      restTimerStoreProvider.overrideWithValue(_MemoryTimerStore(running)),
+      restNotifierProvider.overrideWithValue(_FakeNotifier()),
+    ]);
     addTearDown(container.dispose);
     expect(container.read(restTimerProvider), isNull);
     await Future<void>.delayed(Duration.zero);
@@ -423,7 +768,10 @@ void main() {
 
     final ended = _MemoryTimerStore(
         RestTimer(endsAt: DateTime.now().subtract(const Duration(seconds: 5)), total: const Duration(seconds: 90)));
-    final second = ProviderContainer(overrides: [restTimerStoreProvider.overrideWithValue(ended)]);
+    final second = ProviderContainer(overrides: [
+      restTimerStoreProvider.overrideWithValue(ended),
+      restNotifierProvider.overrideWithValue(_FakeNotifier()),
+    ]);
     addTearDown(second.dispose);
     second.read(restTimerProvider);
     await Future<void>.delayed(Duration.zero);

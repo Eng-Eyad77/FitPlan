@@ -24,12 +24,19 @@ jobs:
           cache: true
       # the generated .freezed.dart / .g.dart files are committed, so no build_runner step
       - run: flutter pub get
+      # Phase 9C/9D: the Lock Screen countdown is a widget extension. We have no Xcode on Windows,
+      # so it is added to the Xcode project here, on the Mac, right before the build.
+      - name: Add the rest Live Activity extension
+        run: |
+          gem list -i xcodeproj >/dev/null || gem install xcodeproj --no-document
+          ruby ios/scripts/add_rest_activity.rb
       - name: Build the app without signing (Sideloadly signs it with your Apple ID)
         run: flutter build ios --release --no-codesign --dart-define=API_BASE_URL=${{ inputs.api_base_url }}
       - name: Package as .ipa
         run: |
           mkdir -p build/ios/ipa/Payload
           cp -R build/ios/iphoneos/Runner.app build/ios/ipa/Payload/
+          echo "Extensions inside the app:" && ls build/ios/ipa/Payload/Runner.app/PlugIns
           cd build/ios/ipa && zip -qr FitPlan-test.ipa Payload
       - uses: actions/upload-artifact@v4
         with:

@@ -6,6 +6,8 @@ import 'package:fitplan_app/features/auth/domain/auth_session.dart';
 import 'package:fitplan_app/features/profile/application/profile_controller.dart';
 import 'package:fitplan_app/features/profile/domain/profile.dart';
 import 'package:fitplan_app/features/session/application/active_session_controller.dart';
+import 'package:fitplan_app/features/session/application/next_set.dart';
+import 'package:fitplan_app/features/session/application/rest_notifications.dart';
 import 'package:fitplan_app/features/session/application/session_drafts.dart';
 import 'package:fitplan_app/features/session/data/sessions_repository.dart';
 import 'package:fitplan_app/features/session/domain/workout_session.dart';
@@ -49,6 +51,16 @@ class _NoDrafts extends SessionDraftsStore {
   Future<void> write(Map<String, dynamic>? data) async {}
 }
 
+class _NoPending extends PendingSetsStore {
+  _NoPending() : super(const FlutterSecureStorage());
+
+  @override
+  Future<List<NextSet>> read() async => const [];
+
+  @override
+  Future<void> write(List<NextSet> sets) async {}
+}
+
 class _NoProfile extends ProfileController {
   @override
   Future<Profile> build() => Completer<Profile>().future; // never loads: no weight known
@@ -63,6 +75,7 @@ Future<_FakeSessions> _openSheet(WidgetTester tester) async {
       sessionsRepositoryProvider.overrideWithValue(sessions),
       sessionStorageProvider.overrideWithValue(_NoAuth()),
       sessionDraftsStoreProvider.overrideWithValue(_NoDrafts()),
+      pendingSetsStoreProvider.overrideWithValue(_NoPending()),
       profileControllerProvider.overrideWith(_NoProfile.new),
     ],
     child: MaterialApp(

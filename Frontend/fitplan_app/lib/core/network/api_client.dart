@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/auth/application/auth_controller.dart';
 import '../config/env.dart';
 import 'api_exception.dart';
-import 'slow_requests.dart';
 
 /// The HTTP client for everything except /api/auth.
 ///
@@ -41,16 +40,10 @@ Dio _createDio(Ref ref, {required bool withSession}) {
           options.headers['Authorization'] = 'Bearer $token';
           options.extra[_sentToken] = token;
         }
-        options.extra[_endTracking] = ref.read(slowRequestsProvider.notifier).track();
         handler.next(options);
-      },
-      onResponse: (response, handler) {
-        _stopTracking(response.requestOptions);
-        handler.next(response);
       },
       onError: (error, handler) async {
         final options = error.requestOptions;
-        _stopTracking(options);
         final sentToken = options.extra[_sentToken];
 
         if (error.response?.statusCode == 401 && sentToken is String) {
@@ -91,14 +84,8 @@ DioException _wrap(DioException error, ApiException apiError) => DioException(
 const connectTimeout = Duration(seconds: 15);
 const receiveTimeout = Duration(seconds: 90);
 
-const _endTracking = 'fitplan.endSlowTracking';
 const _sentToken = 'fitplan.sentToken';
 const _retried = 'fitplan.retriedAfterRenewal';
-
-void _stopTracking(RequestOptions options) {
-  final end = options.extra.remove(_endTracking);
-  if (end is void Function()) end();
-}
 
 /// Small helper so repositories can write:  `await apiCall(() => dio.get(...))`
 /// and get an [ApiException] instead of a raw DioException.
