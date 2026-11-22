@@ -43,6 +43,7 @@ public static class ServicesExtensions
 
         // Stats
         services.AddScoped<IStatsService, StatsService>();
+        services.AddScoped<IVolumeService, VolumeService>();
 
         // External HTTP Client
         services.AddHttpClient("ExerciseDB", client =>

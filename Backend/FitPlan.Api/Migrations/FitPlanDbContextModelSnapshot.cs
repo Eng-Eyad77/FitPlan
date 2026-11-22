@@ -328,6 +328,23 @@ namespace FitPlan.Api.Migrations
                         });
                 });
 
+            modelBuilder.Entity("FitPlan.Api.Models.VolumeMilestone", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Key")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<DateTime>("ReachedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("UserId", "Key");
+
+                    b.ToTable("VolumeMilestones", (string)null);
+                });
+
             modelBuilder.Entity("FitPlan.Api.Models.WorkoutPlan", b =>
                 {
                     b.Property<Guid>("Id")
@@ -504,6 +521,17 @@ namespace FitPlan.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("SessionExercise");
+                });
+
+            modelBuilder.Entity("FitPlan.Api.Models.VolumeMilestone", b =>
+                {
+                    b.HasOne("FitPlan.Api.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("FitPlan.Api.Models.WorkoutPlan", b =>

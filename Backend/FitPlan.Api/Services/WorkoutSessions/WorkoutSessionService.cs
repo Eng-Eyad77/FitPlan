@@ -5,11 +5,12 @@ using FitPlan.Api.Data;
 using FitPlan.Api.DTOs.Common;
 using FitPlan.Api.DTOs.WorkoutSessions;
 using FitPlan.Api.Models;
+using FitPlan.Api.Services.Stats;
 using Microsoft.EntityFrameworkCore;
 
 namespace FitPlan.Api.Services.WorkoutSessions;
 
-public class WorkoutSessionService(FitPlanDbContext context) : IWorkoutSessionService
+public class WorkoutSessionService(FitPlanDbContext context, IVolumeService volume) : IWorkoutSessionService
 {
     private const string QuickWorkoutName = "Quick Workout";
 
@@ -166,6 +167,8 @@ public class WorkoutSessionService(FitPlanDbContext context) : IWorkoutSessionSe
             .Where(s => s.Id == id)
             .Select(WorkoutSessionMappings.ToSummaryDto)
             .FirstAsync();
+
+        summary.NewMilestones = await volume.SyncAsync(userId, id);
 
         return Result<WorkoutSessionSummaryDto>.Success(summary);
     }

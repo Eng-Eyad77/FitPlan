@@ -21,6 +21,7 @@ public sealed class MigrationTests : IAsyncLifetime
         "SessionExercises",
         "SessionSets",
         "Users",
+        "VolumeMilestones",
         "WorkoutPlanExercises",
         "WorkoutPlans",
         "WorkoutSessions"

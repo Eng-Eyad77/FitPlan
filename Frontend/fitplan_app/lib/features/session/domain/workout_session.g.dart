@@ -195,6 +195,11 @@ _SessionSummary _$SessionSummaryFromJson(Map<String, dynamic> json) =>
       totalVolumeKg: (json['totalVolumeKg'] as num).toDouble(),
       cardioDurationSeconds: (json['cardioDurationSeconds'] as num).toInt(),
       estimatedCalories: (json['estimatedCalories'] as num).toInt(),
+      newMilestones:
+          (json['newMilestones'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$SessionSummaryToJson(_SessionSummary instance) =>
@@ -209,4 +214,5 @@ Map<String, dynamic> _$SessionSummaryToJson(_SessionSummary instance) =>
       'totalVolumeKg': instance.totalVolumeKg,
       'cardioDurationSeconds': instance.cardioDurationSeconds,
       'estimatedCalories': instance.estimatedCalories,
+      'newMilestones': instance.newMilestones,
     };

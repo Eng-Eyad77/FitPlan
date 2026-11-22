@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/misc.dart' show ProviderOrFamily;
 import '../../auth/application/auth_controller.dart';
 import '../data/stats_repository.dart';
 import '../domain/stats.dart';
+import '../domain/volume.dart';
 
 /// The overview for a week starting on [weekStartsOn] (DateTime.weekday: 1 = Monday ... 7 = Sunday).
 final statsOverviewProvider = FutureProvider.family<StatsOverview, int>((ref, weekStartsOn) {
@@ -16,6 +17,12 @@ final statsOverviewProvider = FutureProvider.family<StatsOverview, int>((ref, we
 final recordsProvider = FutureProvider<List<ExerciseRecords>>((ref) {
   ref.watch(authControllerProvider.select((auth) => auth.value?.id));
   return ref.watch(statsRepositoryProvider).getRecords();
+});
+
+/// Lifetime volume and its milestones (Phase 10).
+final volumeProvider = FutureProvider<VolumeStats>((ref) {
+  ref.watch(authControllerProvider.select((auth) => auth.value?.id));
+  return ref.watch(statsRepositoryProvider).getVolume();
 });
 
 final exerciseProgressProvider = FutureProvider.family<ExerciseProgress, String>((ref, exerciseId) {
@@ -52,6 +59,7 @@ void invalidateWorkoutStats(void Function(ProviderOrFamily provider) invalidate)
   invalidate(statsOverviewProvider);
   invalidate(recordsProvider);
   invalidate(exerciseProgressProvider);
+  invalidate(volumeProvider);
 }
 
 /// The first day of the week of the phone's language, as a DateTime.weekday number.

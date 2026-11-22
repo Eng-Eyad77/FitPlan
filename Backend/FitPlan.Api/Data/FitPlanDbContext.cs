@@ -31,6 +31,8 @@ public class FitPlanDbContext : DbContext
 
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
+    public DbSet<VolumeMilestone> VolumeMilestones => Set<VolumeMilestone>();
+
 
     // Applies to every DateTime property in every entity, including ones we add later.
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)

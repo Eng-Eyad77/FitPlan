@@ -13,6 +13,7 @@ import '../../profile/presentation/profile_screen.dart';
 import '../application/progress_providers.dart';
 import '../domain/stats.dart';
 import 'records_sheet.dart';
+import 'volume_card.dart';
 import 'weekly_goal_sheet.dart';
 import 'widgets/trend_chart.dart';
 import 'widgets/weekly_bars.dart';
@@ -50,6 +51,7 @@ class ProgressScreen extends ConsumerWidget {
                 ...[
                   _StreakCard(overview: overview),
                   const SizedBox(height: AppSpacing.md),
+                  const VolumeCard(),
                   _WeekCompare(overview: overview),
                   const SizedBox(height: AppSpacing.lg),
                   const _TrendCard(),
