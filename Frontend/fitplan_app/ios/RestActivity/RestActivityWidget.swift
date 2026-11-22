@@ -32,6 +32,25 @@ private func countdown(_ state: RestActivityAttributes.ContentState) -> Text {
   Text(timerInterval: state.startedAt...max(state.startedAt, state.endsAt), countsDown: true)
 }
 
+/// "+15s" and "Skip", as on the bar in the app. iOS 17+; older phones show the countdown only.
+private struct RestButtons: View {
+  var body: some View {
+    if #available(iOS 17.0, *) {
+      HStack(spacing: 8) {
+        Button(intent: AddRestTimeIntent()) {
+          Text("+15s").font(.subheadline.weight(.semibold)).frame(maxWidth: .infinity)
+        }
+        .tint(Brand.accent)
+        Button(intent: SkipRestIntent()) {
+          Text("Skip").font(.subheadline.weight(.semibold)).frame(maxWidth: .infinity)
+        }
+        .tint(.white.opacity(0.35))
+      }
+      .buttonStyle(.bordered)
+    }
+  }
+}
+
 private func progress(_ state: RestActivityAttributes.ContentState) -> some View {
   ProgressView(timerInterval: state.startedAt...max(state.startedAt, state.endsAt), countsDown: true) {
     EmptyView()
@@ -61,6 +80,7 @@ struct RestActivityWidget: Widget {
           .font(.subheadline)
           .foregroundColor(.white.opacity(0.75))
           .lineLimit(1)
+        RestButtons()
       }
       .padding(16)
       .activityBackgroundTint(Brand.background)
@@ -84,6 +104,7 @@ struct RestActivityWidget: Widget {
           VStack(alignment: .leading, spacing: 6) {
             progress(context.state)
             Text("Next: \(context.state.next)").font(.subheadline).lineLimit(1)
+            RestButtons()
           }
         }
       } compactLeading: {

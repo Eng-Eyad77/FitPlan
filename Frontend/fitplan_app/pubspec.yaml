@@ -34,6 +34,10 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
+  # the app logo inside the app (login, sign-up, launch screen): the app icon, smaller
+  assets:
+    - assets/brand/logo.png
+
   # Readex Pro (SIL Open Font License, see assets/fonts/OFL.txt): Latin + Arabic
   fonts:
     - family: ReadexPro

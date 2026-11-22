@@ -148,6 +148,16 @@ class _FakeNotifier implements RestNotifier {
   @override
   Future<void> endLive() async => live = null;
 
+  /// What the Lock Screen buttons did, handed over once.
+  LiveChange? liveChange;
+
+  @override
+  Future<LiveChange?> takeLiveChange() async {
+    final change = liveChange;
+    liveChange = null;
+    return change;
+  }
+
   @override
   Future<void> cancel() async => shown = null;
 }
@@ -474,15 +484,15 @@ void main() {
       );
     }
 
-    test('+30 s moves the end and updates both notifications', () async {
+    test('+15 s moves the end and updates both notifications', () async {
       final timer = RestTimer(endsAt: now.add(const Duration(seconds: 20)), total: const Duration(seconds: 90));
       final t = make(timer);
       await t.actions.handle(RestActionIds.addTime, null);
-      expect(t.timers.saved?.endsAt, now.add(const Duration(seconds: 50)));
-      expect(t.notifier.shown?.endsAt, now.add(const Duration(seconds: 50)));
+      expect(t.timers.saved?.endsAt, now.add(const Duration(seconds: 35)));
+      expect(t.notifier.shown?.endsAt, now.add(const Duration(seconds: 35)));
     });
 
-    test('+30 s after the rest ended does nothing', () async {
+    test('+15 s after the rest ended does nothing', () async {
       final t = make(RestTimer(endsAt: now.subtract(const Duration(seconds: 1)), total: const Duration(seconds: 90)));
       await t.actions.handle(RestActionIds.addTime, null);
       expect(t.notifier.shown, isNull);
@@ -555,6 +565,37 @@ void main() {
 
     setup.container.read(restTimerProvider.notifier).skip();
     expect(setup.notifier.live, isNull);
+  });
+
+  testWidgets('9C: "+15s" and "Skip" on the Lock Screen are taken over when the app comes back', (tester) async {
+    final setup = await _open(tester, _session([_ex('alpha', 1, targetSets: 3, restSeconds: 60)]));
+    await tester.tap(find.byTooltip('Log set 1'));
+    await _settle(tester);
+    final timer = setup.container.read(restTimerProvider)!;
+
+    void leaveAndComeBack() {
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    }
+
+    // +15s tapped on the Lock Screen
+    setup.notifier.liveChange = (skipped: false, endsAt: timer.endsAt.add(const Duration(seconds: 15)));
+    leaveAndComeBack();
+    await _settle(tester);
+    final moved = setup.container.read(restTimerProvider)!;
+    expect(moved.endsAt, timer.endsAt.add(const Duration(seconds: 15)));
+    expect(moved.total, timer.total + const Duration(seconds: 15));
+    expect(moved.upNext?.setNumber, 2); // still knows the next set
+    expect(setup.timers.saved?.endsAt, moved.endsAt);
+
+    // Skip tapped on the Lock Screen
+    setup.notifier.liveChange = (skipped: true, endsAt: null);
+    leaveAndComeBack();
+    await _settle(tester);
+    expect(setup.container.read(restTimerProvider), isNull);
+    expect(setup.timers.saved, isNull);
   });
 
   testWidgets('tapping outside a field closes the keyboard', (tester) async {

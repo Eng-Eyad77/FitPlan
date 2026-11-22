@@ -1,30 +1,22 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_colors.dart';
-
-/// The FitPlan mark: a dumbbell on the signature gradient.
+/// The FitPlan logo, the same image as the app icon on the home screen.
 class BrandMark extends StatelessWidget {
   const BrandMark({super.key, this.size = 56});
 
   final double size;
+
+  static const asset = 'assets/brand/logo.png';
 
   @override
   Widget build(BuildContext context) {
     return Semantics(
       label: 'FitPlan',
       image: true,
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          gradient: AppColors.signatureGradient,
-          borderRadius: BorderRadius.circular(size * 0.3),
-        ),
-        child: Icon(
-          Icons.fitness_center_rounded,
-          color: AppColors.onAccent,
-          size: size * 0.5,
-        ),
+      child: ClipRRect(
+        // the icon has its own rounded frame; this only trims the corners outside it
+        borderRadius: BorderRadius.circular(size * 0.22),
+        child: Image.asset(asset, width: size, height: size, filterQuality: FilterQuality.medium),
       ),
     );
   }

@@ -151,7 +151,13 @@ class RestTimerController extends Notifier<RestTimer?> {
     // The app was opened: one scheduled before it was closed would fire on top of the open app,
     // and one already shown is no longer needed.
     if (_visible) _notifier.cancel();
-    final saved = await _store.read();
+    var saved = await _store.read();
+    // the Lock Screen buttons may have changed it while the app was closed
+    final change = await _notifier.takeLiveChange();
+    if (change != null) {
+      saved = _changed(saved, change);
+      await _store.write(saved);
+    }
     if (_touched) return;
     if (saved != null && saved.secondsLeft(DateTime.now()) > 0) {
       state = saved;
@@ -218,8 +224,29 @@ class RestTimerController extends Notifier<RestTimer?> {
     _visible = true;
     _stopTicker();
     _notifier.cancel();
-    // in case a button ran but its message didn't arrive
-    unawaited(_pickUp(fromButton: false));
+    unawaited(_catchUp());
+  }
+
+  /// Back on screen: take over what a Lock Screen button (iOS) or a notification button
+  /// (in case its message didn't arrive) changed while the app was away.
+  Future<void> _catchUp() async {
+    final change = await _notifier.takeLiveChange();
+    if (change != null) {
+      final timer = _changed(state, change);
+      // saved first, so the pick-up below reads the new one
+      await _store.write(timer);
+      _set(timer);
+    }
+    await _pickUp(fromButton: false);
+  }
+
+  /// [timer] after a Lock Screen button: skipped, or moved to the new end (the extra time is
+  /// added to the total, as +15s in the app does).
+  static RestTimer? _changed(RestTimer? timer, LiveChange change) {
+    if (change.skipped || timer == null) return null;
+    final endsAt = change.endsAt;
+    if (endsAt == null || !endsAt.isAfter(timer.endsAt)) return timer;
+    return timer.extendedBy(endsAt.difference(timer.endsAt));
   }
 
   void _set(RestTimer? timer) {

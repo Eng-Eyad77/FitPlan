@@ -22,6 +22,7 @@ app = project.targets.find { |t| t.name == 'Runner' } or abort 'Runner target no
 group = project.main_group.new_group('RestActivity', 'RestActivity')
 widget_file = group.new_reference('RestActivityWidget.swift')
 attributes_file = group.new_reference('RestActivityAttributes.swift')
+intents_file = group.new_reference('RestActivityIntents.swift')
 logo_file = group.new_reference('rest_logo.png')
 group.new_reference('Info.plist') # listed only, not compiled or copied
 
@@ -30,12 +31,21 @@ channel_file = runner_group.new_reference('RestLiveActivity.swift')
 
 # --- the extension target ------------------------------------------------------------------
 ext = project.new_target(:app_extension, name, :ios, '16.1', nil, :swift)
-ext.add_file_references([widget_file, attributes_file])
+ext.add_file_references([widget_file, attributes_file, intents_file])
 ext.add_resources([logo_file])
-%w[WidgetKit SwiftUI ActivityKit].each { |framework| ext.add_system_framework(framework) }
+%w[WidgetKit SwiftUI ActivityKit AppIntents].each { |framework| ext.add_system_framework(framework) }
 
-# the app starts and updates the activity, so it needs the same attributes
-app.add_file_references([attributes_file, channel_file])
+# the app starts and updates the activity, so it needs the same attributes; the button intents
+# run in the app's process, so the app needs them too
+app.add_file_references([attributes_file, intents_file, channel_file])
+
+# ActivityKit and AppIntents don't exist on iOS 15 (the app's minimum): linked weakly, so older
+# iPhones still open the app and just don't get the Lock Screen countdown
+app.build_configurations.each do |config|
+  flags = Array(config.build_settings['OTHER_LDFLAGS'] || '$(inherited)')
+  flags += ['-weak_framework', 'ActivityKit', '-weak_framework', 'AppIntents']
+  config.build_settings['OTHER_LDFLAGS'] = flags.uniq { |f| f }
+end
 
 # Runner has Debug, Profile and Release; the extension needs the same three
 unless ext.build_configurations.any? { |c| c.name == 'Profile' }

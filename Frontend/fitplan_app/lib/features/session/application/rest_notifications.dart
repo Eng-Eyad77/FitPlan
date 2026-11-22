@@ -15,7 +15,7 @@ import 'rest_timer.dart';
 /// What the phone shows while the app is hidden during a rest:
 /// - 9A: "Rest is over" at the end time, on Android and iOS. It arrives with the screen locked,
 ///   the app in the background, or the app closed. With a set to do next, it has a "Log" button (9E).
-/// - 9B: on Android, a quiet notification counting down the rest, with "+30 s" and "Skip rest".
+/// - 9B: on Android, a quiet notification counting down the rest, with "+15 s" and "Skip rest".
 abstract class RestNotifier {
   /// Asks to show notifications. Asked once per app run, at the first rest, never at launch.
   Future<void> askPermission();
@@ -33,8 +33,15 @@ abstract class RestNotifier {
 
   Future<void> endLive();
 
+  /// What the "+15s" / "Skip" buttons on the Lock Screen did while the app was away (iOS 17+),
+  /// handed over once: the new end, or skipped. Null when they weren't used.
+  Future<LiveChange?> takeLiveChange();
+
   Future<void> cancel();
 }
+
+/// A Lock Screen button's change: [skipped], or the rest now ends at [endsAt].
+typedef LiveChange = ({bool skipped, DateTime? endsAt});
 
 /// The texts, shared by the phone notifications and the tests.
 abstract final class RestTexts {
@@ -54,11 +61,12 @@ abstract final class RestTexts {
 
 /// The buttons on the notifications.
 abstract final class RestActionIds {
-  static const addTime = 'rest_add_30';
+  static const addTime = 'rest_add_time';
   static const skip = 'rest_skip';
   static const logSet = 'rest_log_set';
 
-  static const addedTime = Duration(seconds: 30);
+  /// The same as "+15s" in the app and on the iPhone Lock Screen.
+  static const addedTime = Duration(seconds: 15);
 }
 
 /// The open app listens here, to pick up what a button changed.
@@ -184,7 +192,7 @@ class LocalRestNotifier implements RestNotifier {
         timeoutAfter: timer.endsAt.difference(now).inMilliseconds,
         category: AndroidNotificationCategory.progress,
         actions: const [
-          AndroidNotificationAction(RestActionIds.addTime, '+30 s', cancelNotification: false),
+          AndroidNotificationAction(RestActionIds.addTime, '+15 s', cancelNotification: false),
           AndroidNotificationAction(RestActionIds.skip, 'Skip rest'),
         ],
       );
@@ -306,6 +314,19 @@ class LocalRestNotifier implements RestNotifier {
     } catch (_) {
       // older iPhone, Live Activities turned off, or a build without the extension
     }
+  }
+
+  @override
+  Future<LiveChange?> takeLiveChange() async {
+    if (!_onIphone) return null;
+    try {
+      final change = await _live.invokeMapMethod<String, Object?>('takeChange');
+      if (change == null) return null;
+      if (change['skip'] == true) return (skipped: true, endsAt: null);
+      final ends = change['endsAtMs'];
+      if (ends is num) return (skipped: false, endsAt: DateTime.fromMillisecondsSinceEpoch(ends.round()));
+    } catch (_) {}
+    return null;
   }
 
   @override

@@ -6,6 +6,8 @@ import Foundation
 /// Channel "fitplan/rest_activity":
 ///   show {startedAtMs, endsAtMs, next} -> starts it, or updates the one running
 ///   end -> removes it
+///   takeChange -> what the "+15s" / "Skip" buttons on the Lock Screen did while the app was away,
+///                 {endsAtMs} or {skip: true}, or nil; handed over once
 /// Answers false (nothing shown) on iOS before 16.1 or when Live Activities are off for the app.
 final class RestLiveActivity: NSObject, FlutterPlugin {
   static func register(with registrar: FlutterPluginRegistrar) {
@@ -35,6 +37,12 @@ final class RestLiveActivity: NSObject, FlutterPlugin {
       )
       // Flutter wants its answer on the main thread
       Task { @MainActor in result(await RestActivities.show(state)) }
+    case "takeChange":
+      if #available(iOS 17.0, *) {
+        result(RestActivityControl.takeChange())
+      } else {
+        result(nil)
+      }
     case "end":
       Task { @MainActor in
         await RestActivities.endAll()

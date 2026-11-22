@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme/app_theme.dart';
 import '../features/auth/presentation/recovery_code_notice.dart';
 import '../features/session/application/rest_timer.dart';
-import '../shared/widgets/waking_server_banner.dart';
 import 'router.dart';
 
 class FitPlanApp extends ConsumerWidget {
@@ -22,7 +21,7 @@ class FitPlanApp extends ConsumerWidget {
       themeMode: ThemeMode.dark,
       routerConfig: ref.watch(routerProvider),
       builder: (context, child) => DismissKeyboard(
-        child: WakingServerBanner(child: RecoveryCodeNotice(child: child ?? const SizedBox.shrink())),
+        child: RecoveryCodeNotice(child: child ?? const SizedBox.shrink()),
       ),
     );
   }
