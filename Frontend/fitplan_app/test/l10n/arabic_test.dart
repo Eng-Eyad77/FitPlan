@@ -108,13 +108,13 @@ void main() {
     ));
     await tester.pump();
 
-    expect(find.text('كل الوزن اللي شلته'), findsOneWidget);
+    expect(find.text('مجموع الأوزان اللي شلتها'), findsOneWidget);
     expect(find.text('تقريبًا وزن 1.4 فيل'), findsOneWidget);
     expect(find.text('اللي بعده: باص'), findsOneWidget);
     expect(Directionality.of(tester.element(find.byType(VolumeCard))), TextDirection.rtl);
 
     // the title sits on the right in Arabic
-    final title = tester.getTopRight(find.text('كل الوزن اللي شلته'));
+    final title = tester.getTopRight(find.text('مجموع الأوزان اللي شلتها'));
     final card = tester.getTopRight(find.byType(VolumeCard));
     expect(card.dx - title.dx, lessThan(40));
     expect(tester.takeException(), isNull);
