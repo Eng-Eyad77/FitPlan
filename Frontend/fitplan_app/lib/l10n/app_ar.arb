@@ -492,5 +492,8 @@
   "restAdd15": "{value} ث",
   "restAdd15Notification": "{value} ث",
   "gainReps": "{value} عدّة",
-  "switchLanguage": "حوّل للإنجليزي"
+  "switchLanguage": "حوّل للإنجليزي",
+  "equipmentLabel": "الأدوات",
+  "targetMusclesLabel": "العضلة الأساسية",
+  "secondaryMusclesLabel": "تشتغل معها"
 }

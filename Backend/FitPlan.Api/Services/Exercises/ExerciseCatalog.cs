@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
 using FitPlan.Api.Data;
 using FitPlan.Api.DTOs.Exercises;
@@ -11,6 +12,7 @@ namespace FitPlan.Api.Services.Exercises;
 // The free App Service plan unloads an idle app, which empties memory, so each list read from the
 // database is also saved to Exercises:CacheFile (a folder that survives restarts) and read back
 // from there on start. The database stays the source of truth, because plans point at its rows.
+// Phase 11C: the translations are part of the same list, so a translated name costs no extra read.
 public sealed class ExerciseCatalog(
     IServiceScopeFactory scopeFactory,
     TimeProvider time,
@@ -20,15 +22,34 @@ public sealed class ExerciseCatalog(
     public const string CacheFileSetting = "Exercises:CacheFile";
     public static readonly TimeSpan RefreshAfter = TimeSpan.FromHours(24);
 
+    // a saved file with another version is from an older build, so the database is read instead
+    private const int CacheVersion = 2;
+
     private readonly string? _cacheFile = configuration[CacheFileSetting] is { Length: > 0 } path ? path : null;
     private readonly SemaphoreSlim _loading = new(1, 1);
+    private readonly ConcurrentDictionary<string, byte> _reportedMissing = new(StringComparer.OrdinalIgnoreCase);
     private Snapshot? _snapshot;
     private bool _fileChecked;
+
+    public sealed record ExerciseText(string Name, List<string> Instructions);
+
+    // One language's text. Terms are keyed "kind:term", for example "muscle:biceps".
+    public sealed record LanguageContent(
+        IReadOnlyDictionary<string, ExerciseText> Exercises,
+        IReadOnlyDictionary<string, string> Terms)
+    {
+        // the translated names, ready for search
+        public IReadOnlyDictionary<string, string> SearchNames { get; } = Exercises.ToDictionary(
+            e => e.Key, e => ArabicText.Normalize(e.Value.Name), StringComparer.OrdinalIgnoreCase);
+    }
 
     public sealed record Snapshot(
         IReadOnlyList<ExerciseDto> All,
         IReadOnlyDictionary<string, ExerciseDto> ById,
-        DateTimeOffset LoadedAt);
+        DateTimeOffset LoadedAt,
+        IReadOnlyDictionary<string, LanguageContent> Languages);
+
+    public static string TermKey(string kind, string term) => $"{kind}:{term}";
 
     public async Task<Snapshot> GetAsync(CancellationToken cancellationToken = default)
     {
@@ -73,6 +94,80 @@ public sealed class ExerciseCatalog(
         }
     }
 
+    // The exercise in the given language. English, or a language with no text at all, gives the
+    // English row back; a missing translation is logged once per exercise, so gaps show in the logs.
+    public ExerciseDto Localize(Snapshot snapshot, ExerciseDto exercise, string language)
+    {
+        if (!snapshot.Languages.TryGetValue(language, out var content))
+        {
+            return exercise;
+        }
+
+        var text = Text(content, exercise.Id, language);
+        return exercise with
+        {
+            Name = text?.Name ?? exercise.Name,
+            EnglishName = text is null ? null : exercise.Name,
+            Instructions = text?.Instructions ?? exercise.Instructions,
+            Equipments = Terms(content, "equipment", exercise.Equipments, language),
+            TargetMuscles = Terms(content, "muscle", exercise.TargetMuscles, language),
+            SecondaryMuscles = Terms(content, "muscle", exercise.SecondaryMuscles, language)
+        };
+    }
+
+    // The same for a response that only shows the exercise's name (and maybe its steps).
+    public void Localize(Snapshot snapshot, ILocalizedExercise item, string language)
+    {
+        if (!snapshot.Languages.TryGetValue(language, out var content) || item.EnglishName is not null)
+        {
+            return;
+        }
+
+        var text = Text(content, item.ExerciseId, language);
+        if (text is null)
+        {
+            return;
+        }
+
+        item.EnglishName = item.Name;
+        item.Name = text.Name;
+        if (item is ILocalizedSteps steps)
+        {
+            steps.Instructions = text.Instructions;
+        }
+    }
+
+    private ExerciseText? Text(LanguageContent content, string exerciseId, string language)
+    {
+        if (content.Exercises.TryGetValue(exerciseId, out var text))
+        {
+            return text;
+        }
+
+        if (_reportedMissing.TryAdd($"{language}:{exerciseId}", 0))
+        {
+            logger.LogWarning("Exercise {ExerciseId} has no {Language} text, showing English", exerciseId, language);
+        }
+
+        return null;
+    }
+
+    private List<string> Terms(LanguageContent content, string kind, List<string> terms, string language) =>
+        terms.Select(term =>
+        {
+            if (content.Terms.TryGetValue(TermKey(kind, term), out var text))
+            {
+                return text;
+            }
+
+            if (_reportedMissing.TryAdd($"{language}:{kind}:{term}", 0))
+            {
+                logger.LogWarning("The {Kind} {Term} has no {Language} text, showing English", kind, term, language);
+            }
+
+            return term;
+        }).ToList();
+
     // a time in the future can only come from a wrong clock, so it counts as stale too
     private bool IsStale(Snapshot snapshot)
     {
@@ -94,22 +189,61 @@ public sealed class ExerciseCatalog(
                 Name = e.Name,
                 BodyPart = e.BodyPart,
                 GifUrl = e.GifUrl,
-                Instructions = e.Instructions
+                Instructions = e.Instructions,
+                Equipments = e.Equipments,
+                TargetMuscles = e.TargetMuscles,
+                SecondaryMuscles = e.SecondaryMuscles
             })
             .ToListAsync(cancellationToken);
 
-        logger.LogInformation("Loaded {Count} exercises into memory", all.Count);
+        var translations = await context.ExerciseTranslations
+            .AsNoTracking()
+            .Select(t => new { t.Language, t.ExerciseId, t.Name, t.Instructions })
+            .ToListAsync(cancellationToken);
 
-        return ToSnapshot(all, time.GetUtcNow());
+        var terms = await context.TermTranslations
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var languages = translations.Select(t => t.Language)
+            .Concat(terms.Select(t => t.Language))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(
+                language => language,
+                language => new CachedLanguage(
+                    translations
+                        .Where(t => t.Language.Equals(language, StringComparison.OrdinalIgnoreCase))
+                        .ToDictionary(t => t.ExerciseId, t => new ExerciseText(t.Name, t.Instructions), StringComparer.OrdinalIgnoreCase),
+                    terms
+                        .Where(t => t.Language.Equals(language, StringComparison.OrdinalIgnoreCase))
+                        .ToDictionary(t => TermKey(t.Kind, t.Term), t => t.Text, StringComparer.OrdinalIgnoreCase)),
+                StringComparer.OrdinalIgnoreCase);
+
+        logger.LogInformation("Loaded {Count} exercises into memory, with text in {Languages}", all.Count,
+            languages.Count == 0 ? "English only" : string.Join(", ", languages.Select(l => $"{l.Key} ({l.Value.Exercises.Count})")));
+
+        return ToSnapshot(all, languages, time.GetUtcNow());
     }
 
-    // SQL Server compares ids without case, so the lookup does too
-    private static Snapshot ToSnapshot(IReadOnlyList<ExerciseDto> all, DateTimeOffset loadedAt) =>
-        new(all, all.ToDictionary(e => e.Id, StringComparer.OrdinalIgnoreCase), loadedAt);
+    // SQL Server compares ids without case, so the lookups do too
+    private static Snapshot ToSnapshot(
+        IReadOnlyList<ExerciseDto> all, IReadOnlyDictionary<string, CachedLanguage> languages, DateTimeOffset loadedAt) =>
+        new(all,
+            all.ToDictionary(e => e.Id, StringComparer.OrdinalIgnoreCase),
+            loadedAt,
+            languages.ToDictionary(
+                l => l.Key,
+                l => new LanguageContent(
+                    new Dictionary<string, ExerciseText>(l.Value.Exercises, StringComparer.OrdinalIgnoreCase),
+                    new Dictionary<string, string>(l.Value.Terms, StringComparer.OrdinalIgnoreCase)),
+                StringComparer.OrdinalIgnoreCase));
 
-    private sealed record CacheFile(DateTimeOffset LoadedAt, List<ExerciseDto> Exercises);
+    private sealed record CachedLanguage(Dictionary<string, ExerciseText> Exercises, Dictionary<string, string> Terms);
 
-    // A missing or unreadable file only means the database is read instead.
+    private sealed record CacheFile(
+        int Version, DateTimeOffset LoadedAt, List<ExerciseDto> Exercises, Dictionary<string, CachedLanguage>? Languages);
+
+    // A missing, unreadable or older file only means the database is read instead.
     private async Task<Snapshot?> ReadFileAsync(CancellationToken cancellationToken)
     {
         if (_cacheFile is null || !File.Exists(_cacheFile))
@@ -121,13 +255,13 @@ public sealed class ExerciseCatalog(
         {
             await using var stream = File.OpenRead(_cacheFile);
             var saved = await JsonSerializer.DeserializeAsync<CacheFile>(stream, JsonSerializerOptions.Web, cancellationToken);
-            if (saved?.Exercises is null)
+            if (saved?.Exercises is null || saved.Version != CacheVersion)
             {
                 return null;
             }
 
             logger.LogInformation("Loaded {Count} exercises from {File}, saved at {LoadedAt}", saved.Exercises.Count, _cacheFile, saved.LoadedAt);
-            return ToSnapshot(saved.Exercises, saved.LoadedAt);
+            return ToSnapshot(saved.Exercises, saved.Languages ?? [], saved.LoadedAt);
         }
         catch (Exception exception) when (exception is IOException or JsonException or UnauthorizedAccessException or ArgumentException)
         {
@@ -135,6 +269,14 @@ public sealed class ExerciseCatalog(
             return null;
         }
     }
+
+    private static CacheFile ToCacheFile(Snapshot snapshot) => new(
+        CacheVersion,
+        snapshot.LoadedAt,
+        [.. snapshot.All],
+        snapshot.Languages.ToDictionary(
+            l => l.Key,
+            l => new CachedLanguage(l.Value.Exercises.ToDictionary(), l.Value.Terms.ToDictionary())));
 
     // Saving is best effort: the list in memory is served either way.
     private async Task WriteFileAsync(Snapshot snapshot, CancellationToken cancellationToken)
@@ -150,7 +292,7 @@ public sealed class ExerciseCatalog(
             Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(_cacheFile))!);
             await using (var stream = File.Create(temporary))
             {
-                await JsonSerializer.SerializeAsync(stream, new CacheFile(snapshot.LoadedAt, [.. snapshot.All]), JsonSerializerOptions.Web, cancellationToken);
+                await JsonSerializer.SerializeAsync(stream, ToCacheFile(snapshot), JsonSerializerOptions.Web, cancellationToken);
             }
 
             // replace in one step, so a reader never sees half a file

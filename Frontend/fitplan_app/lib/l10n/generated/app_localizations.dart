@@ -3061,6 +3061,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Switch to Arabic'**
   String get switchLanguage;
+
+  /// Exercise details sheet (Phase 11C): heading of a row of chips
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment'**
+  String get equipmentLabel;
+
+  /// Exercise details sheet (Phase 11C): heading of a row of chips
+  ///
+  /// In en, this message translates to:
+  /// **'Main muscle'**
+  String get targetMusclesLabel;
+
+  /// Exercise details sheet (Phase 11C): heading of a row of chips
+  ///
+  /// In en, this message translates to:
+  /// **'Also works'**
+  String get secondaryMusclesLabel;
 }
 
 class _AppLocalizationsDelegate

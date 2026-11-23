@@ -36,6 +36,8 @@ abstract class SessionExercise with _$SessionExercise {
     required String id,
     required String exerciseId,
     required String name,
+    /// The English name when [name] is in Arabic (Phase 11C), shown small under it.
+    String? englishName,
     required String gifUrl,
     required String bodyPart,
     required int order,

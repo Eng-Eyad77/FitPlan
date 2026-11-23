@@ -1839,4 +1839,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get switchLanguage => 'Switch to Arabic';
+
+  @override
+  String get equipmentLabel => 'Equipment';
+
+  @override
+  String get targetMusclesLabel => 'Main muscle';
+
+  @override
+  String get secondaryMusclesLabel => 'Also works';
 }

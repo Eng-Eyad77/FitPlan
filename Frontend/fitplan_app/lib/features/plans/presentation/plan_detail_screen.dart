@@ -18,6 +18,7 @@ import '../domain/workout_plan.dart';
 import 'plan_form_sheet.dart';
 import 'target_sheet.dart';
 import '../../../l10n/l10n.dart';
+import '../../exercises/presentation/widgets/exercise_name.dart';
 
 class PlanDetailScreen extends ConsumerWidget {
   const PlanDetailScreen({super.key, required this.planId});
@@ -232,14 +233,9 @@ class _PlanExerciseTile extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      capitalize(exercise.name),
-                      style: AppText.bodyStrong,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    ExerciseName(name: exercise.name, englishName: exercise.englishName),
                     const SizedBox(height: 2),
-                    Text(capitalize(exercise.bodyPart), style: AppText.caption),
+                    Text(bodyPartName(exercise.bodyPart), style: AppText.caption),
                   ],
                 ),
               ),

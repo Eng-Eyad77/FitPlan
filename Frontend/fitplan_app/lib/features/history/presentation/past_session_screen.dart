@@ -15,6 +15,7 @@ import '../../session/domain/workout_session.dart';
 import '../../session/presentation/cardio_sheet.dart';
 import '../application/history_controller.dart';
 import '../../../l10n/l10n.dart';
+import '../../exercises/presentation/widgets/exercise_name.dart';
 
 /// A finished workout with every set, cardio and notes.
 class PastSessionScreen extends ConsumerWidget {
@@ -231,7 +232,7 @@ class _ExerciseSets extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(capitalize(exercise.name), style: AppText.bodyStrong, maxLines: 2, overflow: TextOverflow.ellipsis),
+                    ExerciseName(name: exercise.name, englishName: exercise.englishName),
                     const SizedBox(height: 2),
                     Text(
                       best == null ? bodyPartName(exercise.bodyPart) : l10n.topSet(formatKg(best)),

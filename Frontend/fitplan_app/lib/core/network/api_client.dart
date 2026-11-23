@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/auth/application/auth_controller.dart';
+import '../../l10n/l10n.dart';
 import '../config/env.dart';
 import 'api_exception.dart';
 
@@ -34,6 +35,8 @@ Dio _createDio(Ref ref, {required bool withSession}) {
   dio.interceptors.add(
     InterceptorsWrapper(
       onRequest: (options, handler) {
+        // exercise names and steps come in the app's language (Phase 11C)
+        options.headers['Accept-Language'] = contentLanguageFor(ref.read(languageProvider));
         // read at request time, so it always uses the current session
         final token = withSession ? ref.read(authControllerProvider).value?.accessToken : null;
         if (token != null) {

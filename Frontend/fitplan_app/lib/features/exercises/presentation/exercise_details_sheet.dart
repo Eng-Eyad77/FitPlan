@@ -7,6 +7,8 @@ import '../../../core/theme/app_text.dart';
 import '../../../shared/format.dart';
 import '../../../shared/widgets/feedback.dart';
 import '../data/exercises_repository.dart';
+import '../domain/exercise.dart';
+import 'widgets/exercise_name.dart';
 import 'widgets/exercise_thumb.dart';
 import '../../../l10n/l10n.dart';
 
@@ -80,7 +82,13 @@ class _ExerciseDetailsSheet extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xl),
-                Text(capitalize(name), style: AppText.title.copyWith(fontSize: 24)),
+                // the library's copy is in the app's language; until it loads, the name we were given
+                ExerciseName(
+                  name: exercise.value?.name ?? name,
+                  englishName: exercise.value?.englishName,
+                  style: AppText.title.copyWith(fontSize: 24),
+                  maxLines: 3,
+                ),
                 const SizedBox(height: AppSpacing.sm),
                 Align(
                   alignment: AlignmentDirectional.centerStart,
@@ -96,6 +104,7 @@ class _ExerciseDetailsSheet extends ConsumerWidget {
                     ),
                   ),
                 ),
+                if (exercise.value case final Exercise details) _Details(exercise: details),
                 const SizedBox(height: AppSpacing.xxl),
                 Text(l10n.howToDoIt, style: AppText.heading),
                 const SizedBox(height: AppSpacing.md),
@@ -134,6 +143,48 @@ class _ExerciseDetailsSheet extends ConsumerWidget {
             ),
         ],
       ),
+    );
+  }
+}
+
+/// Equipment and muscles, each as a labelled row of chips. A row with nothing in it is left out.
+class _Details extends StatelessWidget {
+  const _Details({required this.exercise});
+
+  final Exercise exercise;
+
+  @override
+  Widget build(BuildContext context) {
+    final rows = [
+      (l10n.equipmentLabel, exercise.equipments),
+      (l10n.targetMusclesLabel, exercise.targetMuscles),
+      (l10n.secondaryMusclesLabel, exercise.secondaryMuscles),
+    ].where((row) => row.$2.isNotEmpty);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final (label, values) in rows) ...[
+          const SizedBox(height: AppSpacing.lg),
+          Text(label, style: AppText.caption),
+          const SizedBox(height: AppSpacing.xs),
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.sm,
+            children: [
+              for (final value in values)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface2,
+                    borderRadius: BorderRadius.circular(AppRadius.pill),
+                  ),
+                  child: Text(capitalize(value), style: AppText.secondary),
+                ),
+            ],
+          ),
+        ],
+      ],
     );
   }
 }

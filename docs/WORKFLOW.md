@@ -316,6 +316,38 @@ dotnet run --project Backend/FitPlan.Migrator -- check-gifs <file.json>
 
 `check-gifs` reads the first bytes of every GIF link and lists the ones that are missing. The host drops some connections, so each link is retried. A link that never answers is reported as `Unreachable` and the exit code is 4, so an incomplete check is never mistaken for a clean one. On 2026-11-19: 1,324 work and 176 are missing (404), the same 176 as in the audit.
 
+#### Exercise details and Arabic text (Phase 11C)
+
+Each exercise also has its equipment, main muscles and secondary muscles, and its name and steps in Arabic. Like the list, both files stay outside the repository.
+
+```bash
+dotnet run --project Backend/FitPlan.Migrator -- update-exercise-details <file.json> --sha256 <approved hash> --target dev
+```
+
+`update-exercise-details` takes a list fetched by this version of `fetch-exercises`, which includes the three detail lists. It refuses a file from before the details. It changes only the `Equipments`, `TargetMuscles` and `SecondaryMuscles` of exercises the database already has, and only where they differ. Names, steps and GIFs are never touched, and no row is added or deleted.
+
+```bash
+dotnet run --project Backend/FitPlan.Migrator -- import-translations <pack.json> --sha256 <approved hash> --target dev
+```
+
+`import-translations` reads one language's file:
+
+```json
+{ "version": 1, "language": "ar",
+  "terms": { "equipment": { "barbell": "بار" }, "muscle": { "biceps": "البايسبس" } },
+  "exercises": { "<exercise id>": { "name": "...", "instructions": ["...", "..."] } } }
+```
+
+- It adds a name and steps for each exercise that doesn't have them in that language yet.
+- It replaces a text that changed, and marks it as not reviewed again (`ExerciseTranslations.Reviewed`).
+- It adds or replaces the shared terms in `TermTranslations`.
+- It skips exercises that aren't in the database, and never deletes anything.
+- It reports how many exercises are still without text in that language.
+
+Both commands run as `fitplan-migrator` in one transaction, need the same firewall rule as a migration, and change nothing when run again with the same file. Production takes `--target prod --confirm FitPlanDb` and needs its own approval.
+
+The API reads `Accept-Language`. For `ar` it returns the Arabic name with `englishName` beside it, plus the Arabic steps and terms. An exercise or term without Arabic text falls back to English, and the API logs a warning once per exercise. Search matches the English and the Arabic name, and treats أ/إ/آ/ا, ة/ه and ى/ي alike.
+
 ### Environment settings
 
 | Setting | `dev` | `dev-schema` | `production` |

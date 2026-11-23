@@ -8,6 +8,9 @@ using FitPlan.Migrator;
 //   FitPlan.Migrator import-exercises <file.json> --sha256 <approved hash> --target dev
 //   (import-exercises takes --target prod --confirm FitPlanDb the same way as apply)
 //   FitPlan.Migrator check-gifs <file.json>
+//   FitPlan.Migrator update-exercise-details <file.json> --sha256 <approved hash> --target dev
+//   FitPlan.Migrator import-translations <pack.json> --sha256 <approved hash> --target dev
+//   (both take --target prod --confirm FitPlanDb the same way as apply)
 //   (exit code 4 for check-gifs means some links couldn't be reached, so the check is incomplete)
 // Exit codes: 0 done, 1 usage, 2 refused before connecting, 3 another run holds the lock, 4 failed.
 
@@ -75,11 +78,12 @@ if (args.Length >= 2 && args[0] == "check-gifs")
     return results.Any(r => r.Status == GifStatus.Unreachable) ? Failed : 0;
 }
 
-if (args.Length < 2 || args[0] is not ("validate" or "apply" or "import-exercises"))
+if (args.Length < 2 || args[0] is not ("validate" or "apply" or "import-exercises" or "update-exercise-details" or "import-translations"))
 {
     Console.Error.WriteLine("Usage: validate <script.sql> | apply <script.sql> --sha256 <hash> --target dev | --target prod --confirm FitPlanDb");
     Console.Error.WriteLine("       fetch-exercises <new file.json> | import-exercises <file.json> --sha256 <hash> --target dev");
     Console.Error.WriteLine("       check-gifs <file.json>");
+    Console.Error.WriteLine("       update-exercise-details <file.json> | import-translations <pack.json>, each with --sha256 <hash> --target dev");
     return Usage;
 }
 
@@ -130,17 +134,22 @@ var (server, database, connectionString) = target == "prod"
     ? (MigrationTarget.ProdServer, MigrationTarget.ProdDatabase, MigrationTarget.Prod)
     : (MigrationTarget.DevServer, MigrationTarget.DevDatabase, MigrationTarget.Dev);
 
-if (args[0] == "import-exercises")
+if (args[0] is "import-exercises" or "update-exercise-details" or "import-translations")
 {
     ImportReport import;
     try
     {
-        import = await ExerciseImporter.ImportAsync(file, sha256, connectionString);
+        import = args[0] switch
+        {
+            "update-exercise-details" => await ExerciseImporter.UpdateDetailsAsync(file, sha256, connectionString),
+            "import-translations" => await ExerciseImporter.ImportTranslationsAsync(file, sha256, connectionString),
+            _ => await ExerciseImporter.ImportAsync(file, sha256, connectionString)
+        };
     }
     catch (Exception ex)
     {
         Console.Error.WriteLine($"The import stopped unexpectedly: {ex.GetType().Name}: {ex.Message}");
-        Console.Error.WriteLine("The result is uncertain. Count the Exercises rows before running again.");
+        Console.Error.WriteLine("The result is uncertain. Count the rows it writes before running again.");
         return Failed;
     }
 
@@ -149,7 +158,7 @@ if (args[0] == "import-exercises")
     Console.WriteLine(import.Message);
     if (import.RowsBefore is not null)
     {
-        Console.WriteLine($"Rows before: {import.RowsBefore}, added: {import.Inserted}, rows after: {import.RowsAfter}");
+        Console.WriteLine($"Rows before: {import.RowsBefore}, added: {import.Inserted}, updated: {import.Updated ?? 0}, rows after: {import.RowsAfter}");
     }
 
     return import.Outcome switch

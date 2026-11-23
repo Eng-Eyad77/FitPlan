@@ -30,6 +30,7 @@ _PlanExercise _$PlanExerciseFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       exerciseId: json['exerciseId'] as String,
       name: json['name'] as String,
+      englishName: json['englishName'] as String?,
       gifUrl: json['gifUrl'] as String,
       bodyPart: json['bodyPart'] as String,
       instructions:
@@ -48,6 +49,7 @@ Map<String, dynamic> _$PlanExerciseToJson(_PlanExercise instance) =>
       'id': instance.id,
       'exerciseId': instance.exerciseId,
       'name': instance.name,
+      'englishName': instance.englishName,
       'gifUrl': instance.gifUrl,
       'bodyPart': instance.bodyPart,
       'instructions': instance.instructions,

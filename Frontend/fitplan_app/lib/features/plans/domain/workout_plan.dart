@@ -25,6 +25,8 @@ abstract class PlanExercise with _$PlanExercise {
     required String id,
     required String exerciseId,
     required String name,
+    /// The English name when [name] is in Arabic (Phase 11C), shown small under it.
+    String? englishName,
     required String gifUrl,
     required String bodyPart,
     @Default([]) List<String> instructions,

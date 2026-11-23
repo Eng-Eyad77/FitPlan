@@ -18,6 +18,7 @@ import 'rest_sheet.dart';
 import 'set_edit_sheet.dart';
 import 'set_rows.dart';
 import '../../../../l10n/l10n.dart';
+import '../../../exercises/presentation/widgets/exercise_name.dart';
 
 /// The open exercise in the list: what to do, what you did last time, and the sets.
 class ExerciseCard extends ConsumerStatefulWidget {
@@ -210,7 +211,7 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard> {
                       const NowBadge(),
                       const SizedBox(height: AppSpacing.xs),
                     ],
-                    Text(capitalize(_exercise.name), style: AppText.heading),
+                    ExerciseName(name: _exercise.name, englishName: _exercise.englishName, style: AppText.heading, maxLines: 3),
                     const SizedBox(height: 2),
                     Text(bodyPartName(_exercise.bodyPart), style: AppText.caption),
                     if (_exercise.targetSets != null) ...[

@@ -1332,5 +1332,17 @@
       }
     }
   },
-  "switchLanguage": "Switch to Arabic"
+  "switchLanguage": "Switch to Arabic",
+  "equipmentLabel": "Equipment",
+  "@equipmentLabel": {
+    "description": "Exercise details sheet (Phase 11C): heading of a row of chips"
+  },
+  "targetMusclesLabel": "Main muscle",
+  "@targetMusclesLabel": {
+    "description": "Exercise details sheet (Phase 11C): heading of a row of chips"
+  },
+  "secondaryMusclesLabel": "Also works",
+  "@secondaryMusclesLabel": {
+    "description": "Exercise details sheet (Phase 11C): heading of a row of chips"
+  }
 }
