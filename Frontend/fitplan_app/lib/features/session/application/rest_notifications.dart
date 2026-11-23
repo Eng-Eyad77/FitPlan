@@ -11,6 +11,7 @@ import 'package:timezone/timezone.dart' as tz;
 import '../../../app/router.dart';
 import 'next_set.dart';
 import 'rest_timer.dart';
+import '../../../l10n/l10n.dart';
 
 /// What the phone shows while the app is hidden during a rest:
 /// - 9A: "Rest is over" at the end time, on Android and iOS. It arrives with the screen locked,
@@ -45,18 +46,18 @@ typedef LiveChange = ({bool skipped, DateTime? endsAt});
 
 /// The texts, shared by the phone notifications and the tests.
 abstract final class RestTexts {
-  static const alertTitle = 'Rest is over';
-  static const countdownTitle = 'Resting';
-  static const nextExercise = 'Time for your next exercise';
-  static const nextSet = 'Time for your next set';
+  static String get alertTitle => l10n.restOverTitle;
+  static String get countdownTitle => l10n.restingTitle;
+  static String get nextExercise => l10n.timeNextExercise;
+  static String get nextSet => l10n.timeNextSet;
 
   /// "Squat · set 3 · 60 kg × 12"
   static String alertBody(RestTimer timer) =>
       timer.upNext == null ? timer.next ?? nextSet : '${timer.upNext!.label} · ${timer.upNext!.values}';
 
-  static String countdownBody(RestTimer timer) => 'Next: ${alertBody(timer)}';
+  static String countdownBody(RestTimer timer) => l10n.nextColon(alertBody(timer));
 
-  static String logButton(NextSet set) => 'Log ${set.values}';
+  static String logButton(NextSet set) => l10n.logValues(set.values);
 }
 
 /// The buttons on the notifications.
@@ -155,8 +156,8 @@ class LocalRestNotifier implements RestNotifier {
 
   static AndroidNotificationDetails _androidAlert(RestTimer timer) => AndroidNotificationDetails(
         'rest_timer',
-        'Rest timer',
-        channelDescription: 'Tells you when your rest between sets is over.',
+        l10n.channelRestTimer,
+        channelDescription: l10n.channelRestTimerDesc,
         importance: Importance.high,
         priority: Priority.high,
         category: AndroidNotificationCategory.alarm,
@@ -170,8 +171,8 @@ class LocalRestNotifier implements RestNotifier {
 
   static AndroidNotificationDetails _androidCountdown(RestTimer timer, DateTime now) => AndroidNotificationDetails(
         'rest_countdown',
-        'Rest countdown',
-        channelDescription: 'Shows the rest counting down while you are outside the app.',
+        l10n.channelRestCountdown,
+        channelDescription: l10n.channelRestCountdownDesc,
         importance: Importance.low,
         priority: Priority.low,
         icon: 'ic_stat_fitplan',
@@ -191,9 +192,9 @@ class LocalRestNotifier implements RestNotifier {
         // gone at the end, when "Rest is over" takes its place
         timeoutAfter: timer.endsAt.difference(now).inMilliseconds,
         category: AndroidNotificationCategory.progress,
-        actions: const [
-          AndroidNotificationAction(RestActionIds.addTime, '+15 s', cancelNotification: false),
-          AndroidNotificationAction(RestActionIds.skip, 'Skip rest'),
+        actions: [
+          AndroidNotificationAction(RestActionIds.addTime, l10n.restAdd15Notification(signed('+15')), cancelNotification: false),
+          AndroidNotificationAction(RestActionIds.skip, l10n.skipRest),
         ],
       );
 
@@ -225,7 +226,7 @@ class LocalRestNotifier implements RestNotifier {
                       // unlocked first: the phone's saved data can't be read while it is locked
                       DarwinNotificationAction.plain(
                         RestActionIds.logSet,
-                        'Log set',
+                        l10n.logSet,
                         options: {DarwinNotificationActionOption.authenticationRequired},
                       ),
                     ],
@@ -310,6 +311,10 @@ class LocalRestNotifier implements RestNotifier {
         'startedAtMs': timer.endsAt.subtract(timer.total).millisecondsSinceEpoch,
         'endsAtMs': timer.endsAt.millisecondsSinceEpoch,
         'next': RestTexts.alertBody(timer),
+        // the Lock Screen speaks the app's language, which can differ from the phone's
+        'title': RestTexts.countdownTitle,
+        'nextLine': RestTexts.countdownBody(timer),
+        'skipLabel': l10n.skip,
       });
     } catch (_) {
       // older iPhone, Live Activities turned off, or a build without the extension

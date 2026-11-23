@@ -11,6 +11,7 @@ import '../../profile/application/profile_controller.dart';
 import '../application/active_session_controller.dart';
 import '../data/sessions_repository.dart';
 import '../domain/workout_session.dart';
+import '../../../l10n/l10n.dart';
 
 IconData cardioIcon(CardioMachine machine) => switch (machine) {
       CardioMachine.treadmill => Icons.directions_run_rounded,
@@ -70,7 +71,7 @@ class _CardioSheetState extends ConsumerState<_CardioSheet> {
 
   String? _validate() {
     final minutes = int.tryParse(_minutes.text.trim());
-    if (minutes == null || minutes < 1 || minutes > 300) return 'Duration: 1 to 300 minutes';
+    if (minutes == null || minutes < 1 || minutes > 300) return l10n.durationRange;
     for (final field in _machine.fields) {
       try {
         final value = _value(field);
@@ -124,7 +125,7 @@ class _CardioSheetState extends ConsumerState<_CardioSheet> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('Add cardio', style: AppText.heading),
+            Text(l10n.addCardio, style: AppText.heading),
             const SizedBox(height: AppSpacing.lg),
             GridView.count(
               crossAxisCount: 3,
@@ -146,7 +147,7 @@ class _CardioSheetState extends ConsumerState<_CardioSheet> {
               ],
             ),
             const SizedBox(height: AppSpacing.xl),
-            const Text('How long?', style: AppText.bodyStrong),
+            Text(l10n.howLong, style: AppText.bodyStrong),
             const SizedBox(height: AppSpacing.sm),
             Row(
               children: [
@@ -161,7 +162,7 @@ class _CardioSheetState extends ConsumerState<_CardioSheet> {
                     ],
                     textAlign: TextAlign.center,
                     style: AppText.number.copyWith(fontSize: 22),
-                    decoration: const InputDecoration(suffixText: 'min', isDense: true),
+                    decoration: InputDecoration(suffixText: l10n.minUnit, isDense: true),
                     onChanged: (_) => setState(() {}),
                   ),
                 ),
@@ -173,7 +174,7 @@ class _CardioSheetState extends ConsumerState<_CardioSheet> {
                       children: [
                         for (final m in _quickMinutes)
                           Padding(
-                            padding: const EdgeInsets.only(right: AppSpacing.sm),
+                            padding: const EdgeInsetsDirectional.only(end: AppSpacing.sm),
                             child: ChoiceChip(
                               label: Text('$m'),
                               selected: _minutes.text == '$m',
@@ -196,11 +197,11 @@ class _CardioSheetState extends ConsumerState<_CardioSheet> {
             ),
             const SizedBox(height: AppSpacing.md),
             Align(
-              alignment: Alignment.centerLeft,
+              alignment: AlignmentDirectional.centerStart,
               child: TextButton.icon(
                 onPressed: () => setState(() => _showDetails = !_showDetails),
                 icon: Icon(_showDetails ? Icons.expand_less_rounded : Icons.expand_more_rounded),
-                label: const Text('More details (optional)'),
+                label: Text(l10n.moreDetails),
               ),
             ),
             AnimatedSize(
@@ -229,7 +230,7 @@ class _CardioSheetState extends ConsumerState<_CardioSheet> {
                           if (_machine == CardioMachine.swimming) ...[
                             const SizedBox(height: AppSpacing.sm),
                             Text(
-                              'Laps and pool length are enough: the distance is worked out for you.',
+                              l10n.swimDistanceNote,
                               style: AppText.caption.copyWith(color: AppColors.textSecondary),
                             ),
                           ],
@@ -240,8 +241,8 @@ class _CardioSheetState extends ConsumerState<_CardioSheet> {
             const SizedBox(height: AppSpacing.md),
             Text(
               hasWeight
-                  ? 'Calories are a rough estimate${_machine == CardioMachine.treadmill ? '' : ', since machines measure effort differently'}.'
-                  : 'Add your weight in Profile to see the calories you burn.',
+                  ? (_machine == CardioMachine.treadmill ? l10n.caloriesRough : l10n.caloriesRoughMachine)
+                  : l10n.addWeightForCalories,
               style: AppText.caption.copyWith(color: AppColors.textSecondary),
             ),
             if (_error != null) ...[
@@ -249,7 +250,7 @@ class _CardioSheetState extends ConsumerState<_CardioSheet> {
               Text(_error!, style: AppText.caption.copyWith(color: AppColors.danger)),
             ],
             const SizedBox(height: AppSpacing.xl),
-            LoadingButton(label: 'Add cardio', loading: _saving, onPressed: _save),
+            LoadingButton(label: l10n.addCardio, loading: _saving, onPressed: _save),
           ],
         ),
       ),

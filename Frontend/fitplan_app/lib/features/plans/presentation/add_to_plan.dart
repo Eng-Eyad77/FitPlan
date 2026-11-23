@@ -11,6 +11,7 @@ import '../application/plans_controller.dart';
 import '../domain/workout_plan.dart';
 import 'plan_form_sheet.dart';
 import 'target_sheet.dart';
+import '../../../l10n/l10n.dart';
 
 /// From the library: pick a plan (or create one), set the target, and add [exercise] to it.
 /// Returns the plan it was added to, or null when the user stopped on the way.
@@ -63,7 +64,7 @@ class _ChoosePlanSheet extends ConsumerWidget {
         controller: scroll,
         padding: AppSpacing.screen.copyWith(top: AppSpacing.lg, bottom: AppSpacing.xxl),
         children: [
-          const Text('Add to which plan?', style: AppText.heading),
+          Text(l10n.addToWhichPlan, style: AppText.heading),
           const SizedBox(height: AppSpacing.xs),
           Text(capitalize(exercise.name), style: AppText.secondary),
           const SizedBox(height: AppSpacing.lg),
@@ -74,8 +75,8 @@ class _ChoosePlanSheet extends ConsumerWidget {
               foregroundColor: AppColors.onButton,
               child: Icon(Icons.add_rounded),
             ),
-            title: const Text('New plan', style: AppText.bodyStrong),
-            subtitle: const Text('Create a plan and add it there', style: AppText.caption),
+            title: Text(l10n.newPlan, style: AppText.bodyStrong),
+            subtitle: Text(l10n.newPlanSubtitle, style: AppText.caption),
             onTap: () => Navigator.pop(context, (plan: null, createNew: true)),
           ),
           const Divider(),
@@ -85,15 +86,15 @@ class _ChoosePlanSheet extends ConsumerWidget {
             ],
             error: (error, _) => [
               LoadError(
-                message: errorMessage(error, 'Could not load your plans.'),
+                message: errorMessage(error, l10n.couldNotLoadPlans),
                 onRetry: () => ref.invalidate(plansControllerProvider),
               ),
             ],
             data: (plans) => plans.isEmpty
-                ? const [
+                ? [
                     Padding(
-                      padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
-                      child: Text('You have no plans yet.', style: AppText.secondary),
+                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                      child: Text(l10n.noPlansYetShort, style: AppText.secondary),
                     ),
                   ]
                 : [for (final plan in plans) _PlanTile(plan: plan, exerciseId: exercise.id)],
@@ -127,7 +128,7 @@ class _PlanTile extends ConsumerWidget {
       ),
       title: Text(plan.name, style: AppText.bodyStrong, maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: Text(
-        added ? 'Already in this plan' : '$count ${count == 1 ? 'exercise' : 'exercises'}',
+        added ? l10n.alreadyInPlan : l10n.exerciseCount(count),
         style: AppText.caption,
       ),
       onTap: () => Navigator.pop(context, (plan: plan, createNew: false)),

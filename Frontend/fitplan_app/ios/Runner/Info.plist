@@ -12,6 +12,12 @@
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<!-- Phase 11: tells iOS the app speaks both, so its own dialogs follow the app -->
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>ar</string>
+	</array>
 	<key>CFBundleDisplayName</key>
 	<string>FitPlan</string>
 	<key>CFBundleExecutable</key>

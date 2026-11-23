@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text.dart';
 import '../../../../shared/widgets/brand_mark.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Shared frame of the login and register screens.
 class AuthLayout extends StatelessWidget {
@@ -33,7 +34,7 @@ class AuthLayout extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Align(alignment: Alignment.centerLeft, child: BrandMark()),
+                  const Align(alignment: AlignmentDirectional.centerStart, child: BrandMark()),
                   const SizedBox(height: AppSpacing.xxl),
                   Text(title, style: AppText.title),
                   const SizedBox(height: AppSpacing.sm),
@@ -122,7 +123,7 @@ class _PasswordFieldState extends State<PasswordField> {
       decoration: InputDecoration(
         labelText: widget.label,
         suffixIcon: IconButton(
-          tooltip: _hidden ? 'Show password' : 'Hide password',
+          tooltip: _hidden ? l10n.showPassword : l10n.hidePassword,
           onPressed: () => setState(() => _hidden = !_hidden),
           icon: Icon(
             _hidden ? Icons.visibility_outlined : Icons.visibility_off_outlined,

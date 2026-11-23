@@ -17,6 +17,7 @@ import 'volume_card.dart';
 import 'weekly_goal_sheet.dart';
 import 'widgets/trend_chart.dart';
 import 'widgets/weekly_bars.dart';
+import '../../../l10n/l10n.dart';
 
 class ProgressScreen extends ConsumerWidget {
   const ProgressScreen({super.key});
@@ -31,7 +32,7 @@ class ProgressScreen extends ConsumerWidget {
         child: overview.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) => LoadError(
-            message: errorMessage(error, 'Could not load your progress.'),
+            message: errorMessage(error, l10n.couldNotLoadProgress),
             onRetry: () => ref.invalidate(statsOverviewProvider(weekStart)),
           ),
           data: (overview) => RefreshIndicator(
@@ -44,9 +45,9 @@ class ProgressScreen extends ConsumerWidget {
               physics: const AlwaysScrollableScrollPhysics(),
               padding: AppSpacing.screen.copyWith(top: 28, bottom: 32),
               children: [
-                const Text('Progress', style: AppText.title),
+                Text(l10n.progressTitle, style: AppText.title),
                 const SizedBox(height: AppSpacing.xs),
-                const Text('What your training adds up to.', style: AppText.secondary),
+                Text(l10n.progressSubtitle, style: AppText.secondary),
                 const SizedBox(height: AppSpacing.xl),
                 ...[
                   _StreakCard(overview: overview),
@@ -104,10 +105,10 @@ class _StreakCard extends StatelessWidget {
     final streak = overview.currentStreakWeeks;
 
     final subtitle = goal == null
-        ? 'A week counts when you train at least once. Set a goal to aim higher.'
+        ? l10n.streakNoGoal
         : done >= goal
-        ? '$done workouts this week, goal of $goal reached. Nice.'
-        : '$done of $goal this week, ${goal - done} to go.';
+        ? l10n.streakGoalReached(done, goal)
+        : l10n.streakToGo(done, goal, goal - done);
 
     return Material(
       color: AppColors.surface,
@@ -141,7 +142,7 @@ class _StreakCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(streak == 0 ? 'No streak yet' : '$streak-week streak', style: AppText.heading),
+                    Text(streak == 0 ? l10n.noStreakYet : l10n.weekStreak(streak), style: AppText.heading),
                     const SizedBox(height: 2),
                     Text(subtitle, style: AppText.secondary),
                   ],
@@ -151,7 +152,7 @@ class _StreakCard extends StatelessWidget {
               Column(
                 children: [
                   Text(goal == null ? '—' : '$goal', style: AppText.number.copyWith(fontSize: 20)),
-                  Text(goal == null ? 'Set goal' : 'a week', style: AppText.caption.copyWith(color: AppColors.accent)),
+                  Text(goal == null ? l10n.setGoal : l10n.aWeek, style: AppText.caption.copyWith(color: AppColors.accent)),
                 ],
               ),
             ],
@@ -182,8 +183,8 @@ class _WeekCompare extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.baseline,
           textBaseline: TextBaseline.alphabetic,
           children: [
-            const Expanded(child: Text('This week', style: AppText.heading)),
-            Text('▲ vs last week', style: AppText.caption),
+            Expanded(child: Text(l10n.thisWeek, style: AppText.heading)),
+            Text(l10n.vsLastWeek, style: AppText.caption),
           ],
         ),
         const SizedBox(height: AppSpacing.md),
@@ -191,7 +192,7 @@ class _WeekCompare extends StatelessWidget {
           children: [
             _Delta(
               showDiff: showDiff,
-              label: 'Workouts',
+              label: l10n.workouts,
               value: '${now.workouts}',
               diff: (now.workouts - last.workouts).toDouble(),
             ),
@@ -199,20 +200,20 @@ class _WeekCompare extends StatelessWidget {
             _Delta(
               showDiff: showDiff,
               // the unit in the label, so the number fits a quarter of the width
-              label: 'Kg lifted',
+              label: l10n.kgLifted,
               value: formatVolumeNumber(now.volumeKg),
               diff: now.volumeKg - last.volumeKg,
               diffText: (d) => formatVolumeNumber(d.abs()),
             ),
             const SizedBox(width: AppSpacing.sm),
-            _Delta(showDiff: showDiff, label: 'Sets', value: '${now.sets}', diff: (now.sets - last.sets).toDouble()),
+            _Delta(showDiff: showDiff, label: l10n.sets, value: '${now.sets}', diff: (now.sets - last.sets).toDouble()),
             const SizedBox(width: AppSpacing.sm),
             _Delta(
               showDiff: showDiff,
-              label: 'Cardio',
-              value: '${(now.cardioSeconds / 60).round()}m',
+              label: l10n.cardio,
+              value: l10n.minutesShort((now.cardioSeconds / 60).round()),
               diff: (now.cardioSeconds - last.cardioSeconds) / 60,
-              diffText: (d) => '${d.abs().round()}m',
+              diffText: (d) => l10n.minutesShort(d.abs().round()),
             ),
           ],
         ),
@@ -249,7 +250,7 @@ class _Delta extends StatelessWidget {
             const SizedBox(height: AppSpacing.xs),
             FittedBox(
               fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
+              alignment: AlignmentDirectional.centerStart,
               child: Text(value, style: AppText.number.copyWith(fontSize: 20)),
             ),
             const SizedBox(height: 2),
@@ -261,7 +262,7 @@ class _Delta extends StatelessWidget {
                   ? '▲ $text'
                   : down
                   ? '▼ $text'
-                  : 'same',
+                  : l10n.same,
               style: AppText.caption.copyWith(
                 color: up ? AppColors.accent : AppColors.textTertiary,
                 fontWeight: up ? FontWeight.w600 : FontWeight.w400,
@@ -298,9 +299,9 @@ class _TrendCardState extends State<_TrendCard> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SegmentedButton<_Trend>(
-            segments: const [
-              ButtonSegment(value: _Trend.strength, label: Text('Strength'), icon: Icon(Icons.fitness_center_rounded)),
-              ButtonSegment(value: _Trend.body, label: Text('Body'), icon: Icon(Icons.monitor_weight_outlined)),
+            segments: [
+              ButtonSegment(value: _Trend.strength, label: Text(l10n.strength), icon: const Icon(Icons.fitness_center_rounded)),
+              ButtonSegment(value: _Trend.body, label: Text(l10n.body), icon: const Icon(Icons.monitor_weight_outlined)),
             ],
             selected: {_trend},
             showSelectedIcon: false,
@@ -353,7 +354,7 @@ class _Headline extends StatelessWidget {
             const Spacer(),
             if (delta != null && delta.abs() >= 0.05)
               Text(
-                '${delta > 0 ? '+' : '−'}${formatKg(double.parse(delta.abs().toStringAsFixed(1)))} $unit',
+                '${signed('${delta > 0 ? '+' : '−'}${formatKg(double.parse(delta.abs().toStringAsFixed(1)))}')} $unit',
                 style: AppText.bodyStrong.copyWith(color: delta > 0 ? AppColors.accent : AppColors.textSecondary),
               ),
           ],
@@ -380,7 +381,7 @@ class _StrengthTrend extends ConsumerWidget {
           controller: scroll,
           padding: AppSpacing.screen.copyWith(bottom: AppSpacing.xl),
           children: [
-            const Text('Choose an exercise', style: AppText.heading),
+            Text(l10n.chooseExercise, style: AppText.heading),
             const SizedBox(height: AppSpacing.md),
             for (final r in records)
               ListTile(
@@ -388,7 +389,7 @@ class _StrengthTrend extends ConsumerWidget {
                 leading: ExerciseThumb(url: r.gifUrl, size: 44),
                 title: Text(capitalize(r.name), style: AppText.bodyStrong),
                 subtitle: Text(
-                  '${r.sessionCount} ${r.sessionCount == 1 ? 'workout' : 'workouts'}',
+                  l10n.workoutCount(r.sessionCount),
                   style: AppText.caption,
                 ),
                 onTap: () => Navigator.pop(context, r.exerciseId),
@@ -409,11 +410,11 @@ class _StrengthTrend extends ConsumerWidget {
       error: (error, _) => Text(errorMessage(error), style: AppText.secondary),
       data: (records) {
         if (records.isEmpty) {
-          return const SizedBox(
+          return SizedBox(
             height: 200,
             child: Center(
               child: Text(
-                'Finish a workout and your strength trend shows up here.',
+                l10n.strengthEmpty,
                 style: AppText.secondary,
                 textAlign: TextAlign.center,
               ),
@@ -450,7 +451,7 @@ class _StrengthTrend extends ConsumerWidget {
         return progress.when(
           loading: () => SizedBox(
             height: 240,
-            child: Align(alignment: Alignment.topLeft, child: title),
+            child: Align(alignment: AlignmentDirectional.topStart, child: title),
           ),
           error: (error, _) => Text(errorMessage(error), style: AppText.secondary),
           data: (progress) {
@@ -472,9 +473,9 @@ class _StrengthTrend extends ConsumerWidget {
                   unit: trend.unit,
                   delta: trend.points.length < 2 ? null : trend.points.last.value - trend.points.first.value,
                   caption: best == null
-                      ? 'From your last ${trend.points.length} ${trend.points.length == 1 ? 'workout' : 'workouts'}'
+                      ? l10n.fromLastWorkouts(trend.points.length)
                       // the headline is the latest workout; the caption names the all-time best
-                      : 'Latest workout · best ${formatKg(best.value)} kg from ${formatSet(best.weightKg, best.reps)}',
+                      : l10n.latestBest(formatKg(best.value), formatSet(best.weightKg, best.reps)),
                 ),
                 TrendChart(points: trend.points, unit: trend.unit),
               ],
@@ -494,8 +495,8 @@ class _StrengthTrend extends ConsumerWidget {
 
   if (sessions.any((s) => s.estimated1Rm != null)) {
     return (
-      label: 'estimated 1RM',
-      unit: 'kg',
+      label: l10n.estimated1rm,
+      unit: l10n.kg,
       points: [
         for (final s in sessions)
           if (s.estimated1Rm != null) (date: s.performedAt, value: s.estimated1Rm!),
@@ -504,8 +505,8 @@ class _StrengthTrend extends ConsumerWidget {
   }
   if (sessions.any((s) => s.topSetWeightKg != null)) {
     return (
-      label: 'top set',
-      unit: 'kg',
+      label: l10n.topSetLabel,
+      unit: l10n.kg,
       points: [
         for (final s in sessions)
           if (s.topSetWeightKg != null) (date: s.performedAt, value: s.topSetWeightKg!),
@@ -513,8 +514,8 @@ class _StrengthTrend extends ConsumerWidget {
     );
   }
   return (
-    label: 'best reps',
-    unit: 'reps',
+    label: l10n.bestReps,
+    unit: l10n.repsUnit,
     points: [for (final s in sessions) (date: s.performedAt, value: s.topSetReps.toDouble())],
   );
 }
@@ -536,12 +537,12 @@ class _BodyTrend extends ConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text('Log your weight to see its trend.', style: AppText.secondary),
+                Text(l10n.logWeightTrend, style: AppText.secondary),
                 const SizedBox(height: AppSpacing.md),
                 FilledButton(
                   onPressed: () => showWeightSheet(context),
                   style: FilledButton.styleFrom(minimumSize: const Size(160, 48)),
-                  child: const Text('Log weight'),
+                  child: Text(l10n.logWeight),
                 ),
               ],
             ),
@@ -555,13 +556,13 @@ class _BodyTrend extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _Headline(
-              title: const Text('Body weight', style: AppText.bodyStrong),
+              title: Text(l10n.bodyWeight, style: AppText.bodyStrong),
               value: latest.weightKg,
-              unit: 'kg',
+              unit: l10n.kg,
               delta: recent.length < 2 ? null : latest.weightKg - recent.first.weightKg,
-              caption: 'Latest weigh-in, ${formatDaysAgo(latest.recordedAt)}',
+              caption: l10n.latestWeighIn(formatDaysAgo(latest.recordedAt)),
             ),
-            TrendChart(points: [for (final e in recent) (date: e.recordedAt, value: e.weightKg)], unit: 'kg'),
+            TrendChart(points: [for (final e in recent) (date: e.recordedAt, value: e.weightKg)], unit: l10n.kg),
           ],
         );
       },
@@ -597,9 +598,9 @@ class _RecentRecords extends ConsumerWidget {
         children: [
           Row(
             children: [
-              const Expanded(child: Text('Recent records', style: AppText.heading)),
+              Expanded(child: Text(l10n.recentRecords, style: AppText.heading)),
               if (records.length > 5)
-                TextButton(onPressed: () => showAllRecordsSheet(context, records), child: const Text('All')),
+                TextButton(onPressed: () => showAllRecordsSheet(context, records), child: Text(l10n.all)),
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -676,8 +677,8 @@ class _WeeklyVolume extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
-              const Expanded(child: Text('Weekly volume', style: AppText.heading)),
-              Text('kg lifted', style: AppText.caption),
+              Expanded(child: Text(l10n.weeklyVolume, style: AppText.heading)),
+              Text(l10n.kgLiftedLower, style: AppText.caption),
             ],
           ),
           const SizedBox(height: AppSpacing.lg),
@@ -705,7 +706,7 @@ class _WeighIns extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text('Weigh-ins', style: AppText.heading),
+        Text(l10n.weighIns, style: AppText.heading),
         const SizedBox(height: AppSpacing.sm),
         for (var i = 0; i < entries.length && i < 4; i++)
           Padding(
@@ -715,10 +716,10 @@ class _WeighIns extends ConsumerWidget {
                 Expanded(child: Text(date.format(entries[i].recordedAt.toLocal()), style: AppText.secondary)),
                 if (i + 1 < entries.length)
                   Padding(
-                    padding: const EdgeInsets.only(right: AppSpacing.md),
+                    padding: const EdgeInsetsDirectional.only(end: AppSpacing.md),
                     child: Text(_change(entries[i].weightKg - entries[i + 1].weightKg), style: AppText.caption),
                   ),
-                Text('${formatKg(entries[i].weightKg)} kg', style: AppText.bodyStrong),
+                Text(l10n.amountKg(formatKg(entries[i].weightKg)), style: AppText.bodyStrong),
               ],
             ),
           ),
@@ -726,15 +727,15 @@ class _WeighIns extends ConsumerWidget {
         OutlinedButton.icon(
           onPressed: () => showWeightSheet(context, current: entries.firstOrNull?.weightKg),
           icon: const Icon(Icons.add_rounded),
-          label: const Text("Log today's weight"),
+          label: Text(l10n.logTodaysWeight),
         ),
       ],
     );
   }
 
   static String _change(double diff) {
-    if (diff.abs() < 0.05) return 'same';
+    if (diff.abs() < 0.05) return l10n.same;
     final value = formatKg(double.parse(diff.abs().toStringAsFixed(1)));
-    return diff > 0 ? '+$value' : '−$value';
+    return signed(diff > 0 ? '+$value' : '−$value');
   }
 }

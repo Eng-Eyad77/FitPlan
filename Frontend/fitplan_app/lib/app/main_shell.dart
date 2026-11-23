@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../core/theme/app_colors.dart';
 import '../core/theme/app_text.dart';
+import '../l10n/l10n.dart';
 
 /// The screen frame with the bottom tab bar (Home, Plans, History, Progress).
 class MainShell extends StatelessWidget {
@@ -10,11 +11,11 @@ class MainShell extends StatelessWidget {
 
   final StatefulNavigationShell navigationShell;
 
-  static const _tabs = [
-    (icon: Icons.home_outlined, activeIcon: Icons.home_rounded, label: 'Home'),
-    (icon: Icons.fitness_center_outlined, activeIcon: Icons.fitness_center_rounded, label: 'Plans'),
-    (icon: Icons.history_rounded, activeIcon: Icons.history_rounded, label: 'History'),
-    (icon: Icons.bar_chart_rounded, activeIcon: Icons.bar_chart_rounded, label: 'Progress'),
+  static List<({IconData icon, IconData activeIcon, String label})> get _tabs => [
+    (icon: Icons.home_outlined, activeIcon: Icons.home_rounded, label: l10n.tabHome),
+    (icon: Icons.fitness_center_outlined, activeIcon: Icons.fitness_center_rounded, label: l10n.tabPlans),
+    (icon: Icons.history_rounded, activeIcon: Icons.history_rounded, label: l10n.tabHistory),
+    (icon: Icons.bar_chart_rounded, activeIcon: Icons.bar_chart_rounded, label: l10n.tabProgress),
   ];
 
   @override

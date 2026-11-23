@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../../shared/format.dart';
 import '../domain/workout_session.dart';
+import '../../../l10n/l10n.dart';
 
 /// The set that comes after the running rest, with the values the app would pre-fill,
 /// so it can be logged from the notification without opening the app (9E).
@@ -33,10 +34,10 @@ class NextSet {
   final int restSeconds;
 
   /// "Squat · set 3"
-  String get label => '$name · set $setNumber';
+  String get label => l10n.nextSetLabel(name, setNumber);
 
   /// "60 kg × 12", or "12 reps" without a weight.
-  String get values => weightKg == null ? '$reps reps' : '${formatKg(weightKg!)} kg × $reps';
+  String get values => formatSet(weightKg, reps);
 
   /// The set after this one, once this one is logged with the same values. Null after the last
   /// target set (the next exercise comes then) or at the most sets allowed.

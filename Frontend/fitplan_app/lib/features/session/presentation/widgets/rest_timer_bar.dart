@@ -9,6 +9,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text.dart';
 import '../../../../shared/format.dart';
 import '../../application/rest_timer.dart';
+import '../../../../l10n/l10n.dart';
 
 /// The rest countdown pinned at the bottom of the session screen.
 /// Hidden when no rest is running.
@@ -92,7 +93,7 @@ class _CountdownState extends ConsumerState<_Countdown> {
           children: [
             // the gradient line shrinks as the rest runs out
             Align(
-              alignment: Alignment.centerLeft,
+              alignment: AlignmentDirectional.centerStart,
               child: FractionallySizedBox(
                 widthFactor: widget.timer.progress(now),
                 child: const SizedBox(
@@ -102,17 +103,17 @@ class _CountdownState extends ConsumerState<_Countdown> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.md, AppSpacing.md, AppSpacing.md),
+              padding: const EdgeInsetsDirectional.fromSTEB(AppSpacing.xl, AppSpacing.md, AppSpacing.md, AppSpacing.md),
               child: Row(
                 children: [
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(left == 0 ? 'REST DONE' : 'REST', style: AppText.overline),
+                      Text(left == 0 ? l10n.restDone : l10n.rest, style: AppText.overline),
                       Semantics(
                         liveRegion: left == 0,
                         child: Text(
-                          left == 0 ? 'Go!' : formatClock(left),
+                          left == 0 ? l10n.go : formatClock(left),
                           style: AppText.number.copyWith(fontSize: 28),
                         ),
                       ),
@@ -122,13 +123,13 @@ class _CountdownState extends ConsumerState<_Countdown> {
                   OutlinedButton(
                     onPressed: () => controller.addTime(const Duration(seconds: 15)),
                     style: OutlinedButton.styleFrom(minimumSize: const Size(72, 48)),
-                    child: const Text('+15s'),
+                    child: Text(l10n.restAdd15(signed('+15'))),
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   TextButton(
                     onPressed: controller.skip,
                     style: TextButton.styleFrom(minimumSize: const Size(64, 48)),
-                    child: Text(left == 0 ? 'Close' : 'Skip'),
+                    child: Text(left == 0 ? l10n.close : l10n.skip),
                   ),
                 ],
               ),

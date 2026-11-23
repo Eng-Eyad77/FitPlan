@@ -20,6 +20,7 @@ import 'plan_additions_sheet.dart';
 import 'widgets/elapsed_clock.dart';
 import 'widgets/exercise_card.dart';
 import 'widgets/rest_timer_bar.dart';
+import '../../../l10n/l10n.dart';
 
 /// The live workout. Everything is saved to the server as it is logged.
 class SessionScreen extends ConsumerStatefulWidget {
@@ -96,14 +97,14 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Discard workout?'),
-        content: const Text('Everything you logged in this workout will be deleted.'),
+        title: Text(l10n.discardWorkoutTitle),
+        content: Text(l10n.discardWorkoutBody),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Keep going')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.keepGoingButton)),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: AppColors.danger),
-            child: const Text('Discard'),
+            child: Text(l10n.discard),
           ),
         ],
       ),
@@ -130,20 +131,20 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text('No cardio today?', style: AppText.heading),
+                Text(l10n.noCardioToday, style: AppText.heading),
                 const SizedBox(height: AppSpacing.xs),
-                const Text('A few minutes of cardio is a good way to finish. It is up to you.',
+                Text(l10n.cardioReminderBody,
                     style: AppText.secondary),
                 const SizedBox(height: AppSpacing.lg),
                 FilledButton.icon(
                   onPressed: () => Navigator.pop(context, _CardioChoice.add),
                   icon: const Icon(Icons.directions_run_rounded),
-                  label: const Text('Add cardio'),
+                  label: Text(l10n.addCardio),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 OutlinedButton(
                   onPressed: () => Navigator.pop(context, _CardioChoice.finishWithout),
-                  child: const Text('Finish without cardio'),
+                  child: Text(l10n.finishWithoutCardio),
                 ),
               ],
             ),
@@ -154,7 +155,7 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
   /// Cardio reminder, then notes and finish, then the plan question, then the summary.
   Future<void> _finish(WorkoutSession session) async {
     if (!session.hasAnythingLogged) {
-      showMessage(context, 'Log at least one set or some cardio first, or discard the workout.');
+      showMessage(context, l10n.logSomethingFirst);
       return;
     }
     if (session.cardio.isEmpty) {
@@ -195,14 +196,14 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
             ? const Center(child: CircularProgressIndicator())
             : state.hasError
                 ? LoadError(
-                    message: errorMessage(state.error!, 'Could not load your workout.'),
+                    message: errorMessage(state.error!, l10n.couldNotLoadSession),
                     onRetry: () => ref.invalidate(activeSessionControllerProvider),
                   )
                 : EmptyState(
                     icon: Icons.check_circle_outline_rounded,
-                    title: 'No workout in progress',
-                    message: 'Start one from a plan, or a quick workout.',
-                    action: OutlinedButton(onPressed: () => context.pop(), child: const Text('Back')),
+                    title: l10n.noWorkoutInProgress,
+                    message: l10n.noWorkoutInProgressBody,
+                    action: OutlinedButton(onPressed: () => context.pop(), child: Text(l10n.back)),
                   ),
       );
     }
@@ -220,7 +221,7 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
         appBar: AppBar(
           // leaving the screen does not stop the workout: Home offers to resume it
           leading: IconButton(
-            tooltip: 'Minimise',
+            tooltip: l10n.minimise,
             icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 30),
             onPressed: () => context.pop(),
           ),
@@ -240,20 +241,20 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
           ),
           actions: [
             PopupMenuButton<void>(
-              tooltip: 'Workout options',
+              tooltip: l10n.workoutOptions,
               itemBuilder: (_) => [
                 PopupMenuItem(
                   onTap: _cancel,
-                  child: const Text('Discard workout', style: TextStyle(color: AppColors.danger)),
+                  child: Text(l10n.discardWorkout, style: const TextStyle(color: AppColors.danger)),
                 ),
               ],
             ),
             Padding(
-              padding: const EdgeInsets.only(right: AppSpacing.md),
+              padding: const EdgeInsetsDirectional.only(end: AppSpacing.md),
               child: FilledButton(
                 onPressed: () => _finish(session),
                 style: FilledButton.styleFrom(minimumSize: const Size(88, 44)),
-                child: const Text('Finish'),
+                child: Text(l10n.finish),
               ),
             ),
           ],
@@ -272,7 +273,7 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
             if (exercises.isEmpty)
               _EmptyWorkoutCard(onAdd: () => _addExercise(session))
             else ...[
-              Text('$doneCount OF $total DONE', style: AppText.overline),
+              Text(l10n.doneOfTotal(doneCount, total), style: AppText.overline),
               const SizedBox(height: AppSpacing.md),
               for (final (index, e) in exercises.indexed)
                 if (e.id == _openId)
@@ -303,7 +304,7 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
               OutlinedButton.icon(
                 onPressed: () => _addExercise(session),
                 icon: const Icon(Icons.add_rounded),
-                label: const Text('Add exercise'),
+                label: Text(l10n.addExercise),
               ),
             ],
             const SizedBox(height: AppSpacing.xxl),
@@ -330,7 +331,7 @@ class _GradientProgress extends StatelessWidget {
         child: AnimatedFractionallySizedBox(
           duration: const Duration(milliseconds: 400),
           curve: Curves.easeOutCubic,
-          alignment: Alignment.centerLeft,
+          alignment: AlignmentDirectional.centerStart,
           widthFactor: value.clamp(0, 1),
           heightFactor: 1,
           child: const DecoratedBox(decoration: BoxDecoration(gradient: AppColors.signatureGradient)),
@@ -357,16 +358,16 @@ class _EmptyWorkoutCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('QUICK WORKOUT', style: AppText.overline),
+          Text(l10n.quickWorkoutOverline, style: AppText.overline),
           const SizedBox(height: AppSpacing.md),
-          const Text('What are you training?', style: AppText.title),
+          Text(l10n.whatTraining, style: AppText.title),
           const SizedBox(height: AppSpacing.sm),
-          const Text('Add exercises as you go, or just log some cardio.', style: AppText.secondary),
+          Text(l10n.quickWorkoutBody, style: AppText.secondary),
           const SizedBox(height: AppSpacing.xl),
           FilledButton.icon(
             onPressed: onAdd,
             icon: const Icon(Icons.add_rounded),
-            label: const Text('Add exercise'),
+            label: Text(l10n.addExercise),
           ),
         ],
       ),
@@ -393,15 +394,15 @@ class _ExerciseTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final logged = exercise.sets.length;
     final progress = exercise.targetSets == null
-        ? '$logged ${logged == 1 ? 'set' : 'sets'}'
-        : '$logged / ${exercise.targetSets} sets';
+        ? l10n.setCount(logged)
+        : l10n.setsLoggedOfTarget(logged, exercise.targetSets!);
     final name = capitalize(exercise.name);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: Semantics(
         button: true,
-        label: '$number. $name, $progress${exercise.isDone ? ', done' : ''}${isActive ? ', do this now' : ''}. Tap to open.',
+        label: l10n.exerciseRowSemantics(number, name, progress, exercise.isDone ? l10n.semDone : '', isActive ? l10n.semDoThisNow : ''),
         excludeSemantics: true,
         child: Material(
           color: AppColors.surface,
@@ -438,7 +439,7 @@ class _ExerciseTile extends StatelessWidget {
                         Text(
                           exercise.targetSets == null
                               ? progress
-                              : '$progress · target ${exercise.targetSets} × ${exercise.targetReps}',
+                              : l10n.progressWithTarget(progress, exercise.targetSets!, exercise.targetReps!),
                           style: AppText.caption,
                         ),
                       ],
@@ -476,10 +477,10 @@ class _CardioSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text('Cardio', style: AppText.heading),
+        Text(l10n.cardio, style: AppText.heading),
         const SizedBox(height: AppSpacing.xs),
         if (session.cardio.isEmpty)
-          const Text('Finish with some cardio? Pick the machine and how long.', style: AppText.secondary),
+          Text(l10n.cardioFinishPrompt, style: AppText.secondary),
         for (final entry in session.cardio)
           Padding(
             padding: const EdgeInsets.only(top: AppSpacing.sm),
@@ -489,7 +490,7 @@ class _CardioSection extends ConsumerWidget {
         OutlinedButton.icon(
           onPressed: () => showCardioSheet(context),
           icon: const Icon(Icons.directions_run_rounded),
-          label: const Text('Add cardio'),
+          label: Text(l10n.addCardio),
         ),
       ],
     );
@@ -507,7 +508,7 @@ class _CardioTile extends StatelessWidget {
     final details = [formatDuration(entry.durationSeconds), ...entry.details].join(' · ');
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.xs, AppSpacing.md),
+      padding: const EdgeInsetsDirectional.fromSTEB(AppSpacing.lg, AppSpacing.md, AppSpacing.xs, AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -527,11 +528,11 @@ class _CardioTile extends StatelessWidget {
             ),
           ),
           Text(
-            entry.estimatedCalories == null ? '— kcal' : '≈ ${entry.estimatedCalories} kcal',
+            entry.estimatedCalories == null ? l10n.noKcal : l10n.kcalAmount(entry.estimatedCalories!),
             style: AppText.secondary.copyWith(color: AppColors.textPrimary),
           ),
           IconButton(
-            tooltip: 'Delete cardio',
+            tooltip: l10n.deleteCardio,
             onPressed: onDelete,
             icon: const Icon(Icons.close_rounded, color: AppColors.textTertiary),
           ),

@@ -7,6 +7,7 @@ import '../../../core/theme/app_text.dart';
 import '../../../shared/format.dart';
 import '../../exercises/presentation/widgets/exercise_thumb.dart';
 import '../domain/stats.dart';
+import '../../../l10n/l10n.dart';
 
 /// The four records of one exercise.
 Future<void> showRecordsSheet(BuildContext context, ExerciseRecords records) {
@@ -71,8 +72,7 @@ class _ExerciseRecordsView extends StatelessWidget {
                 children: [
                   Text(capitalize(records.name), style: AppText.heading),
                   Text(
-                    '${records.sessionCount} ${records.sessionCount == 1 ? 'workout' : 'workouts'} · '
-                    'last ${formatDaysAgo(records.lastPerformedAt)}',
+                    l10n.recordsMeta(records.sessionCount, formatDaysAgo(records.lastPerformedAt)),
                     style: AppText.caption,
                   ),
                 ],
@@ -97,9 +97,9 @@ class _RecordLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final value = switch (type) {
-      RecordType.heaviestWeight || RecordType.estimated1Rm => '${formatKg(set.value)} kg',
-      RecordType.mostReps => '${set.value.round()} reps',
-      RecordType.bestSetVolume => '${NumberFormat.decimalPattern().format(set.value.round())} kg',
+      RecordType.heaviestWeight || RecordType.estimated1Rm => l10n.amountKg(formatKg(set.value)),
+      RecordType.mostReps => l10n.repsCount(set.value.round()),
+      RecordType.bestSetVolume => l10n.amountKg(NumberFormat.decimalPattern().format(set.value.round())),
     };
     final from = formatSet(set.weightKg, set.reps);
 

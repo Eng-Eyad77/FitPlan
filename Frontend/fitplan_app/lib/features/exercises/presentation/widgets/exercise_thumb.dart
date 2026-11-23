@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text.dart';
+import '../../../../l10n/l10n.dart';
 
 /// The exercise GIF in a rounded box. The GIFs have a white background,
 /// so the box is white too and blends with them.
@@ -53,7 +54,7 @@ class ExerciseThumb extends StatelessWidget {
     if (onTap == null) return thumb;
     return Semantics(
       button: true,
-      label: 'Show how to do it',
+      label: l10n.showHowToDoIt,
       child: GestureDetector(onTap: onTap, child: thumb),
     );
   }
@@ -69,7 +70,7 @@ class _NoDemo extends StatelessWidget {
   Widget build(BuildContext context) {
     final big = size >= 96;
     return Semantics(
-      label: big ? 'Demo not available. Follow the steps below.' : 'Demo not available',
+      label: big ? l10n.demoNotAvailableFull : l10n.demoNotAvailable,
       excludeSemantics: true,
       child: ColoredBox(
         color: AppColors.surface2,
@@ -82,9 +83,9 @@ class _NoDemo extends StatelessWidget {
                     children: [
                       Icon(Icons.videocam_off_outlined, color: AppColors.textTertiary, size: (size * 0.18).clamp(24, 48)),
                       const SizedBox(height: AppSpacing.sm),
-                      Text('Demo not available', style: AppText.bodyStrong, textAlign: TextAlign.center),
+                      Text(l10n.demoNotAvailable, style: AppText.bodyStrong, textAlign: TextAlign.center),
                       const SizedBox(height: 2),
-                      Text('Follow the steps below.', style: AppText.caption, textAlign: TextAlign.center),
+                      Text(l10n.followStepsBelow, style: AppText.caption, textAlign: TextAlign.center),
                     ],
                   ),
                 )

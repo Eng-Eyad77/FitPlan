@@ -6,6 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_text.dart';
 import '../application/recovery_code.dart';
+import '../../../l10n/l10n.dart';
 
 /// Covers the app until the user confirms they saved their recovery code. It is the only way back
 /// into the account if the password is forgotten, and the server can't show it again.
@@ -36,11 +37,10 @@ class RecoveryCodeNotice extends ConsumerWidget {
                         children: [
                           const Icon(Icons.key_rounded, size: 40, color: AppColors.accent),
                           const SizedBox(height: AppSpacing.lg),
-                          const Text('Save your recovery code', style: AppText.title, textAlign: TextAlign.center),
+                          Text(l10n.recoverySaveTitle, style: AppText.title, textAlign: TextAlign.center),
                           const SizedBox(height: AppSpacing.sm),
                           Text(
-                            'If you forget your password, this code is the only way back into your account. '
-                            'Keep it somewhere safe, like a password manager. It works once, and we can\'t show it again.',
+                            l10n.recoverySaveBody,
                             style: AppText.secondary,
                             textAlign: TextAlign.center,
                           ),
@@ -66,16 +66,16 @@ class RecoveryCodeNotice extends ConsumerWidget {
                               if (context.mounted) {
                                 ScaffoldMessenger.maybeOf(context)
                                   ?..hideCurrentSnackBar()
-                                  ..showSnackBar(const SnackBar(content: Text('Recovery code copied.')));
+                                  ..showSnackBar(SnackBar(content: Text(l10n.recoveryCopied)));
                               }
                             },
                             icon: const Icon(Icons.copy_rounded),
-                            label: const Text('Copy code'),
+                            label: Text(l10n.copyCode),
                           ),
                           const SizedBox(height: AppSpacing.sm),
                           FilledButton(
                             onPressed: () => ref.read(recoveryCodeToShowProvider.notifier).saved(),
-                            child: const Text("I've saved it"),
+                            child: Text(l10n.savedIt),
                           ),
                         ],
                       ),

@@ -4,10 +4,11 @@ import '../../core/network/api_exception.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_text.dart';
+import '../../l10n/l10n.dart';
 
 /// The API error message, or a generic one for anything else.
-String errorMessage(Object error, [String fallback = 'Something went wrong. Please try again.']) =>
-    error is ApiException ? error.message : fallback;
+String errorMessage(Object error, [String? fallback]) =>
+    error is ApiException ? error.message : fallback ?? l10n.errGeneric;
 
 /// Shows the API error message in a snackbar.
 void showError(BuildContext context, Object error) => showMessage(context, errorMessage(error));
@@ -37,7 +38,7 @@ class LoadError extends StatelessWidget {
             const SizedBox(height: AppSpacing.md),
             Text(message, style: AppText.secondary, textAlign: TextAlign.center),
             const SizedBox(height: AppSpacing.lg),
-            TextButton(onPressed: onRetry, child: const Text('Try again')),
+            TextButton(onPressed: onRetry, child: Text(l10n.tryAgain)),
           ],
         ),
       ),

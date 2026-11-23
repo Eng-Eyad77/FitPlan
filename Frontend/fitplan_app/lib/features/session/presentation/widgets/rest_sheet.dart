@@ -4,6 +4,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text.dart';
 import '../../../../shared/widgets/number_stepper.dart';
 import '../../domain/workout_session.dart';
+import '../../../../l10n/l10n.dart';
 
 /// The rest after each set of one exercise, for this workout only. Returns null when dismissed.
 Future<int?> showRestSheet(BuildContext context, {required String title, required int seconds}) {
@@ -37,10 +38,10 @@ class _RestSheetState extends State<_RestSheet> {
           children: [
             Text(widget.title, style: AppText.heading, maxLines: 2, overflow: TextOverflow.ellipsis),
             const SizedBox(height: AppSpacing.xs),
-            const Text('Rest after each set, for this workout. Your plan stays as it is.', style: AppText.secondary),
+            Text(l10n.restSheetBody, style: AppText.secondary),
             const SizedBox(height: AppSpacing.lg),
             NumberStepper(
-              label: 'Rest between sets',
+              label: l10n.restBetweenSets,
               value: _seconds,
               min: RestLimits.min,
               max: RestLimits.max,
@@ -49,7 +50,7 @@ class _RestSheetState extends State<_RestSheet> {
               onChanged: (v) => setState(() => _seconds = v),
             ),
             const SizedBox(height: AppSpacing.xl),
-            FilledButton(onPressed: () => Navigator.pop(context, _seconds), child: const Text('Save')),
+            FilledButton(onPressed: () => Navigator.pop(context, _seconds), child: Text(l10n.save)),
           ],
         ),
       ),

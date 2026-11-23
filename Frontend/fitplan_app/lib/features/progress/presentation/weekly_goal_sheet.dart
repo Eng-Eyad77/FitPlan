@@ -7,6 +7,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_text.dart';
 import '../../../shared/widgets/feedback.dart';
 import '../../profile/application/profile_controller.dart';
+import '../../../l10n/l10n.dart';
 
 /// How many workouts a week the user aims for (1-7), or no goal.
 Future<void> showWeeklyGoalSheet(BuildContext context) {
@@ -51,10 +52,10 @@ class _WeeklyGoalSheetState extends ConsumerState<_WeeklyGoalSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('Weekly goal', style: AppText.heading),
+            Text(l10n.weeklyGoal, style: AppText.heading),
             const SizedBox(height: AppSpacing.xs),
-            const Text(
-              'Workouts per week. Hit it and your streak grows.',
+            Text(
+              l10n.weeklyGoalBody,
               style: AppText.secondary,
             ),
             const SizedBox(height: AppSpacing.xl),
@@ -77,7 +78,7 @@ class _WeeklyGoalSheetState extends ConsumerState<_WeeklyGoalSheet> {
               TextButton(
                 onPressed: _saving ? null : () => _save(null),
                 style: TextButton.styleFrom(foregroundColor: AppColors.textSecondary),
-                child: const Text('No goal'),
+                child: Text(l10n.noGoal),
               ),
           ],
         ),
@@ -98,7 +99,7 @@ class _GoalButton extends StatelessWidget {
     return Semantics(
       button: true,
       selected: selected,
-      label: '$goal ${goal == 1 ? 'workout' : 'workouts'} a week',
+      label: l10n.goalPerWeek(goal),
       excludeSemantics: true,
       child: Material(
         color: selected ? AppColors.accent : AppColors.surface2,

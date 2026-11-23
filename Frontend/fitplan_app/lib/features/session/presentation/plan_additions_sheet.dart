@@ -13,6 +13,7 @@ import '../../plans/data/plans_repository.dart';
 import '../../plans/presentation/target_sheet.dart';
 import '../application/plan_additions.dart';
 import '../domain/workout_session.dart';
+import '../../../l10n/l10n.dart';
 
 /// After a finished plan workout: offers the exercises added during it for the plan.
 /// The plan changes only for the ones the user confirms. Never throws.
@@ -52,7 +53,7 @@ Future<void> offerPlanAdditions(BuildContext context, WidgetRef ref, WorkoutSess
         if (error.code != 'ExerciseAlreadyExists') rethrow; // already there: nothing to do
       }
     }
-    if (context.mounted) showMessage(context, 'Added $added to ${session.name}');
+    if (context.mounted) showMessage(context, l10n.addedToPlan(l10n.exerciseCount(added), session.name));
   } catch (error) {
     if (context.mounted) showError(context, error);
   }
@@ -80,7 +81,7 @@ class _PlanAdditionsSheetState extends State<_PlanAdditionsSheet> {
       sets: item.sets,
       reps: item.reps,
       restSeconds: item.restSeconds,
-      confirmLabel: 'Save',
+      confirmLabel: l10n.save,
     );
     if (target == null || !mounted) return;
     setState(() {
@@ -100,10 +101,10 @@ class _PlanAdditionsSheetState extends State<_PlanAdditionsSheet> {
           shrinkWrap: true,
           padding: AppSpacing.screen.copyWith(top: AppSpacing.lg, bottom: AppSpacing.lg),
           children: [
-            Text('Add to ${widget.planName}?', style: AppText.heading),
+            Text(l10n.addToPlanQuestion(widget.planName), style: AppText.heading),
             const SizedBox(height: AppSpacing.xs),
-            const Text(
-              'You added these during this workout. Choose which to keep in your plan.',
+            Text(
+              l10n.planAdditionsBody,
               style: AppText.secondary,
             ),
             const SizedBox(height: AppSpacing.md),
@@ -122,13 +123,13 @@ class _PlanAdditionsSheetState extends State<_PlanAdditionsSheet> {
                         for (var i = 0; i < _items.length; i++)
                           if (_selected.contains(i)) _items[i],
                       ]),
-              child: Text(count == 0 ? 'Add to plan' : 'Add $count to plan'),
+              child: Text(count == 0 ? l10n.addToPlan : l10n.addCountToPlan(count)),
             ),
             const SizedBox(height: AppSpacing.sm),
             TextButton(
               onPressed: () => Navigator.pop(context),
               style: TextButton.styleFrom(foregroundColor: AppColors.textSecondary),
-              child: const Text('Not now'),
+              child: Text(l10n.notNow),
             ),
           ],
         ),
@@ -164,7 +165,7 @@ class _AdditionRow extends StatelessWidget {
             padding: const EdgeInsets.all(AppSpacing.sm),
             child: Row(
               children: [
-                Checkbox(value: selected, onChanged: (_) => onToggle(), semanticLabel: 'Add $name'),
+                Checkbox(value: selected, onChanged: (_) => onToggle(), semanticLabel: l10n.addName(name)),
                 ExerciseThumb(url: item.exercise.gifUrl, size: 44),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
@@ -172,7 +173,7 @@ class _AdditionRow extends StatelessWidget {
                 ),
                 TextButton(
                   onPressed: onEdit,
-                  child: Text(target, semanticsLabel: 'Target for $name: $target. Tap to change.'),
+                  child: Text(target, semanticsLabel: l10n.targetForSemantics(name, target)),
                 ),
               ],
             ),

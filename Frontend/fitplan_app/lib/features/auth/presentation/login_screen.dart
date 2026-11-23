@@ -10,6 +10,7 @@ import '../../../shared/widgets/loading_button.dart';
 import '../application/auth_controller.dart';
 import 'auth_messages.dart';
 import 'widgets/auth_layout.dart';
+import '../../../l10n/l10n.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -54,8 +55,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return AuthLayout(
-      title: 'Welcome back',
-      subtitle: 'Log in to continue your training.',
+      title: l10n.loginTitle,
+      subtitle: l10n.loginSubtitle,
       form: Form(
         key: _formKey,
         child: AutofillGroup(
@@ -68,23 +69,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 autofillHints: const [AutofillHints.username],
                 autocorrect: false,
                 style: AppText.body,
-                decoration: const InputDecoration(labelText: 'Username'),
+                decoration: InputDecoration(labelText: l10n.username),
                 validator: (value) =>
-                    (value == null || value.trim().isEmpty) ? 'Enter your username' : null,
+                    (value == null || value.trim().isEmpty) ? l10n.enterUsername : null,
               ),
               const SizedBox(height: AppSpacing.md),
               PasswordField(
                 controller: _password,
-                label: 'Password',
+                label: l10n.password,
                 onSubmitted: (_) => _submit(),
                 validator: (value) =>
-                    (value == null || value.isEmpty) ? 'Enter your password' : null,
+                    (value == null || value.isEmpty) ? l10n.enterPassword : null,
               ),
               Align(
                 alignment: AlignmentDirectional.centerEnd,
                 child: TextButton(
                   onPressed: _loading ? null : () => context.go(Routes.resetPassword),
-                  child: const Text('Forgot password?'),
+                  child: Text(l10n.forgotPassword),
                 ),
               ),
               const SizedBox(height: AppSpacing.sm),
@@ -92,7 +93,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 AuthErrorBanner(message: _error!),
                 const SizedBox(height: AppSpacing.lg),
               ],
-              LoadingButton(label: 'Log in', loading: _loading, onPressed: _submit),
+              LoadingButton(label: l10n.logIn, loading: _loading, onPressed: _submit),
             ],
           ),
         ),
@@ -100,10 +101,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       footer: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text('New to FitPlan?', style: AppText.secondary),
+          Text(l10n.newToFitPlan, style: AppText.secondary),
           TextButton(
             onPressed: _loading ? null : () => context.go(Routes.register),
-            child: const Text('Create an account'),
+            child: Text(l10n.createAnAccount),
           ),
         ],
       ),

@@ -8,6 +8,7 @@ import '../../../core/theme/app_text.dart';
 import '../application/progress_providers.dart';
 import '../domain/volume.dart';
 import 'widgets/milestone_icon.dart';
+import '../../../l10n/l10n.dart';
 
 /// Progress: the lifetime volume, what it compares to, and the way to the next milestone.
 /// Shows nothing while loading or when it can't load, so the rest of the screen isn't held up.
@@ -24,7 +25,7 @@ class VolumeCard extends ConsumerWidget {
     final (number, unit) = volumeParts(volume.totalVolumeKg);
     final comparison =
         Milestone.compare(volume.totalVolumeKg) ??
-        (volume.totalVolumeKg == 0 ? 'Finish a workout with weights to start' : 'Keep going');
+        (volume.totalVolumeKg == 0 ? l10n.finishWithWeights : l10n.keepGoing);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.md),
@@ -44,7 +45,7 @@ class VolumeCard extends ConsumerWidget {
               children: [
                 Row(
                   children: [
-                    const Expanded(child: Text('LIFETIME VOLUME', style: AppText.overline)),
+                    Expanded(child: Text(l10n.lifetimeVolume, style: AppText.overline)),
                     const Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary),
                   ],
                 ),
@@ -77,13 +78,13 @@ class VolumeCard extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.sm),
                   Row(
                     children: [
-                      Expanded(child: Text('Next: ${next.name}', style: AppText.caption)),
-                      Text('${formatVolumeAmount(next.weightKg - volume.totalVolumeKg)} to go', style: AppText.caption),
+                      Expanded(child: Text(l10n.nextMilestone(next.name), style: AppText.caption)),
+                      Text(l10n.toGo(formatVolumeAmount(next.weightKg - volume.totalVolumeKg)), style: AppText.caption),
                     ],
                   ),
                 ] else ...[
                   const SizedBox(height: AppSpacing.sm),
-                  const Text('Every milestone reached. Legendary.', style: AppText.caption),
+                  Text(l10n.allMilestones, style: AppText.caption),
                 ],
               ],
             ),
@@ -111,10 +112,14 @@ class _Bar extends StatelessWidget {
           children: [
             const ColoredBox(color: AppColors.surface2),
             FractionallySizedBox(
-              alignment: Alignment.centerLeft,
+              alignment: AlignmentDirectional.centerStart,
               widthFactor: value.clamp(0, 1),
               child: const DecoratedBox(
-                decoration: BoxDecoration(gradient: LinearGradient(colors: [AppColors.accentDeep, AppColors.accent])),
+                decoration: BoxDecoration(gradient: LinearGradient(
+                  begin: AlignmentDirectional.centerStart,
+                  end: AlignmentDirectional.centerEnd,
+                  colors: [AppColors.accentDeep, AppColors.accent],
+                )),
               ),
             ),
           ],
@@ -154,16 +159,15 @@ class _MilestonesList extends ConsumerWidget {
       controller: scroll,
       padding: AppSpacing.screen.copyWith(bottom: AppSpacing.xl),
       children: [
-        const Text('Milestones', style: AppText.title),
+        Text(l10n.milestones, style: AppText.title),
         const SizedBox(height: AppSpacing.xs),
-        Text('${formatVolumeAmount(volume.totalVolumeKg)} lifted so far', style: AppText.secondary),
+        Text(l10n.liftedSoFar(formatVolumeAmount(volume.totalVolumeKg)), style: AppText.secondary),
         const SizedBox(height: AppSpacing.lg),
         for (final item in volume.milestones)
           _MilestoneRow(item: item, isNext: identical(item, next), progress: volume.progressToNext),
         const SizedBox(height: AppSpacing.lg),
-        const Text(
-          'Weights are approximate. Volume is reps × weight from finished workouts. '
-          'Bodyweight sets and cardio aren\'t counted.',
+        Text(
+          l10n.milestonesNote,
           style: AppText.caption,
         ),
       ],
@@ -202,7 +206,7 @@ class _MilestoneRow extends StatelessWidget {
                   Text(milestone.title, style: AppText.bodyStrong),
                   if (reachedAt != null)
                     Text(
-                      'Reached ${DateFormat.yMMMd().format(reachedAt.toLocal())}',
+                      l10n.reachedOn(DateFormat.yMMMd().format(reachedAt.toLocal())),
                       style: AppText.caption.copyWith(color: AppColors.accent),
                     )
                   else if (isNext) ...[

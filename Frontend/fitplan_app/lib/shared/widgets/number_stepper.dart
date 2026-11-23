@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_text.dart';
+import '../../l10n/l10n.dart';
 
 /// "−  3  +" with a label. Big buttons, easy to hit between sets.
 class NumberStepper extends StatelessWidget {
@@ -45,13 +46,13 @@ class NumberStepper extends StatelessWidget {
             children: [
               _StepButton(
                 icon: Icons.remove_rounded,
-                label: 'Decrease $label',
+                label: l10n.decrease(label),
                 onTap: value > min ? () => onChanged((value - step).clamp(min, max)) : null,
               ),
               Text(format?.call(value) ?? '$value', style: AppText.number),
               _StepButton(
                 icon: Icons.add_rounded,
-                label: 'Increase $label',
+                label: l10n.increase(label),
                 onTap: value < max ? () => onChanged((value + step).clamp(min, max)) : null,
               ),
             ],
