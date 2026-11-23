@@ -11,6 +11,7 @@ import '../../progress/domain/volume.dart';
 import '../../progress/presentation/widgets/comparison_section.dart';
 import '../../progress/presentation/widgets/milestone_icon.dart';
 import '../domain/workout_session.dart';
+import '../../../l10n/l10n.dart';
 
 /// Shown right after finishing a workout.
 class SummaryScreen extends StatelessWidget {
@@ -21,16 +22,16 @@ class SummaryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tiles = [
-      _Stat(label: 'Duration', value: formatDuration(summary.durationSeconds)),
-      _Stat(label: 'Volume', value: formatVolume(summary.totalVolumeKg)),
-      _Stat(label: 'Exercises', value: '${summary.exerciseCount}'),
-      _Stat(label: 'Sets', value: '${summary.setCount}'),
+      _Stat(label: l10n.duration, value: formatDuration(summary.durationSeconds)),
+      _Stat(label: l10n.volume, value: formatVolume(summary.totalVolumeKg)),
+      _Stat(label: l10n.exercises, value: '${summary.exerciseCount}'),
+      _Stat(label: l10n.sets, value: '${summary.setCount}'),
       if (summary.cardioDurationSeconds > 0) ...[
-        _Stat(label: 'Cardio', value: formatDuration(summary.cardioDurationSeconds)),
+        _Stat(label: l10n.cardio, value: formatDuration(summary.cardioDurationSeconds)),
         // 0 = no body weight on the profile, so nothing to estimate from
         summary.estimatedCalories > 0
-            ? _Stat(label: 'Calories (estimated)', value: '≈ ${summary.estimatedCalories} kcal')
-            : const _Stat(label: 'Calories', value: 'Add weight in Profile'),
+            ? _Stat(label: l10n.caloriesEstimated, value: l10n.kcalAmount(summary.estimatedCalories))
+            : _Stat(label: l10n.calories, value: l10n.addWeightInProfile),
       ],
     ];
 
@@ -55,7 +56,7 @@ class SummaryScreen extends StatelessWidget {
                 .scale(begin: const Offset(0.6, 0.6), duration: 420.ms, curve: Curves.easeOutBack)
                 .fadeIn(duration: 200.ms),
             const SizedBox(height: AppSpacing.xl),
-            const Text('Workout complete', style: AppText.title, textAlign: TextAlign.center),
+            Text(l10n.workoutComplete, style: AppText.title, textAlign: TextAlign.center),
             const SizedBox(height: AppSpacing.xs),
             Text(summary.name, style: AppText.secondary, textAlign: TextAlign.center),
             const SizedBox(height: AppSpacing.xxxl),
@@ -81,13 +82,13 @@ class SummaryScreen extends StatelessWidget {
                 children: [
                   MilestoneIcon(art: Milestone.biggestWithin(summary.totalVolumeKg)!.art, size: 36),
                   const SizedBox(width: AppSpacing.md),
-                  Expanded(child: Text('This workout: ${comparison[0].toLowerCase()}${comparison.substring(1)}', style: AppText.secondary)),
+                  Expanded(child: Text(l10n.thisWorkoutCompare(isArabic ? comparison : '${comparison[0].toLowerCase()}${comparison.substring(1)}'), style: AppText.secondary)),
                 ],
               ),
             ],
             ComparisonSection(sessionId: summary.id, sessionName: summary.name),
             const SizedBox(height: AppSpacing.xxxl),
-            FilledButton(onPressed: () => context.go(Routes.home), child: const Text('Done')),
+            FilledButton(onPressed: () => context.go(Routes.home), child: Text(l10n.done)),
           ],
         ),
       ),
@@ -132,14 +133,14 @@ class _MilestoneCelebration extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('NEW MILESTONE', style: AppText.overline.copyWith(color: AppColors.success)),
+                Text(l10n.newMilestone, style: AppText.overline.copyWith(color: AppColors.success)),
                 const SizedBox(height: 2),
-                Text("You've lifted ${top.name}", style: AppText.heading),
+                Text(l10n.youLifted(top.name), style: AppText.heading),
                 const SizedBox(height: 2),
                 Text(
                   others.isEmpty
-                      ? 'Your total passed ${formatVolumeAmount(top.weightKg)}, about the weight of ${top.name}'
-                      : 'And passed ${others.join(' and ')} on the way',
+                      ? l10n.totalPassed(formatVolumeAmount(top.weightKg), top.name)
+                      : l10n.passedOnTheWay(others.join(l10n.and)),
                   style: AppText.secondary,
                 ),
               ],
@@ -173,7 +174,7 @@ class _Stat extends StatelessWidget {
           Text(label, style: AppText.caption),
           FittedBox(
             fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
+            alignment: AlignmentDirectional.centerStart,
             child: Text(value, style: AppText.number),
           ),
         ],

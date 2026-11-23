@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import '../../../l10n/l10n.dart';
 
 part 'workout_session.freezed.dart';
 part 'workout_session.g.dart';
@@ -106,66 +107,96 @@ abstract class Suggestion with _$Suggestion {
 
   /// Why, in a few words.
   String get why => switch (reason) {
-        SuggestionReason.increaseWeight => 'you hit every rep last time',
-        SuggestionReason.repeatWeight => 'same weight, beat the reps',
-        SuggestionReason.deload => 'lighter to recover after two tough workouts',
-        SuggestionReason.moreReps => 'one more rep than your best',
+        SuggestionReason.increaseWeight => l10n.whyIncrease,
+        SuggestionReason.repeatWeight => l10n.whyRepeat,
+        SuggestionReason.deload => l10n.whyDeload,
+        SuggestionReason.moreReps => l10n.whyMoreReps,
       };
 }
 
 /// A detail a cardio machine can show. Same names and limits as the API (CardioFields, CardioEntryRequestDto).
 enum CardioField {
-  speed('speedKmh', 'Speed', 'km/h', min: 0.1, max: 30, decimal: true),
-  incline('inclinePercent', 'Incline', '%', min: 0, max: 40, decimal: true),
-  distanceKm('distanceKm', 'Distance', 'km', min: 0.01, max: 100, decimal: true),
-  distanceMeters('distanceMeters', 'Distance', 'm', min: 1, max: 50000),
-  level('level', 'Level', '', min: 1, max: 30),
-  damper('level', 'Damper', '', min: 1, max: 10), // the rower's "level"
-  floors('floors', 'Floors', '', min: 1, max: 1000),
-  cadence('cadenceRpm', 'Cadence', 'rpm', min: 20, max: 200),
-  strokeRate('strokeRate', 'Stroke rate', 'spm', min: 10, max: 60),
-  poolLength('poolLengthMeters', 'Pool length', 'm', min: 10, max: 100),
-  laps('laps', 'Laps', '', min: 1, max: 2000);
+  speed('speedKmh', min: 0.1, max: 30, decimal: true),
+  incline('inclinePercent', min: 0, max: 40, decimal: true),
+  distanceKm('distanceKm', min: 0.01, max: 100, decimal: true),
+  distanceMeters('distanceMeters', min: 1, max: 50000),
+  level('level', min: 1, max: 30),
+  damper('level', min: 1, max: 10), // the rower's "level"
+  floors('floors', min: 1, max: 1000),
+  cadence('cadenceRpm', min: 20, max: 200),
+  strokeRate('strokeRate', min: 10, max: 60),
+  poolLength('poolLengthMeters', min: 10, max: 100),
+  laps('laps', min: 1, max: 2000);
 
-  const CardioField(this.jsonKey, this.label, this.unit, {required this.min, required this.max, this.decimal = false});
+  const CardioField(this.jsonKey, {required this.min, required this.max, this.decimal = false});
 
   final String jsonKey;
-  final String label;
-  final String unit;
+
+  String get label => switch (this) {
+        speed => l10n.cfSpeed,
+        incline => l10n.cfIncline,
+        distanceKm || distanceMeters => l10n.cfDistance,
+        level => l10n.cfLevel,
+        damper => l10n.cfDamper,
+        floors => l10n.cfFloors,
+        cadence => l10n.cfCadence,
+        strokeRate => l10n.cfStrokeRate,
+        poolLength => l10n.cfPoolLength,
+        laps => l10n.cfLaps,
+      };
+
+  String get unit => switch (this) {
+        speed => l10n.unitKmh,
+        incline => '%',
+        distanceKm => l10n.unitKm,
+        distanceMeters || poolLength => l10n.unitM,
+        cadence => 'rpm',
+        strokeRate => 'spm',
+        level || damper || floors || laps => '',
+      };
   final num min;
   final num max;
   final bool decimal;
 
   /// "Speed: 0.1 to 30 km/h"
-  String get rangeText => '$label: ${_n(min)} to ${_n(max)}${unit.isEmpty ? '' : ' $unit'}';
+  String get rangeText => l10n.cardioRange(label, _n(min), _n(max), unit.isEmpty ? '' : ' $unit');
 
   static String _n(num v) => v == v.roundToDouble() ? v.toInt().toString() : '$v';
 }
 
 enum CardioMachine {
   @JsonValue('Treadmill')
-  treadmill('Treadmill', [CardioField.speed, CardioField.incline, CardioField.distanceKm]),
+  treadmill([CardioField.speed, CardioField.incline, CardioField.distanceKm]),
   @JsonValue('StairClimber')
-  stairClimber('Stairs', [CardioField.level, CardioField.floors]),
+  stairClimber([CardioField.level, CardioField.floors]),
   @JsonValue('StationaryBike')
-  stationaryBike('Bike', [CardioField.level, CardioField.distanceKm, CardioField.cadence]),
+  stationaryBike([CardioField.level, CardioField.distanceKm, CardioField.cadence]),
   @JsonValue('Elliptical')
-  elliptical('Elliptical', [CardioField.level, CardioField.distanceKm, CardioField.incline]),
+  elliptical([CardioField.level, CardioField.distanceKm, CardioField.incline]),
   @JsonValue('Rower')
-  rower('Rower', [CardioField.distanceMeters, CardioField.damper, CardioField.strokeRate]),
+  rower([CardioField.distanceMeters, CardioField.damper, CardioField.strokeRate]),
   @JsonValue('Swimming')
-  swimming('Swimming', [CardioField.distanceMeters, CardioField.poolLength, CardioField.laps]),
+  swimming([CardioField.distanceMeters, CardioField.poolLength, CardioField.laps]),
 
   /// Kept for entries saved before it was retired; it can't be picked.
   @JsonValue('Other')
-  other('Other', [CardioField.speed, CardioField.incline, CardioField.distanceKm], selectable: false),
+  other([CardioField.speed, CardioField.incline, CardioField.distanceKm], selectable: false),
 
   /// A machine this version doesn't know yet (added by a newer server). Shown as plain cardio.
-  unknown('Cardio', [], selectable: false);
+  unknown([], selectable: false);
 
-  const CardioMachine(this.label, this.fields, {this.selectable = true});
+  const CardioMachine(this.fields, {this.selectable = true});
 
-  final String label;
+  String get label => switch (this) {
+        treadmill => l10n.cmTreadmill,
+        stairClimber => l10n.cmStairs,
+        stationaryBike => l10n.cmBike,
+        elliptical => l10n.cmElliptical,
+        rower => l10n.cmRower,
+        swimming => l10n.cmSwimming,
+        other => l10n.cmOther,
+        unknown => l10n.cardio,
+      };
 
   /// What this machine shows on its display, in the order the sheet asks for them.
   final List<CardioField> fields;
@@ -214,20 +245,20 @@ abstract class CardioEntry with _$CardioEntry {
   List<String> get details {
     String n(double v) => v == v.roundToDouble() ? v.toStringAsFixed(0) : '$v';
     return [
-      if (speedKmh != null) '${n(speedKmh!)} km/h',
-      if (inclinePercent != null) '${n(inclinePercent!)}% incline',
-      if (distanceKm != null) '${n(distanceKm!)} km',
-      if (distanceMeters != null) '$distanceMeters m',
-      if (level != null) machine == CardioMachine.rower ? 'Damper $level' : 'Level $level',
-      if (floors != null) '$floors ${floors == 1 ? 'floor' : 'floors'}',
+      if (speedKmh != null) l10n.cdSpeed(n(speedKmh!)),
+      if (inclinePercent != null) l10n.cdIncline(n(inclinePercent!)),
+      if (distanceKm != null) l10n.cdKm(n(distanceKm!)),
+      if (distanceMeters != null) l10n.cdMeters(distanceMeters!),
+      if (level != null) machine == CardioMachine.rower ? l10n.cdDamper(level!) : l10n.cdLevel(level!),
+      if (floors != null) l10n.cdFloors(floors!),
       if (cadenceRpm != null) '$cadenceRpm rpm',
       if (strokeRate != null) '$strokeRate spm',
       if (laps != null && poolLengthMeters != null)
-        '$laps ${laps == 1 ? 'lap' : 'laps'} of $poolLengthMeters m'
+        l10n.cdLapsOf(laps!, poolLengthMeters!)
       else if (laps != null)
-        '$laps ${laps == 1 ? 'lap' : 'laps'}'
+        l10n.cdLaps(laps!)
       else if (poolLengthMeters != null)
-        '$poolLengthMeters m pool',
+        l10n.cdPool(poolLengthMeters!),
     ];
   }
 }
@@ -263,7 +294,7 @@ abstract final class RestLimits {
 
 /// "1:30", "45 s", "10:00".
 String formatRest(int seconds) =>
-    seconds < 60 ? '$seconds s' : '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
+    seconds < 60 ? l10n.secondsShort(seconds) : '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
 
 /// Limits from the API.
 abstract final class SessionLimits {

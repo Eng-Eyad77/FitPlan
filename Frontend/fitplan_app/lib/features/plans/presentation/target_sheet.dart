@@ -6,6 +6,7 @@ import '../../../core/theme/app_text.dart';
 import '../../../shared/widgets/number_stepper.dart';
 import '../../session/domain/workout_session.dart';
 import '../domain/workout_plan.dart';
+import '../../../l10n/l10n.dart';
 
 /// [restSeconds] null = the default rest (90 s).
 typedef PlanTarget = ({int sets, int reps, int? restSeconds, bool remove});
@@ -76,13 +77,13 @@ class _TargetSheetState extends State<_TargetSheet> {
           children: [
             Text(widget.title, style: AppText.heading, maxLines: 2, overflow: TextOverflow.ellipsis),
             const SizedBox(height: AppSpacing.xs),
-            const Text('Your target for each workout', style: AppText.secondary),
+            Text(l10n.targetSubtitle, style: AppText.secondary),
             const SizedBox(height: AppSpacing.lg),
             Row(
               children: [
                 Expanded(
                   child: NumberStepper(
-                    label: 'Sets',
+                    label: l10n.sets,
                     value: _sets,
                     min: 1,
                     max: PlanLimits.maxSets,
@@ -92,7 +93,7 @@ class _TargetSheetState extends State<_TargetSheet> {
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: NumberStepper(
-                    label: 'Reps',
+                    label: l10n.reps,
                     value: _reps,
                     min: 1,
                     max: PlanLimits.maxReps,
@@ -103,7 +104,7 @@ class _TargetSheetState extends State<_TargetSheet> {
             ),
             const SizedBox(height: AppSpacing.md),
             NumberStepper(
-              label: 'Rest between sets',
+              label: l10n.restBetweenSets,
               value: _rest,
               min: RestLimits.min,
               max: RestLimits.max,
@@ -114,14 +115,14 @@ class _TargetSheetState extends State<_TargetSheet> {
             const SizedBox(height: AppSpacing.xl),
             FilledButton(
               onPressed: () => Navigator.pop(context, (sets: _sets, reps: _reps, restSeconds: _restToSave, remove: false)),
-              child: Text(widget.confirmLabel ?? (widget.canRemove ? 'Save' : 'Add to plan')),
+              child: Text(widget.confirmLabel ?? (widget.canRemove ? l10n.save : l10n.addToPlan)),
             ),
             if (widget.canRemove) ...[
               const SizedBox(height: AppSpacing.sm),
               TextButton(
                 onPressed: () => Navigator.pop(context, (sets: _sets, reps: _reps, restSeconds: _restToSave, remove: true)),
                 style: TextButton.styleFrom(foregroundColor: AppColors.danger),
-                child: const Text('Remove from plan'),
+                child: Text(l10n.removeFromPlan),
               ),
             ],
           ],

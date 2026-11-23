@@ -10,6 +10,7 @@ import '../../../shared/widgets/loading_button.dart';
 import '../application/auth_controller.dart';
 import 'auth_messages.dart';
 import 'widgets/auth_layout.dart';
+import '../../../l10n/l10n.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -60,23 +61,23 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   String? _validateUsername(String? value) {
     final username = value?.trim() ?? '';
-    if (username.length < _minUsername) return 'At least $_minUsername characters';
-    if (username.length > _maxUsername) return 'At most $_maxUsername characters';
+    if (username.length < _minUsername) return l10n.atLeastChars(_minUsername);
+    if (username.length > _maxUsername) return l10n.atMostChars(_maxUsername);
     return null;
   }
 
   String? _validatePassword(String? value) {
     final password = value ?? '';
-    if (password.length < _minPassword) return 'At least $_minPassword characters';
-    if (password.length > _maxPassword) return 'At most $_maxPassword characters';
+    if (password.length < _minPassword) return l10n.atLeastChars(_minPassword);
+    if (password.length > _maxPassword) return l10n.atMostChars(_maxPassword);
     return null;
   }
 
   @override
   Widget build(BuildContext context) {
     return AuthLayout(
-      title: 'Create your account',
-      subtitle: 'Plan your workouts, log every set, and watch yourself get stronger.',
+      title: l10n.registerTitle,
+      subtitle: l10n.registerSubtitle,
       form: Form(
         key: _formKey,
         child: AutofillGroup(
@@ -90,13 +91,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 autocorrect: false,
                 maxLength: _maxUsername,
                 style: AppText.body,
-                decoration: const InputDecoration(labelText: 'Username', counterText: ''),
+                decoration: InputDecoration(labelText: l10n.username, counterText: ''),
                 validator: _validateUsername,
               ),
               const SizedBox(height: AppSpacing.md),
               PasswordField(
                 controller: _password,
-                label: 'Password',
+                label: l10n.password,
                 textInputAction: TextInputAction.next,
                 autofillHints: const [AutofillHints.newPassword],
                 validator: _validatePassword,
@@ -104,19 +105,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               const SizedBox(height: AppSpacing.md),
               PasswordField(
                 controller: _confirm,
-                label: 'Confirm password',
+                label: l10n.confirmPassword,
                 autofillHints: const [AutofillHints.newPassword],
                 onSubmitted: (_) => _submit(),
-                validator: (value) => value != _password.text ? "Passwords don't match" : null,
+                validator: (value) => value != _password.text ? l10n.passwordsDontMatch : null,
               ),
               const SizedBox(height: AppSpacing.sm),
-              Text('Use at least $_minPassword characters.', style: AppText.caption),
+              Text(l10n.passwordHint(_minPassword), style: AppText.caption),
               const SizedBox(height: AppSpacing.xl),
               if (_error != null) ...[
                 AuthErrorBanner(message: _error!),
                 const SizedBox(height: AppSpacing.lg),
               ],
-              LoadingButton(label: 'Create account', loading: _loading, onPressed: _submit),
+              LoadingButton(label: l10n.createAccount, loading: _loading, onPressed: _submit),
             ],
           ),
         ),
@@ -124,10 +125,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       footer: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text('Already have an account?', style: AppText.secondary),
+          Text(l10n.haveAccount, style: AppText.secondary),
           TextButton(
             onPressed: _loading ? null : () => context.go(Routes.login),
-            child: const Text('Log in'),
+            child: Text(l10n.logIn),
           ),
         ],
       ),

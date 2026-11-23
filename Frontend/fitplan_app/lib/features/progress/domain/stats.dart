@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import '../../../l10n/l10n.dart';
 
 part 'stats.freezed.dart';
 part 'stats.g.dart';
@@ -142,17 +143,20 @@ abstract class ExerciseComparison with _$ExerciseComparison {
 
 enum RecordType {
   @JsonValue('HeaviestWeight')
-  heaviestWeight('Heaviest weight'),
+  heaviestWeight,
   @JsonValue('Estimated1Rm')
-  estimated1Rm('Estimated 1RM'),
+  estimated1Rm,
   @JsonValue('MostReps')
-  mostReps('Most reps'),
+  mostReps,
   @JsonValue('BestSetVolume')
-  bestSetVolume('Best set volume');
+  bestSetVolume;
 
-  const RecordType(this.label);
-
-  final String label;
+  String get label => switch (this) {
+        heaviestWeight => l10n.recordHeaviest,
+        estimated1Rm => l10n.recordEstimated1rm,
+        mostReps => l10n.recordMostReps,
+        bestSetVolume => l10n.recordBestSetVolume,
+      };
 }
 
 @freezed

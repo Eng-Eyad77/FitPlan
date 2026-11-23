@@ -17,6 +17,7 @@ import '../../auth/application/auth_controller.dart';
 import '../application/profile_controller.dart';
 import '../domain/profile.dart';
 import 'widgets/profile_avatar.dart';
+import '../../../l10n/l10n.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -26,13 +27,13 @@ class ProfileScreen extends ConsumerWidget {
     final profile = ref.watch(profileControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile', style: AppText.heading)),
+      appBar: AppBar(title: Text(l10n.profile, style: AppText.heading)),
       body: SafeArea(
         child: profile.when(
           data: (profile) => _ProfileBody(profile: profile),
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) => LoadError(
-            message: error is ApiException ? error.message : 'Could not load your profile.',
+            message: error is ApiException ? error.message : l10n.couldNotLoadProfile,
             onRetry: () => ref.invalidate(profileControllerProvider),
           ),
         ),
@@ -58,11 +59,13 @@ class _ProfileBody extends ConsumerWidget {
         _BioCard(bio: profile.bio),
         const SizedBox(height: AppSpacing.lg),
         _RecoveryCodeCard(hasCode: profile.hasRecoveryCode),
+        const SizedBox(height: AppSpacing.lg),
+        const _LanguageCard(),
         const SizedBox(height: AppSpacing.xxxl),
         OutlinedButton.icon(
           onPressed: () => ref.read(authControllerProvider.notifier).logout(),
           icon: const Icon(Icons.logout_rounded, color: AppColors.danger),
-          label: const Text('Log out'),
+          label: Text(l10n.logOut),
         ),
         const SizedBox(height: AppSpacing.md),
         const _DeleteAccountButton(),
@@ -125,7 +128,7 @@ class _HeaderState extends ConsumerState<_Header> {
               children: [
                 ListTile(
                   leading: const Icon(Icons.photo_library_outlined, color: AppColors.accent),
-                  title: const Text('Choose from gallery', style: AppText.body),
+                  title: Text(l10n.chooseFromGallery, style: AppText.body),
                   onTap: () {
                     close();
                     _pick(ImageSource.gallery);
@@ -134,7 +137,7 @@ class _HeaderState extends ConsumerState<_Header> {
                 if (!kIsWeb)
                   ListTile(
                     leading: const Icon(Icons.photo_camera_outlined, color: AppColors.accent),
-                    title: const Text('Take a photo', style: AppText.body),
+                    title: Text(l10n.takePhoto, style: AppText.body),
                     onTap: () {
                       close();
                       _pick(ImageSource.camera);
@@ -143,7 +146,7 @@ class _HeaderState extends ConsumerState<_Header> {
                 if (hasPicture)
                   ListTile(
                     leading: const Icon(Icons.delete_outline_rounded, color: AppColors.danger),
-                    title: Text('Remove photo', style: AppText.body.copyWith(color: AppColors.danger)),
+                    title: Text(l10n.removePhoto, style: AppText.body.copyWith(color: AppColors.danger)),
                     onTap: () {
                       close();
                       _run(() => ref.read(profileControllerProvider.notifier).removePicture());
@@ -165,7 +168,7 @@ class _HeaderState extends ConsumerState<_Header> {
       children: [
         Semantics(
           button: true,
-          label: profile.profilePictureUrl == null ? 'Change profile photo' : 'View profile photo',
+          label: profile.profilePictureUrl == null ? l10n.changeProfilePhoto : l10n.viewProfilePhoto,
           child: GestureDetector(
             onTap: _busy
                 ? null
@@ -210,7 +213,7 @@ class _HeaderState extends ConsumerState<_Header> {
                   bottom: 0,
                   child: Semantics(
                     button: true,
-                    label: 'Change profile photo',
+                    label: l10n.changeProfilePhoto,
                     child: GestureDetector(
                       onTap: _busy ? null : _openPhotoSheet,
                       child: Container(
@@ -234,13 +237,13 @@ class _HeaderState extends ConsumerState<_Header> {
         Text(profile.username, style: AppText.title),
         const SizedBox(height: AppSpacing.xs),
         Text(
-          'Member since ${DateFormat.yMMMM().format(profile.createdAt.toLocal())}',
+          l10n.memberSince(DateFormat.yMMMM().format(profile.createdAt.toLocal())),
           style: AppText.secondary,
         ),
         TextButton.icon(
           onPressed: _busy ? null : _openPhotoSheet,
           icon: const Icon(Icons.photo_camera_outlined, size: 18),
-          label: Text(profile.profilePictureUrl == null ? 'Add photo' : 'Change photo'),
+          label: Text(profile.profilePictureUrl == null ? l10n.addPhoto : l10n.changePhoto),
         ),
       ],
     );
@@ -299,7 +302,7 @@ class _PicturePreviewState extends ConsumerState<_PicturePreview> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         leading: IconButton(
-          tooltip: 'Close',
+          tooltip: l10n.close,
           icon: const Icon(Icons.close_rounded),
           onPressed: () => Navigator.of(context).pop(),
         ),
@@ -316,7 +319,7 @@ class _PicturePreviewState extends ConsumerState<_PicturePreview> {
                   maxScale: 5,
                   child: Hero(
                     tag: _pictureHero,
-                    child: Image.memory(bytes, fit: BoxFit.contain, semanticLabel: 'Profile photo'),
+                    child: Image.memory(bytes, fit: BoxFit.contain, semanticLabel: l10n.profilePhoto),
                   ),
                 ),
               ),
@@ -351,13 +354,13 @@ Future<String?> _askPassword(
             obscureText: true,
             autofocus: true,
             autofillHints: const [AutofillHints.password],
-            decoration: const InputDecoration(labelText: 'Password'),
+            decoration: InputDecoration(labelText: l10n.password),
             onSubmitted: (value) => Navigator.of(dialogContext).pop(value),
           ),
         ],
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Cancel')),
+        TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(l10n.cancel)),
         FilledButton(
           style: danger ? FilledButton.styleFrom(backgroundColor: AppColors.danger, foregroundColor: Colors.black) : null,
           onPressed: () => Navigator.of(dialogContext).pop(controller.text),
@@ -383,9 +386,9 @@ class _RecoveryCodeCardState extends ConsumerState<_RecoveryCodeCard> {
   Future<void> _create() async {
     final password = await _askPassword(
       context,
-      title: 'New recovery code',
-      message: 'Your old code will stop working. Enter your password to continue.',
-      action: 'Create code',
+      title: l10n.newRecoveryCodeTitle,
+      message: l10n.newRecoveryCodeBody,
+      action: l10n.createCode,
     );
     if (password == null || password.isEmpty || !mounted) return;
 
@@ -405,17 +408,17 @@ class _RecoveryCodeCardState extends ConsumerState<_RecoveryCodeCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Recovery code', style: AppText.secondary),
+          Text(l10n.recoveryCode, style: AppText.secondary),
           const SizedBox(height: AppSpacing.sm),
           Text(
             widget.hasCode
-                ? 'You can reset a forgotten password with your recovery code. Lost it? Create a new one.'
-                : "You don't have a recovery code yet. Without one, a forgotten password means a lost account.",
+                ? l10n.recoveryHasCode
+                : l10n.recoveryNoCode,
             style: AppText.body.copyWith(color: widget.hasCode ? AppColors.textSecondary : AppColors.danger),
           ),
           const SizedBox(height: AppSpacing.md),
           LoadingButton(
-            label: widget.hasCode ? 'Create a new code' : 'Create a recovery code',
+            label: widget.hasCode ? l10n.createNewCode : l10n.createRecoveryCode,
             loading: _busy,
             onPressed: _create,
           ),
@@ -438,10 +441,9 @@ class _DeleteAccountButtonState extends ConsumerState<_DeleteAccountButton> {
   Future<void> _delete() async {
     final password = await _askPassword(
       context,
-      title: 'Delete your account?',
-      message: 'This deletes your plans, workouts, weights and photo for good. It can\'t be undone. '
-          'Enter your password to confirm.',
-      action: 'Delete',
+      title: l10n.deleteAccountTitle,
+      message: l10n.deleteAccountBody,
+      action: l10n.delete,
       danger: true,
     );
     if (password == null || password.isEmpty || !mounted) return;
@@ -451,7 +453,7 @@ class _DeleteAccountButtonState extends ConsumerState<_DeleteAccountButton> {
     try {
       await ref.read(profileControllerProvider.notifier).deleteAccount(password);
       // the router is on the login screen now
-      messenger.showSnackBar(const SnackBar(content: Text('Your account was deleted.')));
+      messenger.showSnackBar(SnackBar(content: Text(l10n.accountDeleted)));
     } catch (error) {
       if (mounted) showError(context, error);
     } finally {
@@ -466,7 +468,7 @@ class _DeleteAccountButtonState extends ConsumerState<_DeleteAccountButton> {
       icon: _busy
           ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
           : const Icon(Icons.delete_forever_outlined, color: AppColors.danger),
-      label: Text('Delete account', style: AppText.body.copyWith(color: AppColors.danger)),
+      label: Text(l10n.deleteAccount, style: AppText.body.copyWith(color: AppColors.danger)),
     );
   }
 }
@@ -487,7 +489,7 @@ class _WeightCard extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Body weight', style: AppText.secondary),
+                Text(l10n.bodyWeight, style: AppText.secondary),
                 const SizedBox(height: AppSpacing.sm),
                 if (weightKg != null)
                   Row(
@@ -496,12 +498,12 @@ class _WeightCard extends ConsumerWidget {
                     children: [
                       Text(formatKg(weightKg!), style: AppText.display.copyWith(fontSize: 40)),
                       const SizedBox(width: AppSpacing.sm),
-                      const Text('kg', style: AppText.secondary),
+                      Text(l10n.kg, style: AppText.secondary),
                     ],
                   )
                 else
                   Text(
-                    'Add your weight so we can estimate the calories you burn.',
+                    l10n.addWeightHint,
                     style: AppText.body.copyWith(color: AppColors.textSecondary),
                   ),
               ],
@@ -511,7 +513,7 @@ class _WeightCard extends ConsumerWidget {
           FilledButton(
             style: FilledButton.styleFrom(minimumSize: const Size(96, 48)),
             onPressed: () => showWeightSheet(context, current: weightKg),
-            child: Text(weightKg == null ? 'Add' : 'Update'),
+            child: Text(weightKg == null ? l10n.add : l10n.update),
           ),
         ],
       ),
@@ -557,8 +559,8 @@ class _WeightSheetState extends ConsumerState<_WeightSheet> {
 
   String? _validate(String? value) {
     final weight = double.tryParse((value ?? '').replaceAll(',', '.'));
-    if (weight == null) return 'Enter a number, e.g. 78.5';
-    if (weight < _min || weight > _max) return 'Between ${_min.toInt()} and ${_max.toInt()} kg';
+    if (weight == null) return l10n.enterNumber;
+    if (weight < _min || weight > _max) return l10n.weightRange(_min.toInt(), _max.toInt());
     return null;
   }
 
@@ -591,9 +593,9 @@ class _WeightSheetState extends ConsumerState<_WeightSheet> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text("Today's weight", style: AppText.heading),
+                Text(l10n.todaysWeight, style: AppText.heading),
                 const SizedBox(height: AppSpacing.xs),
-                const Text('We keep every entry, so you can follow the trend.', style: AppText.secondary),
+                Text(l10n.weightTrendNote, style: AppText.secondary),
                 const SizedBox(height: AppSpacing.xl),
                 TextFormField(
                   controller: _controller,
@@ -603,10 +605,10 @@ class _WeightSheetState extends ConsumerState<_WeightSheet> {
                   style: AppText.number,
                   validator: _validate,
                   onFieldSubmitted: (_) => _save(),
-                  decoration: const InputDecoration(labelText: 'Weight', suffixText: 'kg'),
+                  decoration: InputDecoration(labelText: l10n.weight, suffixText: l10n.kg),
                 ),
                 const SizedBox(height: AppSpacing.xl),
-                LoadingButton(label: 'Save', loading: _saving, onPressed: _save),
+                LoadingButton(label: l10n.save, loading: _saving, onPressed: _save),
               ],
             ),
           ),
@@ -655,7 +657,7 @@ class _BioCardState extends ConsumerState<_BioCard> {
       if (mounted) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(const SnackBar(content: Text('Bio saved')));
+          ..showSnackBar(SnackBar(content: Text(l10n.bioSaved)));
       }
     } catch (error) {
       if (mounted) showError(context, error);
@@ -670,7 +672,7 @@ class _BioCardState extends ConsumerState<_BioCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Bio', style: AppText.secondary),
+          Text(l10n.bio, style: AppText.secondary),
           const SizedBox(height: AppSpacing.md),
           TextField(
             controller: _controller,
@@ -679,8 +681,8 @@ class _BioCardState extends ConsumerState<_BioCard> {
             maxLength: _maxLength,
             style: AppText.body,
             textCapitalization: TextCapitalization.sentences,
-            decoration: const InputDecoration(
-              hintText: 'Your goals, your favorite lift, anything…',
+            decoration: InputDecoration(
+              hintText: l10n.bioHint,
               fillColor: AppColors.surface2,
             ),
           ),
@@ -691,7 +693,7 @@ class _BioCardState extends ConsumerState<_BioCard> {
             child: _changed
                 ? Padding(
                     padding: const EdgeInsets.only(top: AppSpacing.sm),
-                    child: LoadingButton(label: 'Save bio', loading: _saving, onPressed: _save),
+                    child: LoadingButton(label: l10n.saveBio, loading: _saving, onPressed: _save),
                   )
                 : const SizedBox(width: double.infinity),
           ),
@@ -702,6 +704,40 @@ class _BioCardState extends ConsumerState<_BioCard> {
 }
 
 // ---------------------------------------------------------------- shared bits
+
+// ---------------------------------------------------------------- language
+
+/// Arabic, English, or whatever the phone uses. Changes the whole app right away.
+class _LanguageCard extends ConsumerWidget {
+  const _LanguageCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final current = ref.watch(languageProvider);
+    return _Card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l10n.language, style: AppText.secondary),
+          const SizedBox(height: AppSpacing.md),
+          SizedBox(
+            width: double.infinity,
+            child: SegmentedButton<AppLanguage>(
+              showSelectedIcon: false,
+              segments: [
+                ButtonSegment(value: AppLanguage.system, label: Text(l10n.languageSystem)),
+                ButtonSegment(value: AppLanguage.arabic, label: Text(l10n.languageArabic)),
+                ButtonSegment(value: AppLanguage.english, label: Text(l10n.languageEnglish)),
+              ],
+              selected: {current},
+              onSelectionChanged: (choice) => ref.read(languageProvider.notifier).choose(choice.first),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class _Card extends StatelessWidget {
   const _Card({required this.child});

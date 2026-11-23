@@ -8,6 +8,7 @@ import '../../../shared/format.dart';
 import '../../../shared/widgets/feedback.dart';
 import '../data/exercises_repository.dart';
 import 'widgets/exercise_thumb.dart';
+import '../../../l10n/l10n.dart';
 
 /// The exercise playing big, with its step-by-step instructions.
 ///
@@ -82,7 +83,7 @@ class _ExerciseDetailsSheet extends ConsumerWidget {
                 Text(capitalize(name), style: AppText.title.copyWith(fontSize: 24)),
                 const SizedBox(height: AppSpacing.sm),
                 Align(
-                  alignment: Alignment.centerLeft,
+                  alignment: AlignmentDirectional.centerStart,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
@@ -90,13 +91,13 @@ class _ExerciseDetailsSheet extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(AppRadius.pill),
                     ),
                     child: Text(
-                      capitalize(bodyPart),
+                      bodyPartName(bodyPart),
                       style: AppText.secondary.copyWith(color: AppColors.accent),
                     ),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xxl),
-                const Text('How to do it', style: AppText.heading),
+                Text(l10n.howToDoIt, style: AppText.heading),
                 const SizedBox(height: AppSpacing.md),
                 exercise.when(
                   loading: () => const Padding(
@@ -104,11 +105,11 @@ class _ExerciseDetailsSheet extends ConsumerWidget {
                     child: Center(child: CircularProgressIndicator()),
                   ),
                   error: (error, _) => Text(
-                    errorMessage(error, 'Could not load the instructions.'),
+                    errorMessage(error, l10n.couldNotLoadInstructions),
                     style: AppText.secondary,
                   ),
                   data: (exercise) => exercise.instructions.isEmpty
-                      ? const Text('No instructions for this exercise yet.', style: AppText.secondary)
+                      ? Text(l10n.noInstructions, style: AppText.secondary)
                       : Column(
                           children: [
                             for (var i = 0; i < exercise.instructions.length; i++)

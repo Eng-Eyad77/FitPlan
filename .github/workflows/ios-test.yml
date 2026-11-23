@@ -30,6 +30,9 @@ jobs:
         run: |
           gem list -i xcodeproj >/dev/null || gem install xcodeproj --no-document
           ruby ios/scripts/add_rest_activity.rb
+      # Phase 11: the permission prompts in Arabic
+      - name: Add Arabic to the Xcode project
+        run: ruby ios/scripts/add_arabic.rb
       - name: Build the app without signing (Sideloadly signs it with your Apple ID)
         run: flutter build ios --release --no-codesign --dart-define=API_BASE_URL=${{ inputs.api_base_url }}
       - name: Package as .ipa

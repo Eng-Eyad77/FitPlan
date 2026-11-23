@@ -17,15 +17,16 @@ import '../../profile/presentation/widgets/profile_avatar.dart';
 import '../../session/application/active_session_controller.dart';
 import '../../session/presentation/start_workout.dart';
 import '../../session/presentation/widgets/elapsed_clock.dart';
+import '../../../l10n/l10n.dart';
 
 /// Home: greeting, this week, what to do next and the last workout.
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   static String _greeting(DateTime now) => switch (now.hour) {
-        < 12 => 'Good morning',
-        < 18 => 'Good afternoon',
-        _ => 'Good evening',
+        < 12 => l10n.goodMorning,
+        < 18 => l10n.goodAfternoon,
+        _ => l10n.goodEvening,
       };
 
   @override
@@ -44,17 +45,19 @@ class HomeScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('${_greeting(DateTime.now())}, $username', style: AppText.secondary),
+                      Text(l10n.greeting(_greeting(DateTime.now()), username), style: AppText.secondary),
                       const SizedBox(height: AppSpacing.xs),
-                      const Text('Ready to train?', style: AppText.title),
+                      Text(l10n.readyToTrain, style: AppText.title),
                     ],
                   ),
                 ),
+                const _LanguageToggle(),
+                const SizedBox(width: AppSpacing.sm),
                 Tooltip(
-                  message: 'Profile',
+                  message: l10n.profile,
                   child: Semantics(
                     button: true,
-                    label: 'Open profile',
+                    label: l10n.openProfile,
                     child: GestureDetector(
                       onTap: () => context.push(Routes.profile),
                       child: ProfileAvatar(
@@ -97,7 +100,7 @@ class _UpNextCard extends ConsumerWidget {
         children: [
           Row(
             children: [
-              const Text('IN PROGRESS', style: AppText.overline),
+              Text(l10n.inProgress, style: AppText.overline),
               const Spacer(),
               ElapsedClock(
                 since: active.startedAt,
@@ -111,12 +114,12 @@ class _UpNextCard extends ConsumerWidget {
           const SizedBox(height: AppSpacing.md),
           Text(active.name, style: AppText.title),
           const SizedBox(height: AppSpacing.sm),
-          Text('$sets ${sets == 1 ? 'set' : 'sets'} logged so far', style: AppText.secondary),
+          Text(l10n.setsLoggedSoFar(sets), style: AppText.secondary),
           const SizedBox(height: AppSpacing.xl),
           FilledButton.icon(
             onPressed: () => context.push(Routes.session),
             icon: const Icon(Icons.play_arrow_rounded),
-            label: const Text('Resume workout'),
+            label: Text(l10n.resumeWorkout),
           ),
         ],
       );
@@ -124,12 +127,12 @@ class _UpNextCard extends ConsumerWidget {
       content = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('UP NEXT', style: AppText.overline),
+          Text(l10n.upNext, style: AppText.overline),
           const SizedBox(height: AppSpacing.md),
           Text(plan.name, style: AppText.title),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            '${plan.exerciseCount} ${plan.exerciseCount == 1 ? 'exercise' : 'exercises'}'
+            '${l10n.exerciseCount(plan.exerciseCount)}'
             '${plan.description == null ? '' : ' · ${plan.description}'}',
             style: AppText.secondary,
             maxLines: 2,
@@ -139,13 +142,13 @@ class _UpNextCard extends ConsumerWidget {
           FilledButton.icon(
             onPressed: () => startWorkout(context, ref, planId: plan.id),
             icon: const Icon(Icons.play_arrow_rounded),
-            label: const Text('Start workout'),
+            label: Text(l10n.startWorkout),
           ),
           const SizedBox(height: AppSpacing.xs),
           Center(
             child: TextButton(
               onPressed: () => context.go(Routes.plans),
-              child: const Text('Choose another plan'),
+              child: Text(l10n.chooseAnotherPlan),
             ),
           ),
         ],
@@ -154,22 +157,22 @@ class _UpNextCard extends ConsumerWidget {
       content = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('GET STARTED', style: AppText.overline),
+          Text(l10n.getStarted, style: AppText.overline),
           const SizedBox(height: AppSpacing.md),
-          const Text('Make your first plan', style: AppText.title),
+          Text(l10n.makeFirstPlan, style: AppText.title),
           const SizedBox(height: AppSpacing.sm),
-          const Text(
-            'Pick your exercises once, then start it with one tap every time you train.',
+          Text(
+            l10n.makeFirstPlanBody,
             style: AppText.secondary,
           ),
           const SizedBox(height: AppSpacing.xl),
-          FilledButton(onPressed: () => context.go(Routes.plans), child: const Text('Go to plans')),
+          FilledButton(onPressed: () => context.go(Routes.plans), child: Text(l10n.goToPlans)),
           const SizedBox(height: AppSpacing.xs),
           Center(
             child: TextButton.icon(
               onPressed: () => startWorkout(context, ref),
               icon: const Icon(Icons.bolt_rounded),
-              label: const Text('Quick workout'),
+              label: Text(l10n.quickWorkout),
             ),
           ),
         ],
@@ -235,16 +238,16 @@ class _WeekCard extends ConsumerWidget {
         children: [
           Row(
             children: [
-              const Text('This week', style: AppText.heading),
+              Text(l10n.thisWeek, style: AppText.heading),
               const Spacer(),
               Text(
                 goal != null
                     ? total >= goal
-                        ? '$total workouts · goal met'
-                        : '$total of $goal workouts'
+                        ? l10n.weekGoalMet(total)
+                        : l10n.weekOfGoal(total, goal)
                     : total == 0
-                        ? 'No workouts yet'
-                        : '$total ${total == 1 ? 'workout' : 'workouts'}',
+                        ? l10n.noWorkoutsYet
+                        : l10n.workoutCount(total),
                 style: AppText.secondary.copyWith(
                   color: total == 0 && goal == null ? AppColors.textTertiary : AppColors.accent,
                 ),
@@ -253,7 +256,7 @@ class _WeekCard extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.lg),
           Semantics(
-            label: 'Trained on $trainedDays of 7 days this week',
+            label: l10n.trainedDaysSemantics(trainedDays),
             excludeSemantics: true,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -324,8 +327,58 @@ class _LastSession extends ConsumerWidget {
       padding: const EdgeInsets.only(top: AppSpacing.lg),
       child: SessionSummaryCard(
         summary: last,
-        title: 'Last session',
+        title: l10n.lastSession,
         onTap: () => context.push(Routes.historyDetail(last.id)),
+      ),
+    );
+  }
+}
+
+/// EN | AR beside the profile picture: one tap switches the whole app to the other language.
+/// Profile still has the full choice, including following the phone.
+class _LanguageToggle extends ConsumerWidget {
+  const _LanguageToggle();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(languageProvider);
+    final arabic = isArabic;
+
+    Widget side(String text, bool active) => AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: active ? AppColors.accent : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppRadius.pill),
+          ),
+          child: Text(
+            text,
+            style: AppText.caption.copyWith(
+              fontWeight: FontWeight.w700,
+              color: active ? AppColors.onAccent : AppColors.textSecondary,
+            ),
+          ),
+        );
+
+    return Semantics(
+      button: true,
+      label: l10n.switchLanguage,
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: () => ref.read(languageProvider.notifier).choose(arabic ? AppLanguage.english : AppLanguage.arabic),
+        child: Container(
+          padding: const EdgeInsets.all(3),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(AppRadius.pill),
+            border: Border.all(color: AppColors.border),
+          ),
+          // always EN on the left, AR on the right, in both languages
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: Row(mainAxisSize: MainAxisSize.min, children: [side('EN', !arabic), side('AR', arabic)]),
+          ),
+        ),
       ),
     );
   }

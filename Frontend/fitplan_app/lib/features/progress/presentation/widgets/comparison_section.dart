@@ -9,6 +9,7 @@ import '../../../../core/theme/app_text.dart';
 import '../../../../shared/format.dart';
 import '../../application/progress_providers.dart';
 import '../../domain/stats.dart';
+import '../../../../l10n/l10n.dart';
 
 /// The records beaten in a workout and how it compares with the previous run of the same plan.
 /// Used by the summary after finishing and by a past workout in History.
@@ -31,7 +32,7 @@ class ComparisonSection extends ConsumerWidget {
       return Padding(
         padding: const EdgeInsets.only(top: AppSpacing.lg),
         child: Text(
-          'First time with "$sessionName". Next time you will see how you compare.',
+          l10n.firstTimeWith(sessionName),
           style: AppText.caption,
           textAlign: TextAlign.center,
         ),
@@ -60,9 +61,16 @@ class _NewRecords extends StatelessWidget {
   final List<NewRecord> records;
 
   String _format(RecordType type, double value) => switch (type) {
-        RecordType.mostReps => '${value.round()} reps',
-        RecordType.bestSetVolume => '${NumberFormat.decimalPattern().format(value.round())} kg',
-        _ => '${formatKg(double.parse(value.toStringAsFixed(1)))} kg',
+        RecordType.mostReps => l10n.repsCount(value.round()),
+        RecordType.bestSetVolume => l10n.amountKg(NumberFormat.decimalPattern().format(value.round())),
+        _ => l10n.amountKg(formatKg(double.parse(value.toStringAsFixed(1)))),
+      };
+
+  /// "+2.5 kg", with the sign kept beside the number in Arabic too.
+  String _gain(RecordType type, double value) => switch (type) {
+        RecordType.mostReps => l10n.gainReps(signed('+${value.round()}')),
+        RecordType.bestSetVolume => l10n.amountKg(signed('+${NumberFormat.decimalPattern().format(value.round())}')),
+        _ => l10n.amountKg(signed('+${formatKg(double.parse(value.toStringAsFixed(1)))}')),
       };
 
   /// Records of the same exercise together, in the order the API sent them.
@@ -91,7 +99,7 @@ class _NewRecords extends StatelessWidget {
               const Icon(Icons.emoji_events_rounded, color: AppColors.success),
               const SizedBox(width: AppSpacing.sm),
               Text(
-                '${records.length} personal ${records.length == 1 ? 'record' : 'records'}',
+                l10n.personalRecords(records.length),
                 style: AppText.heading.copyWith(color: AppColors.success),
               ),
             ],
@@ -112,7 +120,7 @@ class _NewRecords extends StatelessWidget {
                     SizedBox(
                       width: 64,
                       child: Text(
-                        '+${_format(record.type, record.value - record.previousBest)}',
+                        _gain(record.type, record.value - record.previousBest),
                         textAlign: TextAlign.end,
                         style: AppText.caption.copyWith(color: AppColors.success, fontWeight: FontWeight.w600),
                       ),
@@ -151,20 +159,20 @@ class _VersusLast extends StatelessWidget {
         children: [
           Row(
             children: [
-              Expanded(child: Text('Volume vs last $sessionName', style: AppText.bodyStrong)),
+              Expanded(child: Text(l10n.volumeVsLast(sessionName), style: AppText.bodyStrong)),
               if (change != null)
                 Text(
-                  '${change >= 0 ? '+' : '−'}${change.abs().round()}%',
+                  signed('${change >= 0 ? '+' : '−'}${change.abs().round()}%'),
                   style: AppText.heading.copyWith(color: change >= 0 ? AppColors.accent : AppColors.textSecondary),
                 ),
             ],
           ),
           if (comparison.previousPerformedAt != null)
-            Text('Last time was ${formatDaysAgo(comparison.previousPerformedAt!)}', style: AppText.caption),
+            Text(l10n.lastTimeWas(formatDaysAgo(comparison.previousPerformedAt!)), style: AppText.caption),
           const SizedBox(height: AppSpacing.md),
-          _VolumeBar(label: 'Today', value: volume.current, max: _max(volume), highlight: true, number: number),
+          _VolumeBar(label: l10n.todayLabel, value: volume.current, max: _max(volume), highlight: true, number: number),
           const SizedBox(height: AppSpacing.sm),
-          _VolumeBar(label: 'Last', value: volume.previous ?? 0, max: _max(volume), highlight: false, number: number),
+          _VolumeBar(label: l10n.lastLabel, value: volume.previous ?? 0, max: _max(volume), highlight: false, number: number),
           if (comparison.exercises.any((e) => e.previousTopSetReps != null)) ...[
             const SizedBox(height: AppSpacing.lg),
             for (final e in comparison.exercises)
@@ -206,7 +214,7 @@ class _VolumeBar extends StatelessWidget {
               child: ColoredBox(
                 color: AppColors.surface2,
                 child: FractionallySizedBox(
-                  alignment: Alignment.centerLeft,
+                  alignment: AlignmentDirectional.centerStart,
                   widthFactor: (value / max).clamp(0, 1),
                   child: DecoratedBox(
                     decoration: BoxDecoration(
@@ -222,7 +230,7 @@ class _VolumeBar extends StatelessWidget {
         SizedBox(
           width: 76,
           child: Text(
-            '${number.format(value.round())} kg',
+            l10n.amountKg(number.format(value.round())),
             style: AppText.secondary.copyWith(color: AppColors.textPrimary),
             textAlign: TextAlign.end,
           ),
@@ -238,7 +246,7 @@ class _ExerciseChange extends StatelessWidget {
 
   final ExerciseComparison exercise;
 
-  String _set(double? kg, int reps) => kg == null ? '$reps reps' : '${formatKg(kg)} × $reps';
+  String _set(double? kg, int reps) => kg == null ? l10n.repsCount(reps) : l10n.setWeightRepsShort(formatKg(kg), reps);
 
   @override
   Widget build(BuildContext context) {

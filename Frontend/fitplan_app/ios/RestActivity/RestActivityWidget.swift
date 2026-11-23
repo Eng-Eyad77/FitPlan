@@ -34,6 +34,8 @@ private func countdown(_ state: RestActivityAttributes.ContentState) -> Text {
 
 /// "+15s" and "Skip", as on the bar in the app. iOS 17+; older phones show the countdown only.
 private struct RestButtons: View {
+  let skipLabel: String
+
   var body: some View {
     if #available(iOS 17.0, *) {
       HStack(spacing: 8) {
@@ -42,7 +44,7 @@ private struct RestButtons: View {
         }
         .tint(Brand.accent)
         Button(intent: SkipRestIntent()) {
-          Text("Skip").font(.subheadline.weight(.semibold)).frame(maxWidth: .infinity)
+          Text(skipLabel).font(.subheadline.weight(.semibold)).frame(maxWidth: .infinity)
         }
         .tint(.white.opacity(0.35))
       }
@@ -67,7 +69,7 @@ struct RestActivityWidget: Widget {
       VStack(alignment: .leading, spacing: 10) {
         HStack(spacing: 10) {
           Logo(size: 28)
-          Text("Resting").font(.headline).foregroundColor(.white)
+          Text(context.state.title).font(.headline).foregroundColor(.white)
           Spacer()
           countdown(context.state)
             .font(.system(size: 30, weight: .semibold, design: .rounded).monospacedDigit())
@@ -76,11 +78,11 @@ struct RestActivityWidget: Widget {
             .frame(maxWidth: 110, alignment: .trailing)
         }
         progress(context.state)
-        Text("Next: \(context.state.next)")
+        Text(context.state.nextLine)
           .font(.subheadline)
           .foregroundColor(.white.opacity(0.75))
           .lineLimit(1)
-        RestButtons()
+        RestButtons(skipLabel: context.state.skipLabel)
       }
       .padding(16)
       .activityBackgroundTint(Brand.background)
@@ -90,7 +92,7 @@ struct RestActivityWidget: Widget {
         DynamicIslandExpandedRegion(.leading) {
           HStack(spacing: 6) {
             Logo(size: 22)
-            Text("Resting").font(.headline)
+            Text(context.state.title).font(.headline)
           }
         }
         DynamicIslandExpandedRegion(.trailing) {
@@ -103,8 +105,8 @@ struct RestActivityWidget: Widget {
         DynamicIslandExpandedRegion(.bottom) {
           VStack(alignment: .leading, spacing: 6) {
             progress(context.state)
-            Text("Next: \(context.state.next)").font(.subheadline).lineLimit(1)
-            RestButtons()
+            Text(context.state.nextLine).font(.subheadline).lineLimit(1)
+            RestButtons(skipLabel: context.state.skipLabel)
           }
         }
       } compactLeading: {

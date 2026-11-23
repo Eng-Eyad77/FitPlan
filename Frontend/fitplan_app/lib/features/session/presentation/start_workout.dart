@@ -6,6 +6,7 @@ import '../../../app/router.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../shared/widgets/feedback.dart';
 import '../application/active_session_controller.dart';
+import '../../../l10n/l10n.dart';
 
 /// Starts a workout (from a plan, or empty when [planId] is null) and opens it.
 /// If one is already in progress, offers to resume it instead.
@@ -38,11 +39,11 @@ Future<bool?> _askResume(BuildContext context, String name) {
   return showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
-      title: const Text('Workout in progress'),
-      content: Text('You have "$name" running. Finish or cancel it before starting a new one.'),
+      title: Text(l10n.workoutInProgressTitle),
+      content: Text(l10n.workoutInProgressBody(name)),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Not now')),
-        TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Resume')),
+        TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.notNow)),
+        TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l10n.resume)),
       ],
     ),
   );

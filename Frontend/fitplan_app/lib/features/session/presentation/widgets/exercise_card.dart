@@ -17,6 +17,7 @@ import '../../domain/workout_session.dart';
 import 'rest_sheet.dart';
 import 'set_edit_sheet.dart';
 import 'set_rows.dart';
+import '../../../../l10n/l10n.dart';
 
 /// The open exercise in the list: what to do, what you did last time, and the sets.
 class ExerciseCard extends ConsumerStatefulWidget {
@@ -149,14 +150,14 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard> {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Remove exercise?'),
-          content: Text('The ${_exercise.sets.length} logged sets of this exercise will be deleted.'),
+          title: Text(l10n.removeExerciseTitle),
+          content: Text(l10n.removeExerciseBody(_exercise.sets.length)),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Keep')),
+            TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.keep)),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
               style: TextButton.styleFrom(foregroundColor: AppColors.danger),
-              child: const Text('Remove'),
+              child: Text(l10n.remove),
             ),
           ],
         ),
@@ -211,11 +212,11 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard> {
                     ],
                     Text(capitalize(_exercise.name), style: AppText.heading),
                     const SizedBox(height: 2),
-                    Text(capitalize(_exercise.bodyPart), style: AppText.caption),
+                    Text(bodyPartName(_exercise.bodyPart), style: AppText.caption),
                     if (_exercise.targetSets != null) ...[
                       const SizedBox(height: AppSpacing.sm),
                       Text(
-                        'Target ${_exercise.targetSets} × ${_exercise.targetReps}',
+                        l10n.targetSetsReps(_exercise.targetSets!, _exercise.targetReps!),
                         style: AppText.secondary.copyWith(color: AppColors.accent),
                       ),
                     ],
@@ -226,15 +227,15 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard> {
               ),
               if (widget.onCollapse != null)
                 IconButton(
-                  tooltip: 'Close ${capitalize(_exercise.name)}',
+                  tooltip: l10n.closeName(capitalize(_exercise.name)),
                   onPressed: widget.onCollapse,
                   icon: const Icon(Icons.expand_less_rounded, color: AppColors.textTertiary),
                 ),
               PopupMenuButton<void>(
-                tooltip: 'Exercise options',
+                tooltip: l10n.exerciseOptions,
                 icon: const Icon(Icons.more_vert_rounded, color: AppColors.textTertiary),
                 itemBuilder: (_) => [
-                  PopupMenuItem(onTap: _remove, child: const Text('Remove from workout')),
+                  PopupMenuItem(onTap: _remove, child: Text(l10n.removeFromWorkout)),
                 ],
               ),
             ],
@@ -286,7 +287,7 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard> {
                 TextButton.icon(
                   onPressed: () => setState(() => _extraRows++),
                   icon: const Icon(Icons.add_rounded),
-                  label: const Text('Add set'),
+                  label: Text(l10n.addSet),
                 ),
               if (widget.onNext != null && _exercise.isDone)
                 FilledButton.tonalIcon(
@@ -298,7 +299,7 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard> {
                   ),
                   iconAlignment: IconAlignment.end,
                   icon: const Icon(Icons.arrow_forward_rounded),
-                  label: const Text('Next exercise'),
+                  label: Text(l10n.nextExercise),
                 ),
             ],
           ),
@@ -320,7 +321,7 @@ class NowBadge extends StatelessWidget {
         color: AppColors.accentTint(0.16),
         borderRadius: BorderRadius.circular(AppRadius.pill),
       ),
-      child: Text('NOW', style: AppText.overline.copyWith(color: AppColors.accent)),
+      child: Text(l10n.now, style: AppText.overline.copyWith(color: AppColors.accent)),
     );
   }
 }
@@ -336,7 +337,7 @@ class _RestChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: 'Rest ${formatRest(seconds)} between sets. Tap to change.',
+      label: l10n.restChipSemantics(formatRest(seconds)),
       excludeSemantics: true,
       child: InkWell(
         onTap: onTap,
@@ -350,7 +351,7 @@ class _RestChip extends StatelessWidget {
               const SizedBox(width: 4),
               Flexible(
                 child: Text(
-                  'Rest ${formatRest(seconds)}',
+                  l10n.restChip(formatRest(seconds)),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppText.caption.copyWith(color: AppColors.textSecondary),
@@ -382,10 +383,10 @@ class _SuggestionLine extends StatelessWidget {
   Widget build(BuildContext context) {
     final kg = suggestion.weightKg;
     final change = kg != null && lastTop != null ? kg - lastTop! : 0;
-    final target = kg == null ? '${suggestion.reps} reps' : '${formatKg(kg)} kg × ${suggestion.reps}';
+    final target = formatSet(kg, suggestion.reps);
 
     return Semantics(
-      label: 'Suggested today: $target, ${suggestion.why}',
+      label: l10n.suggestedToday(target, suggestion.why),
       excludeSemantics: true,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 10),
@@ -404,11 +405,11 @@ class _SuggestionLine extends StatelessWidget {
                   Text.rich(
                     TextSpan(
                       children: [
-                        const TextSpan(text: 'Today  '),
+                        TextSpan(text: l10n.todayPrefix),
                         TextSpan(text: target, style: const TextStyle(color: AppColors.textPrimary)),
                         if (change != 0)
                           TextSpan(
-                            text: '  ${change > 0 ? '+' : '−'}${formatKg(change.abs().toDouble())} kg',
+                            text: '  ${l10n.amountKg(signed('${change > 0 ? '+' : '−'}${formatKg(change.abs().toDouble())}'))}',
                             style: const TextStyle(color: AppColors.accent),
                           ),
                       ],
@@ -441,7 +442,7 @@ class _LastTime extends StatelessWidget {
     final last = this.last;
     if (last == null) {
       return Text(
-        'First time doing this one. Today sets your baseline.',
+        l10n.firstTimeExercise,
         style: AppText.secondary.copyWith(color: AppColors.textTertiary),
       );
     }
@@ -449,7 +450,7 @@ class _LastTime extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Last time · ${formatDaysAgo(last.performedAt)}', style: AppText.caption),
+        Text(l10n.lastTimeWhen(formatDaysAgo(last.performedAt)), style: AppText.caption),
         const SizedBox(height: AppSpacing.sm),
         Wrap(
           spacing: AppSpacing.sm,
@@ -463,7 +464,7 @@ class _LastTime extends StatelessWidget {
                   borderRadius: BorderRadius.circular(AppRadius.pill),
                 ),
                 child: Text(
-                  '${set.weightKg == null ? 'BW' : formatKg(set.weightKg!)} × ${set.reps}',
+                  '${set.weightKg == null ? l10n.bodyweightShort : formatKg(set.weightKg!)} × ${set.reps}',
                   style: AppText.secondary.copyWith(
                     color: AppColors.textPrimary,
                     fontFeatures: const [FontFeature.tabularFigures()],

@@ -11,6 +11,8 @@ dependencies:
   fl_chart: ^1.3.0
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   flutter_animate: ^4.5.2
   flutter_local_notifications: ^23.0.3
   flutter_riverpod: ^3.4.3
@@ -33,6 +35,8 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  # app_en.arb and app_ar.arb in lib/l10n become AppLocalizations (Phase 11)
+  generate: true
 
   # the app logo inside the app (login, sign-up, launch screen): the app icon, smaller
   assets:

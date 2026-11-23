@@ -17,6 +17,7 @@ import '../application/plans_controller.dart';
 import '../domain/workout_plan.dart';
 import 'plan_form_sheet.dart';
 import 'target_sheet.dart';
+import '../../../l10n/l10n.dart';
 
 class PlanDetailScreen extends ConsumerWidget {
   const PlanDetailScreen({super.key, required this.planId});
@@ -46,14 +47,14 @@ class PlanDetailScreen extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete plan?'),
-        content: Text('"${plan.name}" will be deleted. Your past workouts stay in your history.'),
+        title: Text(l10n.deletePlanTitle),
+        content: Text(l10n.deletePlanBody(plan.name)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Keep')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.keep)),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: AppColors.danger),
-            child: const Text('Delete'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -80,18 +81,18 @@ class PlanDetailScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(plan?.name ?? 'Plan', style: AppText.heading),
+        title: Text(plan?.name ?? l10n.plan, style: AppText.heading),
         actions: [
           if (plan != null)
             PopupMenuButton<String>(
-              tooltip: 'Plan options',
+              tooltip: l10n.planOptions,
               onSelected: (value) => switch (value) {
                 'edit' => showPlanFormSheet(context, plan: plan),
                 _ => _delete(context, ref, plan),
               },
-              itemBuilder: (_) => const [
-                PopupMenuItem(value: 'edit', child: Text('Edit name')),
-                PopupMenuItem(value: 'delete', child: Text('Delete plan')),
+              itemBuilder: (_) => [
+                PopupMenuItem(value: 'edit', child: Text(l10n.editName)),
+                PopupMenuItem(value: 'delete', child: Text(l10n.deletePlan)),
               ],
             ),
         ],
@@ -99,18 +100,18 @@ class PlanDetailScreen extends ConsumerWidget {
       body: exercises.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => LoadError(
-          message: errorMessage(error, 'Could not load this plan.'),
+          message: errorMessage(error, l10n.couldNotLoadPlan),
           onRetry: () => ref.invalidate(planExercisesProvider(planId)),
         ),
         data: (list) => list.isEmpty
             ? EmptyState(
                 icon: Icons.fitness_center_rounded,
-                title: 'Add your first exercise',
-                message: 'Pick from 1,500 exercises and set your target sets and reps.',
+                title: l10n.addFirstExercise,
+                message: l10n.addFirstExerciseBody,
                 action: FilledButton.icon(
                   onPressed: () => _addExercise(context, ref, list),
                   icon: const Icon(Icons.add_rounded),
-                  label: const Text('Add exercise'),
+                  label: Text(l10n.addExercise),
                 ),
               )
             : ReorderableListView.builder(
@@ -152,14 +153,14 @@ class PlanDetailScreen extends ConsumerWidget {
                         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                       ),
                       icon: const Icon(Icons.add_rounded),
-                      label: const Text('Add'),
+                      label: Text(l10n.add),
                     ),
                     const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: FilledButton.icon(
                         onPressed: () => startWorkout(context, ref, planId: planId),
                         icon: const Icon(Icons.play_arrow_rounded),
-                        label: const Text('Start workout'),
+                        label: Text(l10n.startWorkout),
                       ),
                     ),
                   ],
@@ -259,7 +260,7 @@ class _PlanExerciseTile extends ConsumerWidget {
               ReorderableDragStartListener(
                 index: index,
                 child: const Padding(
-                  padding: EdgeInsets.only(left: AppSpacing.sm),
+                  padding: EdgeInsetsDirectional.only(start: AppSpacing.sm),
                   child: Icon(Icons.drag_indicator_rounded, color: AppColors.textTertiary),
                 ),
               ),

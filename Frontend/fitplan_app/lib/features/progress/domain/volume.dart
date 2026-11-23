@@ -1,5 +1,7 @@
 import 'package:intl/intl.dart';
 
+import '../../../l10n/l10n.dart';
+
 /// GET /api/stats/volume: the lifetime volume and its milestones (Phase 10).
 class VolumeStats {
   const VolumeStats({required this.totalVolumeKg, required this.milestones});
@@ -51,36 +53,57 @@ enum MilestoneArt { piano, car, elephant, bus, truck, whale, jet, wheel, tower }
 /// The objects the volume is compared with. The weights are approximate and sourced
 /// (docs/PHASE-10-PROPOSAL.md); the server has the same keys and thresholds.
 class Milestone {
-  const Milestone(this.key, this.weightKg, this.name, this.plural, this.art);
+  const Milestone(this.key, this.weightKg, this.art);
 
   final String key;
 
   /// Also the threshold that unlocks it.
   final double weightKg;
 
-  /// "a small car"
-  final String name;
-
-  /// "small cars"
-  final String plural;
   final MilestoneArt art;
 
   static const all = [
-    Milestone('grand-piano', 500, 'a grand piano', 'grand pianos', MilestoneArt.piano),
-    Milestone('small-car', 1000, 'a small car', 'small cars', MilestoneArt.car),
-    Milestone('elephant', 6000, 'an elephant', 'elephants', MilestoneArt.elephant),
-    Milestone('city-bus', 12000, 'a city bus', 'city buses', MilestoneArt.bus),
-    Milestone('loaded-truck', 40000, 'a loaded truck', 'loaded trucks', MilestoneArt.truck),
-    Milestone('blue-whale', 150000, 'a blue whale', 'blue whales', MilestoneArt.whale),
-    Milestone('jumbo-jet', 450000, 'a jumbo jet at takeoff', 'jumbo jets', MilestoneArt.jet),
-    Milestone('london-eye', 2100000, 'the London Eye', 'London Eyes', MilestoneArt.wheel),
-    Milestone('eiffel-tower', 10100000, 'the Eiffel Tower', 'Eiffel Towers', MilestoneArt.tower),
+    Milestone('grand-piano', 500, MilestoneArt.piano),
+    Milestone('small-car', 1000, MilestoneArt.car),
+    Milestone('elephant', 6000, MilestoneArt.elephant),
+    Milestone('city-bus', 12000, MilestoneArt.bus),
+    Milestone('loaded-truck', 40000, MilestoneArt.truck),
+    Milestone('blue-whale', 150000, MilestoneArt.whale),
+    Milestone('jumbo-jet', 450000, MilestoneArt.jet),
+    Milestone('london-eye', 2100000, MilestoneArt.wheel),
+    Milestone('eiffel-tower', 10100000, MilestoneArt.tower),
   ];
+
+  /// "a small car", "سيارة صغيرة"
+  String get name => switch (key) {
+        'grand-piano' => l10n.msPiano,
+        'small-car' => l10n.msCar,
+        'elephant' => l10n.msElephant,
+        'city-bus' => l10n.msBus,
+        'loaded-truck' => l10n.msTruck,
+        'blue-whale' => l10n.msWhale,
+        'jumbo-jet' => l10n.msJet,
+        'london-eye' => l10n.msLondonEye,
+        _ => l10n.msEiffel,
+      };
+
+  /// "small cars", "سيارات صغيرة"
+  String get plural => switch (key) {
+        'grand-piano' => l10n.msPianoPlural,
+        'small-car' => l10n.msCarPlural,
+        'elephant' => l10n.msElephantPlural,
+        'city-bus' => l10n.msBusPlural,
+        'loaded-truck' => l10n.msTruckPlural,
+        'blue-whale' => l10n.msWhalePlural,
+        'jumbo-jet' => l10n.msJetPlural,
+        'london-eye' => l10n.msLondonEyePlural,
+        _ => l10n.msEiffelPlural,
+      };
 
   static Milestone? byKey(String key) => all.where((m) => m.key == key).firstOrNull;
 
   /// "A small car"
-  String get title => '${name[0].toUpperCase()}${name.substring(1)}';
+  String get title => isArabic ? name : '${name[0].toUpperCase()}${name.substring(1)}';
 
   /// The biggest object [kg] reaches, or null under the smallest one.
   static Milestone? biggestWithin(double kg) => all.where((m) => m.weightKg <= kg).lastOrNull;
@@ -92,14 +115,18 @@ class Milestone {
     if (object == null) return null;
     final times = kg / object.weightKg;
     final count = times < 10 ? NumberFormat('0.#').format(times) : NumberFormat.decimalPattern().format(times.floor());
-    return count == '1' ? 'About ${object.name}' : 'About $count ${object.plural}';
+    if (count == '1') return l10n.aboutOne(object.name);
+    // Arabic counts a fraction or 11 and up with the singular ("1.4 فيل", "15 فيل"), 2 to 10 with the plural
+    final whole = times < 10 ? times == times.roundToDouble() : true;
+    final useSingular = isArabic && (!whole || times >= 11);
+    return l10n.aboutMany(count, useSingular ? object.name : object.plural);
   }
 }
 
 /// 8420 -> ("8,420", "kg"), 12400 -> ("12.4", "t"), 2100000 -> ("2,100", "t")
 (String, String) volumeParts(double kg) => kg < 10000
-    ? (NumberFormat.decimalPattern().format(kg.round()), 'kg')
-    : (NumberFormat('#,##0.#').format(kg / 1000), 't');
+    ? (NumberFormat.decimalPattern().format(kg.round()), l10n.kg)
+    : (NumberFormat('#,##0.#').format(kg / 1000), l10n.tonnes);
 
 /// "3,580 kg", "27.6 t"
 String formatVolumeAmount(double kg) {

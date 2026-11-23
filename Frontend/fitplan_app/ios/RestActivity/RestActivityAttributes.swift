@@ -12,5 +12,9 @@ struct RestActivityAttributes: ActivityAttributes {
     var endsAt: Date
     /// What comes next: "Squat · set 3 · 40 kg × 10", or "Time for your next exercise".
     var next: String
+    /// The texts in the app's language (Phase 11): "Resting", "Next: …" and "Skip", or their Arabic.
+    var title: String
+    var nextLine: String
+    var skipLabel: String
   }
 }

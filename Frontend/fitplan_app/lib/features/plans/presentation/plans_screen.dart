@@ -12,6 +12,7 @@ import '../../session/presentation/start_workout.dart';
 import '../application/plans_controller.dart';
 import '../domain/workout_plan.dart';
 import 'plan_form_sheet.dart';
+import '../../../l10n/l10n.dart';
 
 class PlansScreen extends ConsumerWidget {
   const PlansScreen({super.key});
@@ -30,7 +31,7 @@ class PlansScreen extends ConsumerWidget {
         child: plans.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) => LoadError(
-            message: errorMessage(error, 'Could not load your plans.'),
+            message: errorMessage(error, l10n.couldNotLoadPlans),
             onRetry: () => ref.invalidate(plansControllerProvider),
           ),
           data: (plans) => RefreshIndicator(
@@ -40,9 +41,9 @@ class PlansScreen extends ConsumerWidget {
               children: [
                 Row(
                   children: [
-                    const Expanded(child: Text('Plans', style: AppText.title)),
+                    Expanded(child: Text(l10n.plansTitle, style: AppText.title)),
                     IconButton.filledTonal(
-                      tooltip: 'Browse exercises',
+                      tooltip: l10n.browseExercises,
                       onPressed: () => context.push(Routes.exerciseLibrary),
                       style: IconButton.styleFrom(
                         backgroundColor: AppColors.surface2,
@@ -53,7 +54,7 @@ class PlansScreen extends ConsumerWidget {
                     ),
                     const SizedBox(width: AppSpacing.sm),
                     IconButton.filled(
-                      tooltip: 'New plan',
+                      tooltip: l10n.newPlan,
                       onPressed: () => _create(context, ref),
                       style: IconButton.styleFrom(
                         backgroundColor: AppColors.button,
@@ -65,19 +66,19 @@ class PlansScreen extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: AppSpacing.xs),
-                const Text('Your routines. Start one and log as you go.', style: AppText.secondary),
+                Text(l10n.plansSubtitle, style: AppText.secondary),
                 const SizedBox(height: AppSpacing.xxl),
                 if (plans.isEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 48),
                     child: EmptyState(
                       icon: Icons.event_note_rounded,
-                      title: 'No plans yet',
-                      message: 'Make a plan like "Push day" and add the exercises you do.',
+                      title: l10n.noPlansYet,
+                      message: l10n.noPlansYetBody,
                       action: FilledButton.icon(
                         onPressed: () => _create(context, ref),
                         icon: const Icon(Icons.add_rounded),
-                        label: const Text('Create a plan'),
+                        label: Text(l10n.createAPlan),
                       ),
                     ),
                   )
@@ -93,7 +94,7 @@ class PlansScreen extends ConsumerWidget {
                   child: TextButton.icon(
                     onPressed: () => startWorkout(context, ref),
                     icon: const Icon(Icons.bolt_rounded),
-                    label: const Text('Quick workout, no plan'),
+                    label: Text(l10n.quickWorkoutNoPlan),
                   ),
                 ),
               ],
@@ -124,7 +125,7 @@ class _PlanCard extends ConsumerWidget {
       child: InkWell(
         onTap: () => context.push(Routes.planDetail(plan.id)),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.md, AppSpacing.lg),
+          padding: const EdgeInsetsDirectional.fromSTEB(AppSpacing.xl, AppSpacing.lg, AppSpacing.md, AppSpacing.lg),
           child: Row(
             children: [
               Expanded(
@@ -143,7 +144,7 @@ class _PlanCard extends ConsumerWidget {
                     ],
                     const SizedBox(height: AppSpacing.sm),
                     Text(
-                      count == 0 ? 'No exercises yet' : '$count ${count == 1 ? 'exercise' : 'exercises'}',
+                      count == 0 ? l10n.noExercisesYet : l10n.exerciseCount(count),
                       style: AppText.caption.copyWith(
                         color: count == 0 ? AppColors.textTertiary : AppColors.accent,
                       ),
@@ -153,7 +154,7 @@ class _PlanCard extends ConsumerWidget {
               ),
               const SizedBox(width: AppSpacing.md),
               IconButton.filledTonal(
-                tooltip: 'Start ${plan.name}',
+                tooltip: l10n.startPlan(plan.name),
                 onPressed: count == 0 ? null : () => startWorkout(context, ref, planId: plan.id),
                 style: IconButton.styleFrom(
                   backgroundColor: AppColors.accentTint(),

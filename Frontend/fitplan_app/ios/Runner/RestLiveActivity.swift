@@ -33,7 +33,11 @@ final class RestLiveActivity: NSObject, FlutterPlugin {
       let state = RestActivityAttributes.ContentState(
         startedAt: startedAt,
         endsAt: max(startedAt, Date(timeIntervalSince1970: ends / 1000)),
-        next: next
+        next: next,
+        // sent by the app in its own language; English if an older app didn't send them
+        title: args["title"] as? String ?? "Resting",
+        nextLine: args["nextLine"] as? String ?? "Next: \(next)",
+        skipLabel: args["skipLabel"] as? String ?? "Skip"
       )
       // Flutter wants its answer on the main thread
       Task { @MainActor in result(await RestActivities.show(state)) }
