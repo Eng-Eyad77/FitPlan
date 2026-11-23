@@ -340,6 +340,7 @@ dotnet run --project Backend/FitPlan.Migrator -- import-translations <pack.json>
 
 - It adds a name and steps for each exercise that doesn't have them in that language yet.
 - It replaces a text that changed, and marks it as not reviewed again (`ExerciseTranslations.Reviewed`).
+- If the file has `"reviewed": true` at the top, a person has read the whole file: every text in it is marked reviewed, including ones that didn't change. Add it only after that review; the file then has a new hash to approve.
 - It adds or replaces the shared terms in `TermTranslations`.
 - It skips exercises that aren't in the database, and never deletes anything.
 - It reports how many exercises are still without text in that language.

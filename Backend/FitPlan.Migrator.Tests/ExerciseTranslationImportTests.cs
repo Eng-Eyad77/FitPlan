@@ -131,6 +131,30 @@ public sealed class ExerciseTranslationImportTests
     }
 
     [Fact]
+    public async Task A_reviewed_pack_marks_new_changed_and_unchanged_texts_reviewed()
+    {
+        await using var database = await DatabaseWithExercisesAsync("abc1", "abc2", "abc3");
+        var first = Pack("""{"abc1":{"name":"ضغط","instructions":["ابدأ"]},"abc2":{"name":"سكوات","instructions":["انزل"]}}""");
+        await ExerciseImporter.ImportTranslationsAsync(first, PackSha(first), database.ConnectionString);
+        // abc1 unchanged, abc2 changed, abc3 new
+        var reviewed = Encoding.UTF8.GetBytes(
+            """{"version":1,"language":"ar","reviewed":true,"exercises":{"abc1":{"name":"ضغط","instructions":["ابدأ"]},"abc2":{"name":"سكوات واقف","instructions":["انزل"]},"abc3":{"name":"طعن","instructions":["خذ خطوة"]}}}""");
+
+        Assert.False(TranslationFile.Validate(first).Reviewed);
+        Assert.True(TranslationFile.Validate(reviewed).Reviewed);
+        var report = await ExerciseImporter.ImportTranslationsAsync(reviewed, PackSha(reviewed), database.ConnectionString);
+        var again = await ExerciseImporter.ImportTranslationsAsync(reviewed, PackSha(reviewed), database.ConnectionString);
+
+        Assert.Equal(RunOutcome.Succeeded, report.Outcome);
+        Assert.Equal((1, 1), (report.Inserted, report.Updated));
+        Assert.Contains("3 texts newly marked reviewed", report.Message);
+        Assert.Contains("0 texts newly marked reviewed", again.Message);
+        var texts = await database.Context.ExerciseTranslations.AsNoTracking().OrderBy(t => t.ExerciseId).ToListAsync();
+        Assert.All(texts, t => Assert.True(t.Reviewed));
+        Assert.Equal("سكوات واقف", texts[1].Name);
+    }
+
+    [Fact]
     public async Task Refuses_a_pack_that_does_not_match_the_approved_hash()
     {
         await using var database = await DatabaseWithExercisesAsync("abc1");
