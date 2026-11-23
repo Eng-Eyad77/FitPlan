@@ -346,6 +346,20 @@ dotnet run --project Backend/FitPlan.Migrator -- import-translations <pack.json>
 
 Both commands run as `fitplan-migrator` in one transaction, need the same firewall rule as a migration, and change nothing when run again with the same file. Production takes `--target prod --confirm FitPlanDb` and needs its own approval.
 
+**After any exercise import, refresh the API's copy.** The API keeps the exercise list, with its translations, in memory and in `Exercises__CacheFile` (`/home/data/cache/exercises.json`), and reads the database again only after 24 hours. A restart alone isn't enough, because the restarted app reads the saved file. So after `import-exercises`, `update-exercise-details` or `import-translations`:
+
+1. Delete the cache file through Kudu (`https://<app>.scm.azurewebsites.net`, **Debug console**, `/home/data/cache/`), or with the VFS API:
+
+   ```bash
+   curl -X DELETE -H "Authorization: Bearer $(az account get-access-token --query accessToken -o tsv)" -H "If-Match: *" \
+     https://<app>.scm.azurewebsites.net/api/vfs/data/cache/exercises.json
+   ```
+
+2. Restart the app (`az webapp restart -g <resource group> -n <app>`).
+3. Call `/api/exercises` once and check that the new data shows (for Arabic, send `Accept-Language: ar`). The app writes a new cache file when it reads the database.
+
+The restart wakes the database once. On 2026-11-23 Dev took about a minute before the new list was served.
+
 The API reads `Accept-Language`. For `ar` it returns the Arabic name with `englishName` beside it, plus the Arabic steps and terms. An exercise or term without Arabic text falls back to English, and the API logs a warning once per exercise. Search matches the English and the Arabic name, and treats أ/إ/آ/ا, ة/ه and ى/ي alike.
 
 ### Environment settings
