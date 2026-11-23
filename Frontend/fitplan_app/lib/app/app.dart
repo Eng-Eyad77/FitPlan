@@ -4,6 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/theme/app_theme.dart';
 import '../features/auth/presentation/recovery_code_notice.dart';
+import '../features/exercises/data/exercises_repository.dart';
+import '../features/history/application/history_controller.dart';
+import '../features/plans/application/plans_controller.dart';
+import '../features/progress/application/progress_providers.dart';
+import '../features/session/application/active_session_controller.dart';
 import '../features/session/application/rest_timer.dart';
 import '../l10n/l10n.dart';
 import 'router.dart';
@@ -32,11 +37,30 @@ class _FitPlanAppState extends ConsumerState<FitPlanApp> with WidgetsBindingObse
   @override
   void didChangeLocales(List<Locale>? locales) => setState(() {});
 
+  /// Exercise names and steps come from the API in the app's language (Phase 11C), so what was
+  /// loaded in the other language is loaded again. The workout in progress keeps its typed values:
+  /// only the server's copy is read again.
+  void _reloadExerciseText() {
+    ref
+      ..invalidate(exerciseProvider)
+      ..invalidate(planExercisesProvider)
+      ..invalidate(recordsProvider)
+      ..invalidate(exerciseProgressProvider)
+      ..invalidate(sessionComparisonProvider)
+      ..invalidate(pastSessionProvider);
+    if (ref.read(activeSessionControllerProvider).value != null) {
+      ref.read(activeSessionControllerProvider.notifier).refresh().ignore();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // The rest timer runs from launch, not only on the workout screen: it clears the rest
     // notifications when the app opens on any screen, and handles their buttons (Phase 9).
     ref.listen(restTimerProvider, (_, _) {});
+    ref.listen(languageProvider, (before, now) {
+      if (before != now) _reloadExerciseText();
+    });
     final locale = resolveLocale(
       ref.watch(languageProvider),
       WidgetsBinding.instance.platformDispatcher.locale,

@@ -63,6 +63,11 @@ public sealed class ApiFixture : IAsyncLifetime
 
     public IServiceProvider Services => factory.Services;
 
+    // Another API host on the same database. Its exercise catalog is new, so it reads rows a test
+    // added after the shared host had loaded its list. The caller disposes it.
+    public WebApplicationFactory<Program> NewHost() =>
+        new WebApplicationFactory<Program>().WithWebHostBuilder(builder => builder.UseEnvironment(TestEnvironment));
+
     public string UploadsRoot => uploadsRoot;
 
     public HttpClient CreateClient(string? accessToken = null)

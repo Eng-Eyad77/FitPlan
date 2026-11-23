@@ -16,7 +16,9 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Exercise {
 
- String get id; String get name; String get gifUrl; String get bodyPart; List<String> get instructions;
+ String get id; String get name;/// The English name when [name] is in Arabic (Phase 11C), shown small under it.
+ String? get englishName; String get gifUrl; String get bodyPart; List<String> get instructions;/// In the app's language; empty until the details are on the server.
+ List<String> get equipments; List<String> get targetMuscles; List<String> get secondaryMuscles;
 /// Create a copy of Exercise
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,20 +32,20 @@ $ExerciseCopyWith<Exercise> get copyWith => _$ExerciseCopyWithImpl<Exercise>(thi
 @override
 bool operator ==(Object other) {
   final _this = this as Exercise;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Exercise&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.gifUrl, _this.gifUrl) || other.gifUrl == _this.gifUrl)&&(identical(other.bodyPart, _this.bodyPart) || other.bodyPart == _this.bodyPart)&&const DeepCollectionEquality().equals(other.instructions, _this.instructions));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Exercise&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.englishName, _this.englishName) || other.englishName == _this.englishName)&&(identical(other.gifUrl, _this.gifUrl) || other.gifUrl == _this.gifUrl)&&(identical(other.bodyPart, _this.bodyPart) || other.bodyPart == _this.bodyPart)&&const DeepCollectionEquality().equals(other.instructions, _this.instructions)&&const DeepCollectionEquality().equals(other.equipments, _this.equipments)&&const DeepCollectionEquality().equals(other.targetMuscles, _this.targetMuscles)&&const DeepCollectionEquality().equals(other.secondaryMuscles, _this.secondaryMuscles));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as Exercise;
-  return Object.hash(runtimeType,_this.id,_this.name,_this.gifUrl,_this.bodyPart,const DeepCollectionEquality().hash(_this.instructions));
+  return Object.hash(runtimeType,_this.id,_this.name,_this.englishName,_this.gifUrl,_this.bodyPart,const DeepCollectionEquality().hash(_this.instructions),const DeepCollectionEquality().hash(_this.equipments),const DeepCollectionEquality().hash(_this.targetMuscles),const DeepCollectionEquality().hash(_this.secondaryMuscles));
 }
 
 @override
 String toString() {
   final _this = this as Exercise;
-  return 'Exercise(id: ${_this.id}, name: ${_this.name}, gifUrl: ${_this.gifUrl}, bodyPart: ${_this.bodyPart}, instructions: ${_this.instructions})';
+  return 'Exercise(id: ${_this.id}, name: ${_this.name}, englishName: ${_this.englishName}, gifUrl: ${_this.gifUrl}, bodyPart: ${_this.bodyPart}, instructions: ${_this.instructions}, equipments: ${_this.equipments}, targetMuscles: ${_this.targetMuscles}, secondaryMuscles: ${_this.secondaryMuscles})';
 }
 
 
@@ -54,7 +56,7 @@ abstract mixin class $ExerciseCopyWith<$Res>  {
   factory $ExerciseCopyWith(Exercise value, $Res Function(Exercise) _then) = _$ExerciseCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String gifUrl, String bodyPart, List<String> instructions
+ String id, String name, String? englishName, String gifUrl, String bodyPart, List<String> instructions, List<String> equipments, List<String> targetMuscles, List<String> secondaryMuscles
 });
 
 
@@ -71,13 +73,17 @@ class _$ExerciseCopyWithImpl<$Res>
 
 /// Create a copy of Exercise
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? gifUrl = null,Object? bodyPart = null,Object? instructions = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? englishName = freezed,Object? gifUrl = null,Object? bodyPart = null,Object? instructions = null,Object? equipments = null,Object? targetMuscles = null,Object? secondaryMuscles = null,}) {
   return _then(Exercise(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,gifUrl: null == gifUrl ? _self.gifUrl : gifUrl // ignore: cast_nullable_to_non_nullable
+as String,englishName: freezed == englishName ? _self.englishName : englishName // ignore: cast_nullable_to_non_nullable
+as String?,gifUrl: null == gifUrl ? _self.gifUrl : gifUrl // ignore: cast_nullable_to_non_nullable
 as String,bodyPart: null == bodyPart ? _self.bodyPart : bodyPart // ignore: cast_nullable_to_non_nullable
 as String,instructions: null == instructions ? _self.instructions : instructions // ignore: cast_nullable_to_non_nullable
+as List<String>,equipments: null == equipments ? _self.equipments : equipments // ignore: cast_nullable_to_non_nullable
+as List<String>,targetMuscles: null == targetMuscles ? _self.targetMuscles : targetMuscles // ignore: cast_nullable_to_non_nullable
+as List<String>,secondaryMuscles: null == secondaryMuscles ? _self.secondaryMuscles : secondaryMuscles // ignore: cast_nullable_to_non_nullable
 as List<String>,
   ));
 }
@@ -163,10 +169,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String gifUrl,  String bodyPart,  List<String> instructions)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String? englishName,  String gifUrl,  String bodyPart,  List<String> instructions,  List<String> equipments,  List<String> targetMuscles,  List<String> secondaryMuscles)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Exercise() when $default != null:
-return $default(_that.id,_that.name,_that.gifUrl,_that.bodyPart,_that.instructions);case _:
+return $default(_that.id,_that.name,_that.englishName,_that.gifUrl,_that.bodyPart,_that.instructions,_that.equipments,_that.targetMuscles,_that.secondaryMuscles);case _:
   return orElse();
 
 }
@@ -184,10 +190,10 @@ return $default(_that.id,_that.name,_that.gifUrl,_that.bodyPart,_that.instructio
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String gifUrl,  String bodyPart,  List<String> instructions)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String? englishName,  String gifUrl,  String bodyPart,  List<String> instructions,  List<String> equipments,  List<String> targetMuscles,  List<String> secondaryMuscles)  $default,) {final _that = this;
 switch (_that) {
 case _Exercise():
-return $default(_that.id,_that.name,_that.gifUrl,_that.bodyPart,_that.instructions);case _:
+return $default(_that.id,_that.name,_that.englishName,_that.gifUrl,_that.bodyPart,_that.instructions,_that.equipments,_that.targetMuscles,_that.secondaryMuscles);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -204,10 +210,10 @@ return $default(_that.id,_that.name,_that.gifUrl,_that.bodyPart,_that.instructio
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String gifUrl,  String bodyPart,  List<String> instructions)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String? englishName,  String gifUrl,  String bodyPart,  List<String> instructions,  List<String> equipments,  List<String> targetMuscles,  List<String> secondaryMuscles)?  $default,) {final _that = this;
 switch (_that) {
 case _Exercise() when $default != null:
-return $default(_that.id,_that.name,_that.gifUrl,_that.bodyPart,_that.instructions);case _:
+return $default(_that.id,_that.name,_that.englishName,_that.gifUrl,_that.bodyPart,_that.instructions,_that.equipments,_that.targetMuscles,_that.secondaryMuscles);case _:
   return null;
 
 }
@@ -219,11 +225,13 @@ return $default(_that.id,_that.name,_that.gifUrl,_that.bodyPart,_that.instructio
 @JsonSerializable()
 
 class _Exercise implements Exercise {
-  const _Exercise({required this.id, required this.name, required this.gifUrl, required this.bodyPart,  List<String> instructions = const []}): _instructions = instructions;
+  const _Exercise({required this.id, required this.name, this.englishName, required this.gifUrl, required this.bodyPart,  List<String> instructions = const [],  List<String> equipments = const [],  List<String> targetMuscles = const [],  List<String> secondaryMuscles = const []}): _instructions = instructions,_equipments = equipments,_targetMuscles = targetMuscles,_secondaryMuscles = secondaryMuscles;
   factory _Exercise.fromJson(Map<String, dynamic> json) => _$ExerciseFromJson(json);
 
 @override final  String id;
 @override final  String name;
+/// The English name when [name] is in Arabic (Phase 11C), shown small under it.
+@override final  String? englishName;
 @override final  String gifUrl;
 @override final  String bodyPart;
  final  List<String> _instructions;
@@ -231,6 +239,29 @@ class _Exercise implements Exercise {
   if (_instructions is EqualUnmodifiableListView) return _instructions;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_instructions);
+}
+
+/// In the app's language; empty until the details are on the server.
+ final  List<String> _equipments;
+/// In the app's language; empty until the details are on the server.
+@override@JsonKey() List<String> get equipments {
+  if (_equipments is EqualUnmodifiableListView) return _equipments;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_equipments);
+}
+
+ final  List<String> _targetMuscles;
+@override@JsonKey() List<String> get targetMuscles {
+  if (_targetMuscles is EqualUnmodifiableListView) return _targetMuscles;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_targetMuscles);
+}
+
+ final  List<String> _secondaryMuscles;
+@override@JsonKey() List<String> get secondaryMuscles {
+  if (_secondaryMuscles is EqualUnmodifiableListView) return _secondaryMuscles;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_secondaryMuscles);
 }
 
 
@@ -247,18 +278,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Exercise&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.gifUrl, gifUrl) || other.gifUrl == gifUrl)&&(identical(other.bodyPart, bodyPart) || other.bodyPart == bodyPart)&&const DeepCollectionEquality().equals(other.instructions, _instructions));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Exercise&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.englishName, englishName) || other.englishName == englishName)&&(identical(other.gifUrl, gifUrl) || other.gifUrl == gifUrl)&&(identical(other.bodyPart, bodyPart) || other.bodyPart == bodyPart)&&const DeepCollectionEquality().equals(other.instructions, _instructions)&&const DeepCollectionEquality().equals(other.equipments, _equipments)&&const DeepCollectionEquality().equals(other.targetMuscles, _targetMuscles)&&const DeepCollectionEquality().equals(other.secondaryMuscles, _secondaryMuscles));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,name,gifUrl,bodyPart,const DeepCollectionEquality().hash(_instructions));
+    return Object.hash(runtimeType,id,name,englishName,gifUrl,bodyPart,const DeepCollectionEquality().hash(_instructions),const DeepCollectionEquality().hash(_equipments),const DeepCollectionEquality().hash(_targetMuscles),const DeepCollectionEquality().hash(_secondaryMuscles));
 }
 
 @override
 String toString() {
-    return 'Exercise(id: $id, name: $name, gifUrl: $gifUrl, bodyPart: $bodyPart, instructions: $instructions)';
+    return 'Exercise(id: $id, name: $name, englishName: $englishName, gifUrl: $gifUrl, bodyPart: $bodyPart, instructions: $instructions, equipments: $equipments, targetMuscles: $targetMuscles, secondaryMuscles: $secondaryMuscles)';
 }
 
 
@@ -269,7 +300,7 @@ abstract mixin class _$ExerciseCopyWith<$Res> implements $ExerciseCopyWith<$Res>
   factory _$ExerciseCopyWith(_Exercise value, $Res Function(_Exercise) _then) = __$ExerciseCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String gifUrl, String bodyPart, List<String> instructions
+ String id, String name, String? englishName, String gifUrl, String bodyPart, List<String> instructions, List<String> equipments, List<String> targetMuscles, List<String> secondaryMuscles
 });
 
 
@@ -286,13 +317,17 @@ class __$ExerciseCopyWithImpl<$Res>
 
 /// Create a copy of Exercise
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? gifUrl = null,Object? bodyPart = null,Object? instructions = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? englishName = freezed,Object? gifUrl = null,Object? bodyPart = null,Object? instructions = null,Object? equipments = null,Object? targetMuscles = null,Object? secondaryMuscles = null,}) {
   return _then(_Exercise(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,gifUrl: null == gifUrl ? _self.gifUrl : gifUrl // ignore: cast_nullable_to_non_nullable
+as String,englishName: freezed == englishName ? _self.englishName : englishName // ignore: cast_nullable_to_non_nullable
+as String?,gifUrl: null == gifUrl ? _self.gifUrl : gifUrl // ignore: cast_nullable_to_non_nullable
 as String,bodyPart: null == bodyPart ? _self.bodyPart : bodyPart // ignore: cast_nullable_to_non_nullable
 as String,instructions: null == instructions ? _self._instructions : instructions // ignore: cast_nullable_to_non_nullable
+as List<String>,equipments: null == equipments ? _self._equipments : equipments // ignore: cast_nullable_to_non_nullable
+as List<String>,targetMuscles: null == targetMuscles ? _self._targetMuscles : targetMuscles // ignore: cast_nullable_to_non_nullable
+as List<String>,secondaryMuscles: null == secondaryMuscles ? _self._secondaryMuscles : secondaryMuscles // ignore: cast_nullable_to_non_nullable
 as List<String>,
   ));
 }

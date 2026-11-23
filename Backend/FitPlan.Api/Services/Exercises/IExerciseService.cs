@@ -10,9 +10,10 @@ public interface IExerciseService
         int page,
         int pageSize,
         string? bodyPart,
-        string? search);
+        string? search,
+        string language = ContentLanguage.English);
 
     Task<IReadOnlyList<string>> GetBodyPartsAsync();
 
-    Task<Result<ExerciseDto>> GetExerciseByIdAsync(string id);
+    Task<Result<ExerciseDto>> GetExerciseByIdAsync(string id, string language = ContentLanguage.English);
 }

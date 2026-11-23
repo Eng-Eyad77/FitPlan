@@ -1,13 +1,18 @@
 
+using FitPlan.Api.DTOs.Exercises;
+
 namespace FitPlan.Api.DTOs.WorkoutPlanExercises;
 
-public class WorkoutPlanExerciseResponseDto
+public class WorkoutPlanExerciseResponseDto : ILocalizedSteps
 {
     public Guid Id { get; set; }
 
     public required string ExerciseId { get; set; }
 
     public required string Name { get; set; }
+
+    // the English name when Name is in another language, so the app can show both
+    public string? EnglishName { get; set; }
 
     public required string GifUrl { get; set; }
 

@@ -1,10 +1,11 @@
 
+using FitPlan.Api.DTOs.Exercises;
 using FitPlan.Api.Models;
 
 namespace FitPlan.Api.DTOs.WorkoutSessions;
 
 // The full session, used by the session screen.
-public class WorkoutSessionResponseDto
+public class WorkoutSessionResponseDto : IHasLocalizedExercises
 {
     public Guid Id { get; set; }
 
@@ -21,16 +22,21 @@ public class WorkoutSessionResponseDto
     public SessionExerciseResponseDto[] Exercises { get; set; } = [];
 
     public CardioEntryResponseDto[] Cardio { get; set; } = [];
+
+    IEnumerable<ILocalizedExercise> IHasLocalizedExercises.LocalizedExercises => Exercises;
 }
 
 
-public class SessionExerciseResponseDto
+public class SessionExerciseResponseDto : ILocalizedExercise
 {
     public Guid Id { get; set; }
 
     public required string ExerciseId { get; set; }
 
     public required string Name { get; set; }
+
+    // the English name when Name is in another language, so the app can show both
+    public string? EnglishName { get; set; }
 
     public required string GifUrl { get; set; }
 

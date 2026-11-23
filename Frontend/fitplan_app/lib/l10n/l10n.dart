@@ -1,6 +1,8 @@
 /// The app's language (Phase 11): which one is chosen, and the strings for it.
 library;
 
+import 'dart:ui' show PlatformDispatcher;
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -40,6 +42,10 @@ Locale resolveLocale(AppLanguage choice, Locale device) => switch (choice) {
       AppLanguage.arabic => const Locale('ar'),
       AppLanguage.system => device.languageCode == 'ar' ? const Locale('ar') : const Locale('en'),
     };
+
+/// The language code the API is asked for (Accept-Language), so exercise names match the screen.
+String contentLanguageFor(AppLanguage choice) =>
+    resolveLocale(choice, PlatformDispatcher.instance.locale).languageCode;
 
 /// Read before the first frame (see main.dart), so the app never flashes in the other language.
 final initialLanguageProvider = Provider<AppLanguage>((ref) => AppLanguage.system);

@@ -145,6 +145,12 @@ namespace FitPlan.Api.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.PrimitiveCollection<string>("Equipments")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValueSql("N'[]'");
+
                     b.Property<string>("GifUrl")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -158,9 +164,47 @@ namespace FitPlan.Api.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.PrimitiveCollection<string>("SecondaryMuscles")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValueSql("N'[]'");
+
+                    b.PrimitiveCollection<string>("TargetMuscles")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValueSql("N'[]'");
+
                     b.HasKey("Id");
 
                     b.ToTable("Exercises", (string)null);
+                });
+
+            modelBuilder.Entity("FitPlan.Api.Models.ExerciseTranslation", b =>
+                {
+                    b.Property<string>("ExerciseId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Language")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.PrimitiveCollection<string>("Instructions")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<bool>("Reviewed")
+                        .HasColumnType("bit");
+
+                    b.HasKey("ExerciseId", "Language");
+
+                    b.ToTable("ExerciseTranslations", (string)null);
                 });
 
             modelBuilder.Entity("FitPlan.Api.Models.RefreshToken", b =>
@@ -275,6 +319,30 @@ namespace FitPlan.Api.Migrations
 
                             t.HasCheckConstraint("CK_SessionSets_WeightKg", "[WeightKg] >= 0 AND [WeightKg] <= 500");
                         });
+                });
+
+            modelBuilder.Entity("FitPlan.Api.Models.TermTranslation", b =>
+                {
+                    b.Property<string>("Kind")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Term")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Language")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.HasKey("Kind", "Term", "Language");
+
+                    b.ToTable("TermTranslations", (string)null);
                 });
 
             modelBuilder.Entity("FitPlan.Api.Models.User", b =>
@@ -480,6 +548,17 @@ namespace FitPlan.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("WorkoutSession");
+                });
+
+            modelBuilder.Entity("FitPlan.Api.Models.ExerciseTranslation", b =>
+                {
+                    b.HasOne("FitPlan.Api.Models.Exercise", "Exercise")
+                        .WithMany()
+                        .HasForeignKey("ExerciseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Exercise");
                 });
 
             modelBuilder.Entity("FitPlan.Api.Models.RefreshToken", b =>

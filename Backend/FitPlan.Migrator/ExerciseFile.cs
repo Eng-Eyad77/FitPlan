@@ -6,7 +6,16 @@ using FitPlan.Api.DTOs.Exercises.External;
 
 namespace FitPlan.Migrator;
 
-public sealed record ExerciseRow(string Id, string Name, string GifUrl, string BodyPart, List<string> Instructions);
+// The detail lists came in Phase 11C: a file fetched before then has none, and imports without them.
+public sealed record ExerciseRow(
+    string Id,
+    string Name,
+    string GifUrl,
+    string BodyPart,
+    List<string> Instructions,
+    List<string>? Equipments = null,
+    List<string>? TargetMuscles = null,
+    List<string>? SecondaryMuscles = null);
 
 public sealed record ValidatedExercises(string Sha256, IReadOnlyList<ExerciseRow> Rows);
 
@@ -31,6 +40,9 @@ public static class ExerciseFile
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
 
+    // the same without indents, so the lists the database stores are compact
+    private static readonly JsonSerializerOptions ImportJson = new(Json) { WriteIndented = false };
+
     // Reads every page of the source. Rows are sorted by id, so the hash only changes when the
     // source's content does.
     public static async Task<byte[]> FetchAsync(HttpClient client, Action<string> progress, CancellationToken cancellationToken = default)
@@ -50,7 +62,10 @@ public static class ExerciseFile
                 item.Name,
                 item.GifUrl,
                 item.BodyParts.FirstOrDefault() ?? "",
-                item.Instructions)));
+                item.Instructions,
+                item.Equipments,
+                item.TargetMuscles,
+                item.SecondaryMuscles)));
             progress($"{rows.Count} of {page.Meta!.Total}");
 
             cursor = page.Meta.HasNextPage
@@ -151,11 +166,19 @@ public static class ExerciseFile
             {
                 throw new ExerciseFileRejectedException($"Exercise {row.Id} has missing instructions.");
             }
+
+            foreach (var (label, list) in new[] { ("equipment", row.Equipments), ("target muscle", row.TargetMuscles), ("secondary muscle", row.SecondaryMuscles) })
+            {
+                if (list is not null && (list.Count > 50 || list.Any(term => string.IsNullOrWhiteSpace(term) || term.Length > 100)))
+                {
+                    throw new ExerciseFileRejectedException($"Exercise {row.Id} has a blank, too long or too many {label} terms.");
+                }
+            }
         }
 
         return new ValidatedExercises(Convert.ToHexString(SHA256.HashData(file)), rows!);
     }
 
     // The rows as the JSON the import statement reads with OPENJSON.
-    internal static string ToImportJson(IReadOnlyList<ExerciseRow> rows) => JsonSerializer.Serialize(rows, Json);
+    internal static string ToImportJson(IReadOnlyList<ExerciseRow> rows) => JsonSerializer.Serialize(rows, ImportJson);
 }

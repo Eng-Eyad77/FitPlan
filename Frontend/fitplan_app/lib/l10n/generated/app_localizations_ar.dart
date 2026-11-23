@@ -1854,4 +1854,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get switchLanguage => 'حوّل للإنجليزي';
+
+  @override
+  String get equipmentLabel => 'الأدوات';
+
+  @override
+  String get targetMusclesLabel => 'العضلة الأساسية';
+
+  @override
+  String get secondaryMusclesLabel => 'تشتغل معها';
 }

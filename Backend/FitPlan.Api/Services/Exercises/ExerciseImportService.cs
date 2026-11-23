@@ -114,7 +114,10 @@ public class ExerciseImportService(IHttpClientFactory httpClientFactory, FitPlan
                 Name = item.Name,
                 GifUrl = item.GifUrl,
                 BodyPart = item.BodyParts.First(),
-                Instructions = item.Instructions
+                Instructions = item.Instructions,
+                Equipments = item.Equipments,
+                TargetMuscles = item.TargetMuscles,
+                SecondaryMuscles = item.SecondaryMuscles
             };
         }).ToList()
             );

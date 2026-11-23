@@ -18,6 +18,7 @@ import '../domain/exercise.dart';
 import 'exercise_details_sheet.dart';
 import 'widgets/exercise_thumb.dart';
 import '../../../l10n/l10n.dart';
+import 'widgets/exercise_name.dart';
 
 /// Search the library and pick one exercise. Pops with the chosen [Exercise].
 /// [excludedIds] are already in the plan/session: shown as added, not selectable.
@@ -317,12 +318,7 @@ class _ExerciseRow extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      capitalize(exercise.name),
-                      style: AppText.bodyStrong,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    ExerciseName(name: exercise.name, englishName: exercise.englishName),
                     const SizedBox(height: 2),
                     Text(
                       added ? l10n.bodyPartAdded(bodyPartName(exercise.bodyPart)) : bodyPartName(exercise.bodyPart),

@@ -18,6 +18,7 @@ public static class Scripts
     public const string AddRestSeconds = "20261119113833_AddRestSeconds";
     public const string AddCardioMachineDetails = "20261119122349_AddCardioMachineDetails";
     public const string AddVolumeMilestones = "20261122085940_AddVolumeMilestones";
+    public const string AddExerciseDetailsAndTranslations = "20261123102033_AddExerciseDetailsAndTranslations";
 
     public static readonly KnownMigrations Known = KnownMigrations.FromApi();
 
