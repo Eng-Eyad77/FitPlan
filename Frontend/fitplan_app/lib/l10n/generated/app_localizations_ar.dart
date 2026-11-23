@@ -62,7 +62,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get errEmptySession =>
-      'سجّل جولة وحدة أو كارديو على الأقل قبل لا تخلّص، أو ألغِ الحصة.';
+      'سجّل جولة وحدة أو كارديو على الأقل قبل ما تخلّص، أو ألغِ الحصة.';
 
   @override
   String get errSessionExerciseNotFound => 'ما لقينا التمرين في الحصة.';
@@ -71,7 +71,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get errExerciseAlreadyInSession => 'التمرين موجود في الحصة من قبل.';
 
   @override
-  String get errSetLimitReached => 'أقصى شي 10 جولات للتمرين في الحصة الوحدة.';
+  String get errSetLimitReached => 'أقصى حد 10 جولات للتمرين في الحصة الوحدة.';
 
   @override
   String get errSessionSetNotFound => 'ما لقينا الجولة.';
@@ -251,7 +251,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String atMostChars(int count) {
-    return 'أقصى شي $count حرف';
+    return '$count حرف كحد أقصى';
   }
 
   @override
@@ -265,7 +265,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get confirmPassword => 'أكّد كلمة المرور';
 
   @override
-  String get passwordsDontMatch => 'كلمتين المرور مو نفس الشي';
+  String get passwordsDontMatch => 'كلمة المرور ما تتطابق';
 
   @override
   String passwordHint(int count) {
@@ -301,7 +301,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get confirmNewPassword => 'أكّد كلمة المرور الجديدة';
 
   @override
-  String get thePasswordsDontMatch => 'كلمتين المرور مو نفس الشي';
+  String get thePasswordsDontMatch => 'كلمة المرور ما تتطابق';
 
   @override
   String get resetPassword => 'غيّر كلمة المرور';
@@ -724,7 +724,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get time => 'الوقت';
 
   @override
-  String get volume => 'الوزن';
+  String get volume => 'مجموع الأوزان';
 
   @override
   String get kcal => 'سعرة';
@@ -876,7 +876,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get bio => 'نبذة عنك';
 
   @override
-  String get bioHint => 'أهدافك، تمرينك المفضل، أي شي…';
+  String get bioHint => 'أهدافك، تمرينك المفضل، أي شيء…';
 
   @override
   String get saveBio => 'احفظ النبذة';
@@ -1012,7 +1012,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get workouts => 'الحصص';
 
   @override
-  String get kgLifted => 'الكيلوات';
+  String get kgLifted => 'الأوزان';
 
   @override
   String minutesShort(int minutes) {
@@ -1079,7 +1079,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recentRecords => 'آخر أرقامك القياسية';
 
   @override
-  String get weeklyVolume => 'الوزن اللي شلته كل أسبوع';
+  String get weeklyVolume => 'مجموع الأوزان كل أسبوع';
 
   @override
   String get kgLiftedLower => 'كيلو';
@@ -1113,7 +1113,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recordMostReps => 'أكثر عدّات';
 
   @override
-  String get recordBestSetVolume => 'أكبر وزن في جولة';
+  String get recordBestSetVolume => 'أعلى مجموع أوزان في جولة';
 
   @override
   String get finishWithWeights => 'خلّص حصة فيها أوزان وتبدأ';
@@ -1122,7 +1122,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get keepGoing => 'كمّل';
 
   @override
-  String get lifetimeVolume => 'كل الوزن اللي شلته';
+  String get lifetimeVolume => 'مجموع الأوزان اللي شلتها';
 
   @override
   String nextMilestone(String name) {
@@ -1142,12 +1142,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String liftedSoFar(String amount) {
-    return 'شلت $amount للحين';
+    return 'مجموع الأوزان للحين: $amount';
   }
 
   @override
   String get milestonesNote =>
-      'الأوزان تقريبية. الحساب = العدّات × الوزن من الحصص المخلّصة. جولات وزن الجسم والكارديو ما تنحسب.';
+      'الأوزان تقريبية. مجموع الأوزان = العدّات × الوزن، من الحصص المخلّصة. جولات وزن الجسم والكارديو ما تنحسب.';
 
   @override
   String reachedOn(String date) {
@@ -1196,7 +1196,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String volumeVsLast(String name) {
-    return 'الوزن مقارنة بآخر $name';
+    return 'مجموع الأوزان مقارنة بآخر $name';
   }
 
   @override
@@ -1216,7 +1216,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get nothingLoggedYet => 'ما سجّلت شي للحين';
+  String get nothingLoggedYet => 'ما سجّلت شيء للحين';
 
   @override
   String get oneMoreEntry => 'سجّل مرة ثانية ويبدأ الرسم هنا';
@@ -1311,7 +1311,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get whyRepeat => 'نفس الوزن، زِد العدّات';
 
   @override
-  String get whyDeload => 'خفّف شوي ترتاح بعد حصتين قوية';
+  String get whyDeload => 'خفّف شوي عشان ترتاح بعد حصتين قويتين';
 
   @override
   String get whyMoreReps => 'عدّة زيادة على أفضل رقم لك';
@@ -1590,7 +1590,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String workoutInProgressBody(String name) {
-    return 'حصة \"$name\" شغّالة. خلّصها أو ألغها قبل لا تبدأ وحدة جديدة.';
+    return 'حصة \"$name\" شغّالة. خلّصها أو ألغها قبل ما تبدأ وحدة جديدة.';
   }
 
   @override
@@ -1629,7 +1629,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String totalPassed(String amount, String name) {
-    return 'مجموعك عدّى $amount، يعني تقريبًا وزن $name';
+    return 'مجموع أوزانك عدّى $amount، يعني تقريبًا وزن $name';
   }
 
   @override
