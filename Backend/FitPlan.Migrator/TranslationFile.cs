@@ -10,7 +10,8 @@ public sealed record ValidatedTranslations(
     string Sha256,
     string Language,
     IReadOnlyDictionary<string, TranslatedExercise> Exercises,
-    IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> Terms);
+    IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> Terms,
+    bool Reviewed = false);
 
 // Phase 11C: one language's exercise text as a local file, approved by its hash and then imported.
 // Like the exercise list, it stays outside the repository: it is a translation of the source's content.
@@ -18,6 +19,9 @@ public sealed record ValidatedTranslations(
 //   { "version": 1, "language": "ar",
 //     "terms": { "equipment": { "barbell": "بار" }, "muscle": { "biceps": "البايسبس" } },
 //     "exercises": { "<exercise id>": { "name": "...", "instructions": ["...", "..."] } } }
+//
+// Optional "reviewed": true says a person has read the whole file (Phase 11D): every text in it is
+// then marked reviewed. Without it, new or changed texts are stored unreviewed, as before.
 public static class TranslationFile
 {
     public const int Version = 1;
@@ -28,7 +32,8 @@ public static class TranslationFile
         int Version,
         string? Language,
         Dictionary<string, Dictionary<string, string>>? Terms,
-        Dictionary<string, TranslatedExercise?>? Exercises);
+        Dictionary<string, TranslatedExercise?>? Exercises,
+        bool? Reviewed);
 
     private static readonly JsonSerializerOptions Read = new(JsonSerializerDefaults.Web);
 
@@ -102,7 +107,8 @@ public static class TranslationFile
             Convert.ToHexString(SHA256.HashData(file)),
             pack.Language,
             pack.Exercises.ToDictionary(e => e.Key, e => e.Value!),
-            terms.ToDictionary(t => t.Key, t => (IReadOnlyDictionary<string, string>)t.Value));
+            terms.ToDictionary(t => t.Key, t => (IReadOnlyDictionary<string, string>)t.Value),
+            pack.Reviewed ?? false);
     }
 
     // The rows and terms as the JSON the import statements read with OPENJSON.

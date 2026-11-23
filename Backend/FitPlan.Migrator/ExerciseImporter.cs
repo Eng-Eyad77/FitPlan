@@ -59,10 +59,11 @@ public static class ExerciseImporter
         WHERE EXISTS (SELECT 1 FROM [dbo].[Exercises] AS e WHERE e.[Id] = j.[Id]);
         """;
 
-    // A changed text is marked as not reviewed again. Exercises the database doesn't have are skipped.
+    // A changed text takes the file's review mark (unreviewed unless the file says "reviewed": true).
+    // Exercises the database doesn't have are skipped.
     private const string UpdateTranslations = """
         UPDATE t
-        SET t.[Name] = j.[Name], t.[Instructions] = j.[Instructions], t.[Reviewed] = CAST(0 AS bit)
+        SET t.[Name] = j.[Name], t.[Instructions] = j.[Instructions], t.[Reviewed] = CAST(@reviewed AS bit)
         FROM [dbo].[ExerciseTranslations] AS t
         INNER JOIN OPENJSON(@rows) WITH (
             [Id] nvarchar(450) '$.id',
@@ -75,13 +76,24 @@ public static class ExerciseImporter
 
     private const string InsertTranslations = """
         INSERT INTO [dbo].[ExerciseTranslations] ([ExerciseId], [Language], [Name], [Instructions], [Reviewed])
-        SELECT e.[Id], @language, j.[Name], j.[Instructions], CAST(0 AS bit)
+        SELECT e.[Id], @language, j.[Name], j.[Instructions], CAST(@reviewed AS bit)
         FROM OPENJSON(@rows) WITH (
             [Id] nvarchar(450) '$.id',
             [Name] nvarchar(150) '$.name',
             [Instructions] nvarchar(max) '$.instructions' AS JSON) AS j
         INNER JOIN [dbo].[Exercises] AS e ON e.[Id] = j.[Id]
         WHERE NOT EXISTS (SELECT 1 FROM [dbo].[ExerciseTranslations] AS t WHERE t.[ExerciseId] = e.[Id] AND t.[Language] = @language);
+        SELECT @@ROWCOUNT;
+        """;
+
+    // Phase 11D: a reviewed file also marks its unchanged texts reviewed. Run after the updates, so
+    // every text it touches now matches the file.
+    private const string MarkReviewed = """
+        UPDATE t
+        SET t.[Reviewed] = CAST(1 AS bit)
+        FROM [dbo].[ExerciseTranslations] AS t
+        INNER JOIN OPENJSON(@rows) WITH ([Id] nvarchar(450) '$.id') AS j ON t.[ExerciseId] = j.[Id]
+        WHERE t.[Language] = @language AND t.[Reviewed] = CAST(0 AS bit);
         SELECT @@ROWCOUNT;
         """;
 
@@ -286,10 +298,14 @@ public static class ExerciseImporter
         var rows = TranslationFile.ToImportJson(pack);
         var terms = TranslationFile.TermsToImportJson(pack);
         var language = ("@language", pack.Language);
+        var reviewed = ("@reviewed", pack.Reviewed ? "1" : "0");
 
         var matched = await RowsAsync(connection, transaction, MatchedIds, cancellationToken, ("@rows", rows));
-        var updated = await RowsAsync(connection, transaction, UpdateTranslations, cancellationToken, ("@rows", rows), language);
-        var inserted = await RowsAsync(connection, transaction, InsertTranslations, cancellationToken, ("@rows", rows), language);
+        var updated = await RowsAsync(connection, transaction, UpdateTranslations, cancellationToken, ("@rows", rows), language, reviewed);
+        var inserted = await RowsAsync(connection, transaction, InsertTranslations, cancellationToken, ("@rows", rows), language, reviewed);
+        var markedReviewed = pack.Reviewed
+            ? await RowsAsync(connection, transaction, MarkReviewed, cancellationToken, ("@rows", rows), language)
+            : 0;
         var termsUpdated = await RowsAsync(connection, transaction, UpdateTerms, cancellationToken, ("@terms", terms), language);
         var termsInserted = await RowsAsync(connection, transaction, InsertTerms, cancellationToken, ("@terms", terms), language);
 
@@ -306,7 +322,9 @@ public static class ExerciseImporter
 
         return new ImportReport(RunOutcome.Succeeded,
             $"{pack.Language}: added {inserted} and replaced {updated} exercise texts ({matched - inserted - updated} unchanged, " +
-            $"{pack.Exercises.Count - matched} in the file aren't in the database). Terms: added {termsInserted}, replaced {termsUpdated}. " +
+            $"{pack.Exercises.Count - matched} in the file aren't in the database). " +
+            (pack.Reviewed ? $"The file is reviewed: {inserted + updated + markedReviewed} texts newly marked reviewed. " : "") +
+            $"Terms: added {termsInserted}, replaced {termsUpdated}. " +
             $"Exercises still without {pack.Language} text: {missing}.",
             null, inserted, null, updated);
     }
