@@ -70,8 +70,6 @@ class _ProfileBody extends ConsumerWidget {
             onTap: () => context.push(Routes.report),
             child: Row(
               children: [
-                const Icon(Icons.bug_report_outlined, color: AppColors.textSecondary),
-                const SizedBox(width: AppSpacing.md),
                 Expanded(child: Text(l10n.reportProblem, style: AppText.body)),
                 const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
               ],
