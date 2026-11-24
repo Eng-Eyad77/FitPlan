@@ -1895,4 +1895,23 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get emailChanged => 'تغيّر إيميلك.';
+
+  @override
+  String get reportProblem => 'أبلغ عن مشكلة';
+
+  @override
+  String get reportIntro =>
+      'وش المشكلة اللي واجهتك؟ نقرأ كل بلاغ ونرد عليك على إيميلك.';
+
+  @override
+  String get reportHint => 'اكتب وش صار، ووش كنت تسوي وقتها.';
+
+  @override
+  String get send => 'إرسال';
+
+  @override
+  String get reportSent => 'وصلنا بلاغك، شكراً لك 🙏';
+
+  @override
+  String get reportTooMany => 'أرسلت بلاغات كثيرة. جرّب بعد شوي.';
 }

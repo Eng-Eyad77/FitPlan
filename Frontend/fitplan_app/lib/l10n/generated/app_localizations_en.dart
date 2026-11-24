@@ -1878,4 +1878,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get emailChanged => 'Your email was changed.';
+
+  @override
+  String get reportProblem => 'Report a problem';
+
+  @override
+  String get reportIntro =>
+      'What went wrong? We read every report and reply to your email.';
+
+  @override
+  String get reportHint => 'Describe what happened and what you were doing.';
+
+  @override
+  String get send => 'Send';
+
+  @override
+  String get reportSent => 'We got your report. Thank you 🙏';
+
+  @override
+  String get reportTooMany =>
+      'You sent many reports. Try again a little later.';
 }
