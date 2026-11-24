@@ -13,13 +13,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get errUsernameAlreadyExists => 'اسم المستخدم مأخوذ.';
 
   @override
-  String get errInvalidCredentials => 'اسم المستخدم أو كلمة المرور غلط.';
+  String get errInvalidCredentials =>
+      'الإيميل أو اسم المستخدم أو كلمة المرور غلط.';
 
   @override
   String get errInvalidRefreshToken => 'انتهت جلستك. سجّل دخولك مرة ثانية.';
-
-  @override
-  String get errInvalidRecoveryCode => 'اسم المستخدم أو رمز الاسترجاع غلط.';
 
   @override
   String get errWrongPassword => 'كلمة المرور غلط.';
@@ -193,7 +191,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get kg => 'كيلو';
 
   @override
-  String get authWrongLogin => 'اسم المستخدم أو كلمة المرور غلط.';
+  String get authWrongLogin => 'الإيميل أو اسم المستخدم أو كلمة المرور غلط.';
 
   @override
   String get authUsernameTaken => 'اسم المستخدم مأخوذ. جرّب اسم ثاني.';
@@ -229,16 +227,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get createAnAccount => 'حيّاك، سجّل الحين';
 
   @override
-  String get recoverySaveTitle => 'احفظ رمز الاسترجاع';
-
-  @override
-  String get recoverySaveBody =>
-      'إذا نسيت كلمة المرور، هذا الرمز هو الطريقة الوحيدة ترجع فيها لحسابك. احفظه في مكان آمن، مثل مدير كلمات المرور. يشتغل مرة وحدة، وما نقدر نعرضه لك مرة ثانية.';
-
-  @override
-  String get recoveryCopied => 'نسخنا رمز الاسترجاع.';
-
-  @override
   String get copyCode => 'انسخ الرمز';
 
   @override
@@ -259,7 +247,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get registerSubtitle =>
-      'خطوة وحدة وتبدأ رحلتك: رتّب تمارينك، سجّل كل جولة، وشوف قوتك تزيد يوم بعد يوم.';
+      'رتّب تمارينك، سجّل كل جولة، وشوف قوتك تزيد يوم بعد يوم.';
 
   @override
   String get confirmPassword => 'أكّد كلمة المرور';
@@ -283,13 +271,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get resetSubtitle =>
-      'حط رمز الاسترجاع اللي حفظته يوم سوّيت حسابك، واختر كلمة مرور جديدة.';
-
-  @override
-  String get recoveryCode => 'رمز الاسترجاع';
-
-  @override
-  String get recoveryCodeLength => 'الرمز فيه 16 حرف ورقم';
+      'اكتب إيميل حسابك، وبنرسل لك رمز تختار فيه كلمة مرور جديدة.';
 
   @override
   String get newPassword => 'كلمة المرور الجديدة';
@@ -805,30 +787,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get cancel => 'إلغاء';
-
-  @override
-  String get newRecoveryCodeTitle => 'رمز استرجاع جديد';
-
-  @override
-  String get newRecoveryCodeBody =>
-      'الرمز القديم بيوقف. اكتب كلمة المرور عشان تكمّل.';
-
-  @override
-  String get createCode => 'سوّ الرمز';
-
-  @override
-  String get recoveryHasCode =>
-      'إذا نسيت كلمة المرور تقدر تغيّرها برمز الاسترجاع. ضاع منك؟ سوّ واحد جديد.';
-
-  @override
-  String get recoveryNoCode =>
-      'ما عندك رمز استرجاع للحين. بدونه، لو نسيت كلمة المرور يضيع حسابك.';
-
-  @override
-  String get createNewCode => 'سوّ رمز جديد';
-
-  @override
-  String get createRecoveryCode => 'سوّ رمز استرجاع';
 
   @override
   String get deleteAccountTitle => 'تحذف حسابك؟';
@@ -1863,4 +1821,78 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get secondaryMusclesLabel => 'تشتغل معها';
+
+  @override
+  String get errInvalidEmailCode =>
+      'الرمز غلط أو انتهت صلاحيته. اطلب رمز جديد.';
+
+  @override
+  String get errEmailAlreadyExists => 'هذا الإيميل عليه حساب من قبل.';
+
+  @override
+  String get errTooManyEmails =>
+      'طلبت رموز كثيرة لهذا الإيميل. انتظر شوي وجرّب مرة ثانية.';
+
+  @override
+  String get errEmailNotSent => 'ما قدرنا نرسل الإيميل. جرّب بعد شوي.';
+
+  @override
+  String get email => 'الإيميل';
+
+  @override
+  String get enterValidEmail => 'اكتب إيميل صحيح';
+
+  @override
+  String get emailOrUsername => 'الإيميل أو اسم المستخدم';
+
+  @override
+  String get enterEmailOrUsername => 'اكتب الإيميل أو اسم المستخدم';
+
+  @override
+  String get usernameNoAt => 'اسم المستخدم ما يكون فيه @';
+
+  @override
+  String get sendCode => 'أرسل الرمز';
+
+  @override
+  String codeSentTo(String email) {
+    return 'أرسلنا رمز من 6 أرقام على $email. الرمز يشتغل لمدة 10 دقائق.';
+  }
+
+  @override
+  String get checkSpam => 'ما لقيته؟ تأكد من مجلد الرسائل المزعجة (Spam).';
+
+  @override
+  String get emailCode => 'الرمز اللي وصلك';
+
+  @override
+  String get codeLength => 'الرمز 6 أرقام';
+
+  @override
+  String get resendCode => 'أرسل رمز جديد';
+
+  @override
+  String get codeResent => 'أرسلنا رمز جديد.';
+
+  @override
+  String get useAnotherEmail => 'استخدم إيميل ثاني';
+
+  @override
+  String get changeEmail => 'غيّر الإيميل';
+
+  @override
+  String get changeEmailBody =>
+      'اكتب إيميلك الجديد وكلمة المرور، وبنرسل رمز على الإيميل الجديد.';
+
+  @override
+  String get newEmail => 'الإيميل الجديد';
+
+  @override
+  String get enterCodeTitle => 'اكتب الرمز';
+
+  @override
+  String get confirm => 'تأكيد';
+
+  @override
+  String get emailChanged => 'تغيّر إيميلك.';
 }

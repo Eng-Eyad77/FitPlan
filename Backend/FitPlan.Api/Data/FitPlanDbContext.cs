@@ -35,6 +35,8 @@ public class FitPlanDbContext : DbContext
 
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
+    public DbSet<EmailCode> EmailCodes => Set<EmailCode>();
+
     public DbSet<VolumeMilestone> VolumeMilestones => Set<VolumeMilestone>();
 
 

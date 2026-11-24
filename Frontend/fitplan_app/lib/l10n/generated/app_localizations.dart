@@ -107,7 +107,7 @@ abstract class AppLocalizations {
   /// No description provided for @errInvalidCredentials.
   ///
   /// In en, this message translates to:
-  /// **'Invalid username or password.'**
+  /// **'Invalid email, username or password.'**
   String get errInvalidCredentials;
 
   /// No description provided for @errInvalidRefreshToken.
@@ -115,12 +115,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your session has ended. Log in again.'**
   String get errInvalidRefreshToken;
-
-  /// No description provided for @errInvalidRecoveryCode.
-  ///
-  /// In en, this message translates to:
-  /// **'The username or recovery code is wrong.'**
-  String get errInvalidRecoveryCode;
 
   /// No description provided for @errWrongPassword.
   ///
@@ -395,7 +389,7 @@ abstract class AppLocalizations {
   /// No description provided for @authWrongLogin.
   ///
   /// In en, this message translates to:
-  /// **'Wrong username or password.'**
+  /// **'Wrong email, username or password.'**
   String get authWrongLogin;
 
   /// No description provided for @authUsernameTaken.
@@ -464,24 +458,6 @@ abstract class AppLocalizations {
   /// **'Join now'**
   String get createAnAccount;
 
-  /// No description provided for @recoverySaveTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Save your recovery code'**
-  String get recoverySaveTitle;
-
-  /// No description provided for @recoverySaveBody.
-  ///
-  /// In en, this message translates to:
-  /// **'If you forget your password, this code is the only way back into your account. Keep it somewhere safe, like a password manager. It works once, and we can\'t show it again.'**
-  String get recoverySaveBody;
-
-  /// No description provided for @recoveryCopied.
-  ///
-  /// In en, this message translates to:
-  /// **'Recovery code copied.'**
-  String get recoveryCopied;
-
   /// No description provided for @copyCode.
   ///
   /// In en, this message translates to:
@@ -515,7 +491,7 @@ abstract class AppLocalizations {
   /// No description provided for @registerSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'One quick step and you\'re in. Plan your workouts, log every set, and watch yourself get stronger.'**
+  /// **'Plan your workouts, log every set, and watch yourself get stronger.'**
   String get registerSubtitle;
 
   /// No description provided for @confirmPassword.
@@ -557,20 +533,8 @@ abstract class AppLocalizations {
   /// No description provided for @resetSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Enter the recovery code you saved when you joined, then pick a new password.'**
+  /// **'Enter your account\'s email. We\'ll send you a code to pick a new password.'**
   String get resetSubtitle;
-
-  /// No description provided for @recoveryCode.
-  ///
-  /// In en, this message translates to:
-  /// **'Recovery code'**
-  String get recoveryCode;
-
-  /// No description provided for @recoveryCodeLength.
-  ///
-  /// In en, this message translates to:
-  /// **'The code has 16 letters and numbers'**
-  String get recoveryCodeLength;
 
   /// No description provided for @newPassword.
   ///
@@ -1447,48 +1411,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cancel'**
   String get cancel;
-
-  /// No description provided for @newRecoveryCodeTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'New recovery code'**
-  String get newRecoveryCodeTitle;
-
-  /// No description provided for @newRecoveryCodeBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Your old code will stop working. Enter your password to continue.'**
-  String get newRecoveryCodeBody;
-
-  /// No description provided for @createCode.
-  ///
-  /// In en, this message translates to:
-  /// **'Create code'**
-  String get createCode;
-
-  /// No description provided for @recoveryHasCode.
-  ///
-  /// In en, this message translates to:
-  /// **'You can reset a forgotten password with your recovery code. Lost it? Create a new one.'**
-  String get recoveryHasCode;
-
-  /// No description provided for @recoveryNoCode.
-  ///
-  /// In en, this message translates to:
-  /// **'You don\'t have a recovery code yet. Without one, a forgotten password means a lost account.'**
-  String get recoveryNoCode;
-
-  /// No description provided for @createNewCode.
-  ///
-  /// In en, this message translates to:
-  /// **'Create a new code'**
-  String get createNewCode;
-
-  /// No description provided for @createRecoveryCode.
-  ///
-  /// In en, this message translates to:
-  /// **'Create a recovery code'**
-  String get createRecoveryCode;
 
   /// No description provided for @deleteAccountTitle.
   ///
@@ -3079,6 +3001,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Also works'**
   String get secondaryMusclesLabel;
+
+  /// No description provided for @errInvalidEmailCode.
+  ///
+  /// In en, this message translates to:
+  /// **'The code is wrong or has expired. Ask for a new one.'**
+  String get errInvalidEmailCode;
+
+  /// No description provided for @errEmailAlreadyExists.
+  ///
+  /// In en, this message translates to:
+  /// **'This email already has an account.'**
+  String get errEmailAlreadyExists;
+
+  /// No description provided for @errTooManyEmails.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many codes for this email. Wait a little and try again.'**
+  String get errTooManyEmails;
+
+  /// No description provided for @errEmailNotSent.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t send the email. Try again later.'**
+  String get errEmailNotSent;
+
+  /// No description provided for @email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get email;
+
+  /// No description provided for @enterValidEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid email'**
+  String get enterValidEmail;
+
+  /// No description provided for @emailOrUsername.
+  ///
+  /// In en, this message translates to:
+  /// **'Email or username'**
+  String get emailOrUsername;
+
+  /// No description provided for @enterEmailOrUsername.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email or username'**
+  String get enterEmailOrUsername;
+
+  /// No description provided for @usernameNoAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Username can\'t contain @'**
+  String get usernameNoAt;
+
+  /// No description provided for @sendCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Send code'**
+  String get sendCode;
+
+  /// No description provided for @codeSentTo.
+  ///
+  /// In en, this message translates to:
+  /// **'We sent a 6-digit code to {email}. It works for 10 minutes.'**
+  String codeSentTo(String email);
+
+  /// No description provided for @checkSpam.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t find it? Check your spam folder.'**
+  String get checkSpam;
+
+  /// No description provided for @emailCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Code from the email'**
+  String get emailCode;
+
+  /// No description provided for @codeLength.
+  ///
+  /// In en, this message translates to:
+  /// **'The code has 6 digits'**
+  String get codeLength;
+
+  /// No description provided for @resendCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Send a new code'**
+  String get resendCode;
+
+  /// No description provided for @codeResent.
+  ///
+  /// In en, this message translates to:
+  /// **'We sent a new code.'**
+  String get codeResent;
+
+  /// No description provided for @useAnotherEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Use another email'**
+  String get useAnotherEmail;
+
+  /// No description provided for @changeEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Change email'**
+  String get changeEmail;
+
+  /// No description provided for @changeEmailBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your new email and your password. We\'ll send a code to the new email.'**
+  String get changeEmailBody;
+
+  /// No description provided for @newEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'New email'**
+  String get newEmail;
+
+  /// No description provided for @enterCodeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the code'**
+  String get enterCodeTitle;
+
+  /// No description provided for @confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get confirm;
+
+  /// No description provided for @emailChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Your email was changed.'**
+  String get emailChanged;
 }
 
 class _AppLocalizationsDelegate

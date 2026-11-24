@@ -7,6 +7,8 @@ public class ProfileDto
 
     public required string Username { get; set; }
 
+    public required string Email { get; set; }
+
     public string? Bio  { get; set; }
 
     public string? ProfilePictureUrl { get; set; }
@@ -16,9 +18,6 @@ public class ProfileDto
 
     // workouts per week the user aims for, null if not set
     public int? WeeklyGoal { get; set; }
-
-    // false for accounts made before recovery codes: the app suggests creating one
-    public bool HasRecoveryCode { get; set; }
 
     public DateTime CreatedAt { get; set; }
 

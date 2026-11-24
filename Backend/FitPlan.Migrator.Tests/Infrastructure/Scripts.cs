@@ -19,6 +19,7 @@ public static class Scripts
     public const string AddCardioMachineDetails = "20261119122349_AddCardioMachineDetails";
     public const string AddVolumeMilestones = "20261122085940_AddVolumeMilestones";
     public const string AddExerciseDetailsAndTranslations = "20261123102033_AddExerciseDetailsAndTranslations";
+    public const string AddEmailAccounts = "20261124081623_AddEmailAccounts";
 
     public static readonly KnownMigrations Known = KnownMigrations.FromApi();
 

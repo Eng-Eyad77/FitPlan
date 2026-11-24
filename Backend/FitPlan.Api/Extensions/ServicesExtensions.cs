@@ -9,6 +9,7 @@ using FitPlan.Api.Services.CardioEntries;
 using FitPlan.Api.Services.BodyWeight;
 using FitPlan.Api.Services.Stats;
 using FitPlan.Api.Services.Pictures;
+using FitPlan.Api.Services.Email;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace FitPlan.Api.Extensions;
@@ -16,12 +17,36 @@ namespace FitPlan.Api.Extensions;
 public static class ServicesExtensions
 {
     public static IServiceCollection AddApplicationServices(
-        this IServiceCollection services)
+        this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
         // Authentication & Profile
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IProfileService, ProfileService>();
         services.AddSingleton<ProfilePictureStorage>();
+
+        // Email (D18): Resend when a key is set. Without one, only local runs may continue, with emails in the log.
+        services.AddScoped<EmailCodeService>();
+        if (!string.IsNullOrWhiteSpace(configuration["Email:ResendApiKey"]))
+        {
+            if (string.IsNullOrWhiteSpace(configuration["Email:From"]))
+            {
+                throw new InvalidOperationException("Email:From is missing.");
+            }
+
+            services.AddHttpClient<IEmailSender, ResendEmailSender>(client =>
+            {
+                client.BaseAddress = new Uri("https://api.resend.com/");
+                client.Timeout = TimeSpan.FromSeconds(15);
+            });
+        }
+        else if (environment.IsDevelopment() || environment.IsEnvironment("Testing"))
+        {
+            services.AddSingleton<IEmailSender, LogEmailSender>();
+        }
+        else
+        {
+            throw new InvalidOperationException("Email:ResendApiKey is missing.");
+        }
 
         // Exercises
         services.AddScoped<IExerciseImportService, ExerciseImportService>();

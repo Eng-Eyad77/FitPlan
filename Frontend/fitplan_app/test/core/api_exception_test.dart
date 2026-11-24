@@ -24,12 +24,12 @@ void main() {
     test('reads errorCode and title from a ProblemDetails body', () {
       final error = ApiException.fromDio(_dioError(status: 401, data: {
         'status': 401,
-        'title': 'Invalid username or password.',
+        'title': 'Invalid email, username or password.',
         'errorCode': 'InvalidCredentials',
       }));
 
       expect(error.code, 'InvalidCredentials');
-      expect(error.message, 'Invalid username or password.');
+      expect(error.message, 'Invalid email, username or password.');
       expect(error.statusCode, 401);
     });
 

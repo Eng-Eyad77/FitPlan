@@ -22,8 +22,7 @@ public class AuthTests(ApiFixture api)
     {
         var username = ApiFixture.NewUsername();
 
-        var response = await api.CreateClient().PostAsJsonAsync(
-            "/api/auth/register", new { username, password = ApiFixture.NewPassword() });
+        var response = await api.SignUpAsync(ApiFixture.NewEmail(), username, ApiFixture.NewPassword());
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var auth = await response.Content.ReadFromJsonAsync<AuthResponseDto>();
@@ -50,8 +49,7 @@ public class AuthTests(ApiFixture api)
     {
         var user = await api.RegisterUserAsync();
 
-        var response = await api.CreateClient().PostAsJsonAsync(
-            "/api/auth/register", new { username = user.Username, password = ApiFixture.NewPassword() });
+        var response = await api.SignUpAsync(ApiFixture.NewEmail(), user.Username, ApiFixture.NewPassword());
 
         await response.AssertProblemAsync(HttpStatusCode.Conflict, "UsernameAlreadyExists");
     }
@@ -61,7 +59,8 @@ public class AuthTests(ApiFixture api)
     [InlineData("valid-username", "short")]
     public async Task Register_rejects_invalid_input(string username, string password)
     {
-        var response = await api.CreateClient().PostAsJsonAsync("/api/auth/register", new { username, password });
+        var response = await api.CreateClient().PostAsJsonAsync(
+            "/api/auth/register", new { email = ApiFixture.NewEmail(), code = "123456", username, password });
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -70,7 +69,7 @@ public class AuthTests(ApiFixture api)
     public async Task A_short_password_is_rejected_with_the_real_rule()
     {
         var response = await api.CreateClient().PostAsJsonAsync(
-            "/api/auth/register", new { username = ApiFixture.NewUsername(), password = "short" });
+            "/api/auth/register", new { email = ApiFixture.NewEmail(), code = "123456", username = ApiFixture.NewUsername(), password = "short" });
 
         await response.AssertProblemAsync(HttpStatusCode.BadRequest, "ValidationFailed");
         using var body = System.Text.Json.JsonDocument.Parse(await response.Content.ReadAsStringAsync());
@@ -84,7 +83,7 @@ public class AuthTests(ApiFixture api)
         var user = await api.RegisterUserAsync();
 
         var response = await api.CreateClient().PostAsJsonAsync(
-            "/api/auth/login", new { username = user.Username, password = user.Password });
+            "/api/auth/login", new { login = user.Username, password = user.Password });
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var auth = await response.Content.ReadFromJsonAsync<AuthResponseDto>();
@@ -100,9 +99,9 @@ public class AuthTests(ApiFixture api)
         var user = await api.RegisterUserAsync();
 
         var wrongPassword = await api.CreateClient().PostAsJsonAsync(
-            "/api/auth/login", new { username = user.Username, password = user.Password + "x" });
+            "/api/auth/login", new { login = user.Username, password = user.Password + "x" });
         var unknownUser = await api.CreateClient().PostAsJsonAsync(
-            "/api/auth/login", new { username = ApiFixture.NewUsername(), password = user.Password });
+            "/api/auth/login", new { login = ApiFixture.NewUsername(), password = user.Password });
 
         await wrongPassword.AssertProblemAsync(HttpStatusCode.Unauthorized, "InvalidCredentials");
         await unknownUser.AssertProblemAsync(HttpStatusCode.Unauthorized, "InvalidCredentials");

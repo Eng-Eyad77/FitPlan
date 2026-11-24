@@ -18,8 +18,8 @@ public sealed class ScriptValidatorTests
 
         var result = validator.Validate(Scripts.Bytes(script));
 
-        Assert.Equal([Scripts.InitialCreate, Scripts.AddWorkoutSessions, Scripts.AddUserWeeklyGoal, Scripts.AddRefreshTokens, Scripts.AddRecoveryCode, Scripts.AddRestSeconds, Scripts.AddCardioMachineDetails, Scripts.AddVolumeMilestones, Scripts.AddExerciseDetailsAndTranslations], result.MigrationIds);
-        Assert.Equal(10, result.Batches.Count);
+        Assert.Equal([Scripts.InitialCreate, Scripts.AddWorkoutSessions, Scripts.AddUserWeeklyGoal, Scripts.AddRefreshTokens, Scripts.AddRecoveryCode, Scripts.AddRestSeconds, Scripts.AddCardioMachineDetails, Scripts.AddVolumeMilestones, Scripts.AddExerciseDetailsAndTranslations, Scripts.AddEmailAccounts], result.MigrationIds);
+        Assert.Equal(11, result.Batches.Count);
         Assert.Null(result.Batches[0].MigrationId);
         Assert.Equal(Scripts.Sha256(script), result.Sha256);
     }
@@ -29,7 +29,7 @@ public sealed class ScriptValidatorTests
     {
         var bytes = new byte[] { 0xEF, 0xBB, 0xBF }.Concat(Scripts.Bytes(Scripts.Idempotent())).ToArray();
 
-        Assert.Equal(9, validator.Validate(bytes).MigrationIds.Count);
+        Assert.Equal(10, validator.Validate(bytes).MigrationIds.Count);
     }
 
     [Theory]
@@ -75,7 +75,10 @@ public sealed class ScriptValidatorTests
     [InlineData("EXEC(N'SELECT 1');", "SelectStatement isn't allowed")]
     [InlineData("EXEC(N'CREATE INDEX [A] ON [Users] ([Id]); CREATE INDEX [B] ON [Users] ([Id]);');", "exactly one statement")]
     [InlineData("SELECT * FROM [Users];", "SelectStatement isn't allowed")]
-    [InlineData("DELETE FROM [Users];", "DeleteStatement isn't allowed")]
+    // only the exact D18 deletes are allowed (the accepted script above has them)
+    [InlineData("DELETE FROM [Exercises];", "DeleteStatement isn't allowed")]
+    [InlineData("DELETE FROM [Users] WHERE [Bio] IS NULL;", "DeleteStatement isn't allowed")]
+    [InlineData("TRUNCATE TABLE [Users];", "TruncateTableStatement isn't allowed")]
     [InlineData("DROP TABLE [__EFMigrationsHistory];", "Only the final step")]
     [InlineData("CREATE INDEX [IX_History] ON [__EFMigrationsHistory] ([ProductVersion]);", "Only the final step")]
     public void Rejects_statements_outside_the_allowed_list(string statement, string expected)

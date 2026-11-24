@@ -18,7 +18,9 @@ public interface IProfileService
 
     Task<Result<(string Path, string ContentType)>> GetProfilePictureAsync(Guid userId);
 
-    Task<Result<RecoveryCodeDto>> CreateRecoveryCodeAsync(Guid userId, PasswordConfirmationDto request);
+    Task<Result<bool>> SendEmailChangeCodeAsync(Guid userId, ChangeEmailRequestDto request, string language);
+
+    Task<Result<ProfileDto>> ConfirmEmailChangeAsync(Guid userId, ConfirmEmailChangeDto request, string language);
 
     Task<Result<bool>> DeleteAccountAsync(Guid userId, PasswordConfirmationDto request);
 }

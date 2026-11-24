@@ -6,7 +6,6 @@ import '../../../core/network/api_exception.dart';
 import '../../../core/storage/session_storage.dart';
 import '../data/auth_repository.dart';
 import '../domain/auth_session.dart';
-import 'recovery_code.dart';
 
 final authControllerProvider =
     AsyncNotifierProvider<AuthController, AuthSession?>(AuthController.new);
@@ -82,43 +81,38 @@ class AuthController extends AsyncNotifier<AuthSession?> {
   // The server refused the refresh token itself: expired, revoked or already used.
   static bool _sessionEnded(ApiException error) => error.statusCode == 401 || error.statusCode == 400;
 
-  /// Throws ApiException (wrong password, network...) so the screen can show it.
-  /// The state only changes on success: the login screen keeps its own loading spinner.
-  Future<void> login(String username, String password) async {
-    final session = await ref
-        .read(authRepositoryProvider)
-        .login(username: username, password: password);
+  /// [login] is the email or the username. Throws ApiException (wrong password, network...) so the
+  /// screen can show it. The state only changes on success: the login screen keeps its own spinner.
+  Future<void> login(String login, String password) async {
+    final session = await ref.read(authRepositoryProvider).login(login: login, password: password);
     await _start(session);
   }
 
   /// Sign-up is never repeated by itself. If its answer is lost (timeout), the server may still
-  /// have created the account, and a second tap would get "username taken". In both cases we try
-  /// to log in with the same details: if that works, the account is the user's and we continue.
-  Future<void> register(String username, String password) async {
+  /// have created the account, and a second tap would get "username taken" (checked before the
+  /// code). In both cases we try to log in with the same details: if that works, the account is
+  /// the user's and we continue.
+  Future<void> register({
+    required String email,
+    required String code,
+    required String username,
+    required String password,
+  }) async {
     final repository = ref.read(authRepositoryProvider);
     AuthSession session;
-    String? recoveryCode;
     try {
-      (:session, :recoveryCode) = await repository.register(username: username, password: password);
+      session = await repository.register(email: email, code: code, username: username, password: password);
     } on ApiException catch (error) {
       if (!_mayAlreadyExist(error)) rethrow;
-      // the account exists but its code was lost with the answer: the profile offers a new one
       session = await _loginInstead(repository, username, password, error);
     }
-    ref.read(recoveryCodeToShowProvider.notifier).show(recoveryCode);
     await _start(session);
   }
 
-  /// A forgotten password. The user is signed in afterwards and sees their new recovery code.
+  /// A forgotten password, with the emailed code. The user is signed in afterwards.
   /// Throws ApiException (wrong code, too many attempts, network) so the screen can show it.
-  Future<void> resetPassword(String username, String recoveryCode, String newPassword) async {
-    final result = await ref.read(authRepositoryProvider).resetPassword(
-          username: username,
-          recoveryCode: recoveryCode,
-          newPassword: newPassword,
-        );
-    ref.read(recoveryCodeToShowProvider.notifier).show(result.recoveryCode);
-    await _start(result.session);
+  Future<void> resetPassword({required String email, required String code, required String newPassword}) async {
+    await _start(await ref.read(authRepositoryProvider).resetPassword(email: email, code: code, newPassword: newPassword));
   }
 
   /// After the account was deleted on the server: nothing is left to log out of there.
@@ -134,7 +128,7 @@ class AuthController extends AsyncNotifier<AuthSession?> {
     ApiException registerError,
   ) async {
     try {
-      return await repository.login(username: username, password: password);
+      return await repository.login(login: username, password: password);
     } on ApiException {
       // not this user's account, or still no answer: report what sign-up said
       throw registerError;
@@ -152,7 +146,6 @@ class AuthController extends AsyncNotifier<AuthSession?> {
   }
 
   Future<void> _clear() async {
-    ref.read(recoveryCodeToShowProvider.notifier).show(null);
     await ref.read(sessionStorageProvider).clear();
     state = const AsyncData(null);
   }

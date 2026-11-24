@@ -8,5 +8,7 @@ public enum ErrorType
     Unauthorized,
     NotFound,
     Conflict,
-    PayloadTooLarge
+    PayloadTooLarge,
+    TooManyRequests,
+    ServiceUnavailable
 }

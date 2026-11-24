@@ -1,9 +1,8 @@
 {
   "@@locale": "en",
   "errUsernameAlreadyExists": "Username is already taken.",
-  "errInvalidCredentials": "Invalid username or password.",
+  "errInvalidCredentials": "Invalid email, username or password.",
   "errInvalidRefreshToken": "Your session has ended. Log in again.",
-  "errInvalidRecoveryCode": "The username or recovery code is wrong.",
   "errWrongPassword": "Your password is wrong.",
   "errUserNotFound": "User not found.",
   "errInvalidFile": "The uploaded file is invalid. Only JPG and PNG images are allowed.",
@@ -118,7 +117,7 @@
     }
   },
   "kg": "kg",
-  "authWrongLogin": "Wrong username or password.",
+  "authWrongLogin": "Wrong email, username or password.",
   "authUsernameTaken": "This username is already taken. Try another one.",
   "loginTitle": "Welcome back!",
   "loginSubtitle": "Good to see you again. Log in and pick up where you left off.",
@@ -130,9 +129,6 @@
   "logIn": "Log in",
   "newToFitPlan": "First time here?",
   "createAnAccount": "Join now",
-  "recoverySaveTitle": "Save your recovery code",
-  "recoverySaveBody": "If you forget your password, this code is the only way back into your account. Keep it somewhere safe, like a password manager. It works once, and we can't show it again.",
-  "recoveryCopied": "Recovery code copied.",
   "copyCode": "Copy code",
   "savedIt": "I've saved it",
   "atLeastChars": "At least {count} characters",
@@ -152,7 +148,7 @@
     }
   },
   "registerTitle": "Welcome to FitPlan",
-  "registerSubtitle": "One quick step and you're in. Plan your workouts, log every set, and watch yourself get stronger.",
+  "registerSubtitle": "Plan your workouts, log every set, and watch yourself get stronger.",
   "confirmPassword": "Confirm password",
   "passwordsDontMatch": "Passwords don't match",
   "passwordHint": "Use at least {count} characters.",
@@ -166,9 +162,7 @@
   "createAccount": "Let's go",
   "haveAccount": "Already one of us?",
   "resetTitle": "No worries, we'll get you back in",
-  "resetSubtitle": "Enter the recovery code you saved when you joined, then pick a new password.",
-  "recoveryCode": "Recovery code",
-  "recoveryCodeLength": "The code has 16 letters and numbers",
+  "resetSubtitle": "Enter your account's email. We'll send you a code to pick a new password.",
   "newPassword": "New password",
   "passwordLengthRange": "Use 8 to 100 characters",
   "confirmNewPassword": "Confirm new password",
@@ -468,13 +462,6 @@
   "close": "Close",
   "profilePhoto": "Profile photo",
   "cancel": "Cancel",
-  "newRecoveryCodeTitle": "New recovery code",
-  "newRecoveryCodeBody": "Your old code will stop working. Enter your password to continue.",
-  "createCode": "Create code",
-  "recoveryHasCode": "You can reset a forgotten password with your recovery code. Lost it? Create a new one.",
-  "recoveryNoCode": "You don't have a recovery code yet. Without one, a forgotten password means a lost account.",
-  "createNewCode": "Create a new code",
-  "createRecoveryCode": "Create a recovery code",
   "deleteAccountTitle": "Delete your account?",
   "deleteAccountBody": "This deletes your plans, workouts, weights and photo for good. It can't be undone. Enter your password to confirm.",
   "accountDeleted": "Your account was deleted.",
@@ -1344,5 +1331,35 @@
   "secondaryMusclesLabel": "Also works",
   "@secondaryMusclesLabel": {
     "description": "Exercise details sheet (Phase 11C): heading of a row of chips"
+  },
+  "errInvalidEmailCode": "The code is wrong or has expired. Ask for a new one.",
+  "errEmailAlreadyExists": "This email already has an account.",
+  "errTooManyEmails": "Too many codes for this email. Wait a little and try again.",
+  "errEmailNotSent": "We couldn't send the email. Try again later.",
+  "email": "Email",
+  "enterValidEmail": "Enter a valid email",
+  "emailOrUsername": "Email or username",
+  "enterEmailOrUsername": "Enter your email or username",
+  "usernameNoAt": "Username can't contain @",
+  "sendCode": "Send code",
+  "codeSentTo": "We sent a 6-digit code to {email}. It works for 10 minutes.",
+  "checkSpam": "Can't find it? Check your spam folder.",
+  "emailCode": "Code from the email",
+  "codeLength": "The code has 6 digits",
+  "resendCode": "Send a new code",
+  "codeResent": "We sent a new code.",
+  "useAnotherEmail": "Use another email",
+  "changeEmail": "Change email",
+  "changeEmailBody": "Enter your new email and your password. We'll send a code to the new email.",
+  "newEmail": "New email",
+  "enterCodeTitle": "Enter the code",
+  "confirm": "Confirm",
+  "emailChanged": "Your email was changed.",
+  "@codeSentTo": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
   }
 }

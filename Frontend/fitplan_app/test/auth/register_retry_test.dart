@@ -25,13 +25,18 @@ class _FakeRepository extends AuthRepository {
   int loginCalls = 0;
 
   @override
-  Future<AuthResult> register({required String username, required String password}) async {
+  Future<AuthSession> register({
+    required String email,
+    required String code,
+    required String username,
+    required String password,
+  }) async {
     registerCalls++;
-    return (session: _answer(registerResult), recoveryCode: null);
+    return _answer(registerResult);
   }
 
   @override
-  Future<AuthSession> login({required String username, required String password}) async {
+  Future<AuthSession> login({required String login, required String password}) async {
     loginCalls++;
     return _answer(loginResult);
   }
@@ -69,7 +74,8 @@ Future<(ProviderContainer, _FakeRepository)> _setUp({
 }
 
 Future<void> _register(ProviderContainer container) =>
-    container.read(authControllerProvider.notifier).register('eyad1234', 'eyad1234');
+    container.read(authControllerProvider.notifier)
+        .register(email: 'eyad@example.test', code: '123456', username: 'eyad1234', password: 'eyad1234');
 
 void main() {
   test('a normal sign-up logs in once, without an extra login', () async {

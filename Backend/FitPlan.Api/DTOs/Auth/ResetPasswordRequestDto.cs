@@ -4,13 +4,14 @@ namespace FitPlan.Api.DTOs.Auth;
 
 public class ResetPasswordRequestDto
 {
-    [Required(ErrorMessage = "Enter your username.")]
-    [StringLength(50)]
-    public required string Username { get; set; }
+    [Required(ErrorMessage = "Enter your email.")]
+    [StringLength(254)]
+    [EmailAddress(ErrorMessage = "Enter a valid email.")]
+    public required string Email { get; set; }
 
-    [Required(ErrorMessage = "Enter your recovery code.")]
-    [StringLength(40)]
-    public required string RecoveryCode { get; set; }
+    [Required(ErrorMessage = "Enter the code from the email.")]
+    [StringLength(10)]
+    public required string Code { get; set; }
 
     // the same rule as sign-up (D3)
     [Required(ErrorMessage = "Enter a new password.")]

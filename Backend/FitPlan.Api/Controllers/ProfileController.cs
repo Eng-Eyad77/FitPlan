@@ -1,7 +1,10 @@
 using FitPlan.Api.DTOs.Profile;
+using FitPlan.Api.Extensions;
+using FitPlan.Api.Services.Exercises;
 using FitPlan.Api.Services.Profile;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace FitPlan.Api.Controllers;
 
@@ -86,15 +89,33 @@ public class ProfileController(IProfileService profileService) : ApiControllerBa
     }
 
 
-    [HttpPost("me/recovery-code")]
-    public async Task<IActionResult> CreateRecoveryCode(PasswordConfirmationDto request)
+    // D18 step 1: the current password, and a code to the new address. Shares the sign-in limit against guessing.
+    [HttpPost("me/email/code")]
+    [EnableRateLimiting(RateLimitingExtensions.SignInPolicy)]
+    public async Task<IActionResult> SendEmailChangeCode(ChangeEmailRequestDto request)
     {
         if (!TryGetUserId(out var userId))
         {
             return Unauthorized();
         }
 
-        var result = await profileService.CreateRecoveryCodeAsync(userId, request);
+        var result = await profileService.SendEmailChangeCodeAsync(userId, request, ContentLanguage.From(Request));
+
+        return result.IsSuccess ? Accepted() : Problem(result.Error);
+    }
+
+
+    // Step 2: the code changes the email.
+    [HttpPut("me/email")]
+    [EnableRateLimiting(RateLimitingExtensions.SignInPolicy)]
+    public async Task<IActionResult> ConfirmEmailChange(ConfirmEmailChangeDto request)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await profileService.ConfirmEmailChangeAsync(userId, request, ContentLanguage.From(Request));
 
         return result.IsSuccess ? Ok(result.Data) : Problem(result.Error);
     }

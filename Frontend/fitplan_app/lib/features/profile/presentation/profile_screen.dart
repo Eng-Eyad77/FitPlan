@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
@@ -14,6 +14,7 @@ import '../../../shared/format.dart';
 import '../../../shared/widgets/feedback.dart';
 import '../../../shared/widgets/loading_button.dart';
 import '../../auth/application/auth_controller.dart';
+import '../../auth/presentation/widgets/email_code.dart';
 import '../application/profile_controller.dart';
 import '../domain/profile.dart';
 import 'widgets/profile_avatar.dart';
@@ -58,7 +59,7 @@ class _ProfileBody extends ConsumerWidget {
         const SizedBox(height: AppSpacing.lg),
         _BioCard(bio: profile.bio),
         const SizedBox(height: AppSpacing.lg),
-        _RecoveryCodeCard(hasCode: profile.hasRecoveryCode),
+        _EmailCard(email: profile.email),
         const SizedBox(height: AppSpacing.lg),
         const _LanguageCard(),
         const SizedBox(height: AppSpacing.xxxl),
@@ -328,7 +329,7 @@ class _PicturePreviewState extends ConsumerState<_PicturePreview> {
   }
 }
 
-// ---------------------------------------------------------------- recovery code and account
+// ---------------------------------------------------------------- email and account
 
 /// Asks for the password again before something that matters. Returns null when cancelled.
 Future<String?> _askPassword(
@@ -371,35 +372,44 @@ Future<String?> _askPassword(
   ).whenComplete(controller.dispose);
 }
 
-class _RecoveryCodeCard extends ConsumerStatefulWidget {
-  const _RecoveryCodeCard({required this.hasCode});
+/// The account's email, and changing it (D18): the new address and the password, then the code
+/// sent to the new address. The old address is told by the server.
+class _EmailCard extends ConsumerStatefulWidget {
+  const _EmailCard({required this.email});
 
-  final bool hasCode;
+  final String email;
 
   @override
-  ConsumerState<_RecoveryCodeCard> createState() => _RecoveryCodeCardState();
+  ConsumerState<_EmailCard> createState() => _EmailCardState();
 }
 
-class _RecoveryCodeCardState extends ConsumerState<_RecoveryCodeCard> {
+class _EmailCardState extends ConsumerState<_EmailCard> {
   bool _busy = false;
 
-  Future<void> _create() async {
-    final password = await _askPassword(
-      context,
-      title: l10n.newRecoveryCodeTitle,
-      message: l10n.newRecoveryCodeBody,
-      action: l10n.createCode,
+  Future<void> _change() async {
+    final request = await showDialog<({String email, String password})>(
+      context: context,
+      builder: (_) => const _NewEmailDialog(),
     );
-    if (password == null || password.isEmpty || !mounted) return;
+    if (request == null || !mounted) return;
 
     setState(() => _busy = true);
     try {
-      await ref.read(profileControllerProvider.notifier).createRecoveryCode(password);
+      await ref.read(profileControllerProvider.notifier).sendEmailChangeCode(request.email, request.password);
     } catch (error) {
       if (mounted) showError(context, error);
+      return;
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+    if (!mounted) return;
+
+    final changed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _EmailCodeDialog(email: request.email),
+    );
+    if (changed == true && mounted) showMessage(context, l10n.emailChanged);
   }
 
   @override
@@ -408,22 +418,138 @@ class _RecoveryCodeCardState extends ConsumerState<_RecoveryCodeCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(l10n.recoveryCode, style: AppText.secondary),
+          Text(l10n.email, style: AppText.secondary),
           const SizedBox(height: AppSpacing.sm),
-          Text(
-            widget.hasCode
-                ? l10n.recoveryHasCode
-                : l10n.recoveryNoCode,
-            style: AppText.body.copyWith(color: widget.hasCode ? AppColors.textSecondary : AppColors.danger),
-          ),
+          Text(widget.email, style: AppText.body, textDirection: TextDirection.ltr),
           const SizedBox(height: AppSpacing.md),
-          LoadingButton(
-            label: widget.hasCode ? l10n.createNewCode : l10n.createRecoveryCode,
-            loading: _busy,
-            onPressed: _create,
-          ),
+          LoadingButton(label: l10n.changeEmail, loading: _busy, onPressed: _change),
         ],
       ),
+    );
+  }
+}
+
+class _NewEmailDialog extends StatefulWidget {
+  const _NewEmailDialog();
+
+  @override
+  State<_NewEmailDialog> createState() => _NewEmailDialogState();
+}
+
+class _NewEmailDialogState extends State<_NewEmailDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _email = TextEditingController();
+  final _password = TextEditingController();
+
+  @override
+  void dispose() {
+    _email.dispose();
+    _password.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (!_formKey.currentState!.validate()) return;
+    Navigator.of(context).pop((email: _email.text.trim(), password: _password.text));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(l10n.changeEmail, style: AppText.heading),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(l10n.changeEmailBody, style: AppText.secondary),
+            const SizedBox(height: AppSpacing.lg),
+            EmailField(controller: _email, label: l10n.newEmail, newEmail: true),
+            const SizedBox(height: AppSpacing.md),
+            TextFormField(
+              controller: _password,
+              obscureText: true,
+              autofillHints: const [AutofillHints.password],
+              decoration: InputDecoration(labelText: l10n.password),
+              validator: (value) => (value == null || value.isEmpty) ? l10n.enterPassword : null,
+              onFieldSubmitted: (_) => _submit(),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(l10n.cancel)),
+        FilledButton(onPressed: _submit, child: Text(l10n.sendCode)),
+      ],
+    );
+  }
+}
+
+/// Stays open on a wrong code, so the user can try again without asking for a new one.
+class _EmailCodeDialog extends ConsumerStatefulWidget {
+  const _EmailCodeDialog({required this.email});
+
+  final String email;
+
+  @override
+  ConsumerState<_EmailCodeDialog> createState() => _EmailCodeDialogState();
+}
+
+class _EmailCodeDialogState extends ConsumerState<_EmailCodeDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _code = TextEditingController();
+  bool _busy = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _code.dispose();
+    super.dispose();
+  }
+
+  Future<void> _confirm() async {
+    if (_busy || !_formKey.currentState!.validate()) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await ref.read(profileControllerProvider.notifier).confirmEmailChange(_code.text);
+      if (mounted) Navigator.of(context).pop(true);
+    } catch (error) {
+      if (mounted) setState(() => _error = errorMessage(error));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(l10n.enterCodeTitle, style: AppText.heading),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(l10n.codeSentTo(signed(widget.email)), style: AppText.secondary),
+            const SizedBox(height: AppSpacing.xs),
+            Text(l10n.checkSpam, style: AppText.caption),
+            const SizedBox(height: AppSpacing.lg),
+            EmailCodeField(controller: _code, onSubmitted: (_) => _confirm()),
+            if (_error != null) ...[
+              const SizedBox(height: AppSpacing.md),
+              Text(_error!, style: AppText.secondary.copyWith(color: AppColors.danger)),
+            ],
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(onPressed: _busy ? null : () => Navigator.of(context).pop(false), child: Text(l10n.cancel)),
+        FilledButton(onPressed: _busy ? null : _confirm, child: Text(l10n.confirm)),
+      ],
     );
   }
 }

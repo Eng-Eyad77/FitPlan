@@ -11,12 +11,11 @@ abstract class Profile with _$Profile {
   const factory Profile({
     required String id,
     required String username,
+    required String email,
     String? bio,
     String? profilePictureUrl,
     double? currentWeightKg,
     int? weeklyGoal,
-    // older API versions don't send it: assume yes, so nothing nags
-    @Default(true) bool hasRecoveryCode,
     required DateTime createdAt,
     required DateTime updatedAt,
   }) = _Profile;

@@ -4,6 +4,7 @@ using FitPlan.Api.Common.Results;
 using FitPlan.Api.Data;
 using FitPlan.Api.DTOs.Auth;
 using FitPlan.Api.Models;
+using FitPlan.Api.Services.Email;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -12,7 +13,7 @@ using System.Security.Claims;
 
 namespace FitPlan.Api.Services.Auth;
 
-public class AuthService(FitPlanDbContext context, IConfiguration configuration, TimeProvider time) : IAuthService
+public class AuthService(FitPlanDbContext context, IConfiguration configuration, TimeProvider time, EmailCodeService emailCodes) : IAuthService
 {
     // A phone can lose the response to a refresh and send the same token again. Inside this window
     // that isn't treated as theft: a second new token is issued and the family stays valid.
@@ -55,58 +56,86 @@ public class AuthService(FitPlanDbContext context, IConfiguration configuration,
     }
 
 
+    // The answer is the same whether or not the email has an account: a registered one gets a notice instead.
+    public async Task<Result<bool>> SendSignUpCodeAsync(string email, string language)
+    {
+        email = EmailCodeService.Normalize(email);
+        var registered = await context.Users.AnyAsync(u => u.Email == email);
+
+        return await emailCodes.SendAsync(email, EmailCodePurpose.SignUp, null,
+            registered ? EmailDelivery.AlreadyRegistered : EmailDelivery.Code, language);
+    }
+
     public async Task<Result<AuthResponseDto>> RegisterAsync(RegisterRequestDto request)
     {
+        var email = EmailCodeService.Normalize(request.Email);
+
+        // checked before the code, so a taken username doesn't use the code up
         if (await context.Users.AnyAsync(u => u.Username == request.Username))
         {
             return Result<AuthResponseDto>.Failure(Errors.UsernameAlreadyExists);
         }
 
+        if (await emailCodes.UseAsync(EmailCodePurpose.SignUp, email, null, request.Code) is null)
+        {
+            return Result<AuthResponseDto>.Failure(Errors.InvalidEmailCode);
+        }
+
+        var now = time.GetUtcNow().UtcDateTime;
         var user = new User
         {
             Id = Guid.NewGuid(),
             Username = request.Username,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
+            Email = email,
+            CreatedAt = now,
+            UpdatedAt = now,
             PasswordHash = string.Empty
         };
 
         user.PasswordHash = new PasswordHasher<User>().HashPassword(user, request.Password);
 
-        // every account starts with a recovery code, shown once in the sign-up answer
-        var recoveryCode = RecoveryCodes.Generate();
-        RecoveryCodes.Assign(user, recoveryCode, user.CreatedAt);
-
         context.Users.Add(user);
 
-        // Handle two concurrent registrations with the same username (unique index on Username).
+        // Handles a registered email and two concurrent sign-ups (unique indexes on Username and Email).
         try
         {
             await context.SaveChangesAsync();
         }
         catch (DbUpdateException ex) when (ex.IsUniqueConstraintViolation())
         {
-            return Result<AuthResponseDto>.Failure(Errors.UsernameAlreadyExists);
+            context.ChangeTracker.Clear();
+            return Result<AuthResponseDto>.Failure(await context.Users.AnyAsync(u => u.Email == email)
+                ? Errors.EmailAlreadyExists
+                : Errors.UsernameAlreadyExists);
         }
 
-        return Result<AuthResponseDto>.Success((await IssueAsync(user, Guid.NewGuid())) with { RecoveryCode = recoveryCode });
+        return Result<AuthResponseDto>.Success(await IssueAsync(user, Guid.NewGuid()));
     }
 
-    // A forgotten password: the recovery code proves who it is. The code is used up and a new one is
-    // returned, every other login of the user ends, and the user is signed in with the new password.
+    // Unknown addresses get no email, but the same answer and the same quota.
+    public async Task<Result<bool>> SendPasswordResetCodeAsync(string email, string language)
+    {
+        email = EmailCodeService.Normalize(email);
+        var userId = await context.Users.Where(u => u.Email == email).Select(u => (Guid?)u.Id).FirstOrDefaultAsync();
+
+        return await emailCodes.SendAsync(email, EmailCodePurpose.ResetPassword, userId,
+            userId is null ? EmailDelivery.Nothing : EmailDelivery.Code, language);
+    }
+
+    // A forgotten password: the emailed code proves who it is. Every other login of the user ends,
+    // and the user is signed in with the new password.
     public async Task<Result<AuthResponseDto>> ResetPasswordAsync(ResetPasswordRequestDto request)
     {
-        var user = await context.Users.FirstOrDefaultAsync(u => u.Username == request.Username);
+        var email = EmailCodeService.Normalize(request.Email);
+        var user = await context.Users.FirstOrDefaultAsync(u => u.Email == email);
 
-        if (user is null || !RecoveryCodes.Matches(user, request.RecoveryCode))
+        if (user is null || await emailCodes.UseAsync(EmailCodePurpose.ResetPassword, email, null, request.Code) is null)
         {
-            return Result<AuthResponseDto>.Failure(Errors.InvalidRecoveryCode);
+            return Result<AuthResponseDto>.Failure(Errors.InvalidEmailCode);
         }
 
         var now = time.GetUtcNow().UtcDateTime;
         user.PasswordHash = new PasswordHasher<User>().HashPassword(user, request.NewPassword);
-        var recoveryCode = RecoveryCodes.Generate();
-        RecoveryCodes.Assign(user, recoveryCode, now);
         user.UpdatedAt = now;
         await context.SaveChangesAsync();
 
@@ -114,12 +143,17 @@ public class AuthService(FitPlanDbContext context, IConfiguration configuration,
             .Where(t => t.UserId == user.Id && t.RevokedAt == null)
             .ExecuteUpdateAsync(s => s.SetProperty(t => t.RevokedAt, now));
 
-        return Result<AuthResponseDto>.Success((await IssueAsync(user, Guid.NewGuid())) with { RecoveryCode = recoveryCode });
+        return Result<AuthResponseDto>.Success(await IssueAsync(user, Guid.NewGuid()));
     }
 
+    // Usernames can't contain "@", so an "@" means an email.
     public async Task<Result<AuthResponseDto>> LoginAsync(LoginRequestDto request)
     {
-        var user = await context.Users.FirstOrDefaultAsync(u => u.Username == request.Username);
+        var login = request.Login.Trim();
+        var email = EmailCodeService.Normalize(login);
+        var user = login.Contains('@')
+            ? await context.Users.FirstOrDefaultAsync(u => u.Email == email)
+            : await context.Users.FirstOrDefaultAsync(u => u.Username == login);
 
         if (user is null ||
             new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, request.Password) == PasswordVerificationResult.Failed)
