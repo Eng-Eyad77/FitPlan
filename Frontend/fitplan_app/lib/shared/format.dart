@@ -51,7 +51,7 @@ String formatDaysAgo(DateTime date, [DateTime? now]) {
   };
 }
 
-/// The API's body part ("upper legs") in the app's language ("Upper legs", "أفخاذ").
+/// The API's body part ("upper legs") in the app's language ("Upper legs", "أرجل").
 String bodyPartName(String part) => switch (part) {
       'chest' => l10n.bodyChest,
       'back' => l10n.bodyBack,

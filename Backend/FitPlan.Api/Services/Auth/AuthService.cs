@@ -122,6 +122,17 @@ public class AuthService(FitPlanDbContext context, IConfiguration configuration,
             userId is null ? EmailDelivery.Nothing : EmailDelivery.Code, language);
     }
 
+    // Checks the emailed code without using it up, so the app can ask for the new password next.
+    // Each check counts as an attempt, like the reset itself.
+    public async Task<Result<bool>> CheckPasswordResetCodeAsync(ResetCodeCheckDto request)
+    {
+        var email = EmailCodeService.Normalize(request.Email);
+        var valid = await context.Users.AnyAsync(u => u.Email == email) &&
+            await emailCodes.UseAsync(EmailCodePurpose.ResetPassword, email, null, request.Code, consume: false) is not null;
+
+        return valid ? Result<bool>.Success(true) : Result<bool>.Failure(Errors.InvalidEmailCode);
+    }
+
     // A forgotten password: the emailed code proves who it is. Every other login of the user ends,
     // and the user is signed in with the new password.
     public async Task<Result<AuthResponseDto>> ResetPasswordAsync(ResetPasswordRequestDto request)

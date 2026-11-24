@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text.dart';
 import '../../../../l10n/l10n.dart';
@@ -44,26 +45,100 @@ class EmailField extends StatelessWidget {
   }
 }
 
-/// The 6-digit code from the email.
-class EmailCodeField extends StatelessWidget {
+/// The 6-digit code from the email, drawn as six boxes. Underneath is one ordinary field, invisible,
+/// so typing, pasting, iOS code autofill and the form's validation work as usual.
+class EmailCodeField extends StatefulWidget {
   const EmailCodeField({super.key, required this.controller, this.onSubmitted});
 
   final TextEditingController controller;
   final ValueChanged<String>? onSubmitted;
 
+  static const length = 6;
+  static const _boxHeight = 58.0;
+
+  @override
+  State<EmailCodeField> createState() => _EmailCodeFieldState();
+}
+
+class _EmailCodeFieldState extends State<EmailCodeField> {
+  final _focus = FocusNode();
+
+  @override
+  void dispose() {
+    _focus.dispose();
+    super.dispose();
+  }
+
+  Widget _box(String code, int index) {
+    final filled = index < code.length;
+    final current = _focus.hasFocus && index == code.length.clamp(0, EmailCodeField.length - 1);
+    return Expanded(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        height: EmailCodeField._boxHeight,
+        margin: EdgeInsetsDirectional.only(start: index == 0 ? 0 : AppSpacing.sm),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: AppColors.surface2,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: current ? AppColors.accent : AppColors.border, width: current ? 1.5 : 1),
+        ),
+        child: filled
+            ? Text(code[index], style: AppText.title)
+            : current
+                ? Container(width: 14, height: 2, color: AppColors.accent)
+                : null,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: TextInputType.number,
-      textInputAction: onSubmitted == null ? TextInputAction.next : TextInputAction.done,
-      autofillHints: const [AutofillHints.oneTimeCode],
-      inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
-      textDirection: TextDirection.ltr,
-      style: AppText.body,
-      decoration: InputDecoration(labelText: l10n.emailCode, hintText: '123456'),
-      validator: (value) => (value ?? '').length == 6 ? null : l10n.codeLength,
-      onFieldSubmitted: onSubmitted,
+    return ListenableBuilder(
+      listenable: Listenable.merge([widget.controller, _focus]),
+      builder: (context, _) => Stack(
+        children: [
+          Semantics(
+            label: l10n.emailCode,
+            child: TextFormField(
+              controller: widget.controller,
+              focusNode: _focus,
+              keyboardType: TextInputType.number,
+              textInputAction: widget.onSubmitted == null ? TextInputAction.next : TextInputAction.done,
+              autofillHints: const [AutofillHints.oneTimeCode],
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(EmailCodeField.length),
+              ],
+              showCursor: false,
+              enableInteractiveSelection: false,
+              style: const TextStyle(color: Colors.transparent, height: 1),
+              decoration: const InputDecoration(
+                filled: false,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                errorBorder: InputBorder.none,
+                focusedErrorBorder: InputBorder.none,
+                // as tall as the boxes, so a validation message shows under them
+                contentPadding: EdgeInsets.symmetric(vertical: EmailCodeField._boxHeight / 2 - 7),
+              ),
+              validator: (value) => (value ?? '').length == EmailCodeField.length ? null : l10n.codeLength,
+              onFieldSubmitted: widget.onSubmitted,
+            ),
+          ),
+          // taps go through to the field
+          IgnorePointer(
+            child: Directionality(
+              // digits read left to right in Arabic too
+              textDirection: TextDirection.ltr,
+              child: Row(
+                children: [for (var i = 0; i < EmailCodeField.length; i++) _box(widget.controller.text, i)],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -211,6 +211,23 @@ public class EmailAccountTests(ApiFixture api)
     }
 
     [Fact]
+    public async Task A_reset_code_can_be_checked_first_and_still_used_after()
+    {
+        var user = await api.RegisterUserAsync();
+        await AgeEmailsAsync(user.Email);
+        await SendResetCodeAsync(user.Email);
+        var code = api.Emails.LastCode(user.Email);
+        var client = api.CreateClient();
+
+        var wrong = await client.PostAsJsonAsync("/api/auth/password-reset/check", new { email = user.Email, code = WrongCode(code) });
+        var right = await client.PostAsJsonAsync("/api/auth/password-reset/check", new { email = user.Email, code });
+
+        await wrong.AssertProblemAsync(HttpStatusCode.BadRequest, "InvalidEmailCode");
+        Assert.Equal(HttpStatusCode.NoContent, right.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await ResetAsync(user.Email, code, ApiFixture.NewPassword())).StatusCode);
+    }
+
+    [Fact]
     public async Task A_reset_code_sets_the_new_password_and_ends_the_other_logins()
     {
         var user = await api.RegisterUserAsync();

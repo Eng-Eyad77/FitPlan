@@ -898,18 +898,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get msJetPlural => 'jumbo jets';
 
   @override
-  String get msLondonEye => 'the London Eye';
-
-  @override
-  String get msLondonEyePlural => 'London Eyes';
-
-  @override
-  String get msEiffel => 'the Eiffel Tower';
-
-  @override
-  String get msEiffelPlural => 'Eiffel Towers';
-
-  @override
   String aboutOne(String name) {
     return 'About $name';
   }
@@ -1653,6 +1641,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bodyweightShort => 'BW';
+
+  @override
+  String get weightHint => 'kg';
 
   @override
   String get restSheetBody =>

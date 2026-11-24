@@ -365,7 +365,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get newPlan => 'جدول جديد';
 
   @override
-  String get newPlanSubtitle => 'سوّ جدول جديد وحطه فيه';
+  String get newPlanSubtitle => 'سوّي جدول جديد وحطه فيه';
 
   @override
   String get couldNotLoadPlans => 'ما قدرنا نجيب جداولك.';
@@ -440,7 +440,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get planDescriptionHint => 'صدر وأكتاف وتراي';
 
   @override
-  String get createPlan => 'سوّ الجدول';
+  String get createPlan => 'سوّي الجدول';
 
   @override
   String get save => 'احفظ';
@@ -458,10 +458,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get noPlansYet => 'ما عندك جداول';
 
   @override
-  String get noPlansYetBody => 'سوّ جدول مثل \"يوم الدفع\" وحط فيه تمارينك.';
+  String get noPlansYetBody => 'سوّي جدول مثل \"يوم الدفع\" وحط فيه تمارينك.';
 
   @override
-  String get createAPlan => 'سوّ جدول';
+  String get createAPlan => 'سوّي جدول';
 
   @override
   String get quickWorkoutNoPlan => 'حصة سريعة بدون جدول';
@@ -545,7 +545,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get getStarted => 'يلا نبدأ';
 
   @override
-  String get makeFirstPlan => 'سوّ أول جدول لك';
+  String get makeFirstPlan => 'سوّي أول جدول لك';
 
   @override
   String get makeFirstPlanBody =>
@@ -594,13 +594,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get bodyUpperArms => 'باي وتراي';
 
   @override
-  String get bodyLowerArms => 'ساعد';
+  String get bodyLowerArms => 'سواعد';
 
   @override
-  String get bodyUpperLegs => 'أفخاذ';
+  String get bodyUpperLegs => 'أرجل';
 
   @override
-  String get bodyLowerLegs => 'سمانة';
+  String get bodyLowerLegs => 'بطات';
 
   @override
   String get bodyWaist => 'بطن';
@@ -895,18 +895,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get msJetPlural => 'طيارات جامبو';
-
-  @override
-  String get msLondonEye => 'عجلة لندن آي';
-
-  @override
-  String get msLondonEyePlural => 'عجلة لندن آي';
-
-  @override
-  String get msEiffel => 'برج إيفل';
-
-  @override
-  String get msEiffelPlural => 'أبراج إيفل';
 
   @override
   String aboutOne(String name) {
@@ -1670,7 +1658,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get bodyweightShort => 'جسم';
+  String get bodyweightShort => 'وزن الجسم';
+
+  @override
+  String get weightHint => 'الوزن';
 
   @override
   String get restSheetBody =>
@@ -1758,7 +1749,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get restOverTitle => 'خلصت الراحة';
 
   @override
-  String get restingTitle => 'ترتاح';
+  String get restingTitle => 'وقت الراحة';
 
   @override
   String get timeNextExercise => 'يلا على التمرين اللي بعده';

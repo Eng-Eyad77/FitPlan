@@ -17,5 +17,7 @@ public interface IAuthService
 
     Task<Result<bool>> SendPasswordResetCodeAsync(string email, string language);
 
+    Task<Result<bool>> CheckPasswordResetCodeAsync(ResetCodeCheckDto request);
+
     Task<Result<AuthResponseDto>> ResetPasswordAsync(ResetPasswordRequestDto request);
 }

@@ -16,5 +16,7 @@ struct RestActivityAttributes: ActivityAttributes {
     var title: String
     var nextLine: String
     var skipLabel: String
+    /// Right to left when the app is in Arabic. Optional, so a countdown started by an older app still decodes.
+    var rtl: Bool?
   }
 }

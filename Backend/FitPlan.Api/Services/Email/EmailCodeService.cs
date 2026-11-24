@@ -80,7 +80,7 @@ public class EmailCodeService(FitPlanDbContext context, IEmailSender sender, Tim
     // Uses the newest code for the address (or, for ChangeEmail, the user) and returns its address,
     // or null if it is wrong, expired, used or locked. Both updates are atomic, so parallel guesses
     // can't get past the try limit and a code can't be used twice.
-    public async Task<string?> UseAsync(EmailCodePurpose purpose, string? email, Guid? userId, string code)
+    public async Task<string?> UseAsync(EmailCodePurpose purpose, string? email, Guid? userId, string code, bool consume = true)
     {
         var now = time.GetUtcNow().UtcDateTime;
 
@@ -101,6 +101,11 @@ public class EmailCodeService(FitPlanDbContext context, IEmailSender sender, Tim
         if (counted == 0 || !Matches(entry, code))
         {
             return null;
+        }
+
+        if (!consume)
+        {
+            return entry.Email;
         }
 
         var used = await context.EmailCodes

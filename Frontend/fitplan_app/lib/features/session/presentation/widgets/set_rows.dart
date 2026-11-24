@@ -218,7 +218,7 @@ class _DraftSetRowState extends State<DraftSetRow> {
               Expanded(
                 child: _CellField(
                   controller: _kg,
-                  hint: l10n.bodyweightShort,
+                  hint: l10n.weightHint,
                   label: l10n.setWeightSemantics(widget.setNumber),
                   decimal: true,
                   onChanged: _typed,

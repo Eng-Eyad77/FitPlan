@@ -507,10 +507,6 @@
   "msWhalePlural": "blue whales",
   "msJet": "a jumbo jet at takeoff",
   "msJetPlural": "jumbo jets",
-  "msLondonEye": "the London Eye",
-  "msLondonEyePlural": "London Eyes",
-  "msEiffel": "the Eiffel Tower",
-  "msEiffelPlural": "Eiffel Towers",
   "aboutOne": "About {name}",
   "@aboutOne": {
     "placeholders": {
@@ -1176,6 +1172,8 @@
     }
   },
   "bodyweightShort": "BW",
+  "weightHint": "kg",
+  "@weightHint": {"description": "Empty weight field in a set row. Left empty, the set counts as bodyweight."},
   "restSheetBody": "Rest after each set, for this workout. Your plan stays as it is.",
   "restDone": "REST DONE",
   "rest": "REST",

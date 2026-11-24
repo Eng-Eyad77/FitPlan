@@ -45,7 +45,7 @@ void main() {
       expect(Milestone.compare(1020), 'About a small car');
       expect(Milestone.compare(500), 'About a grand piano');
       expect(Milestone.compare(130000), 'About 3.3 loaded trucks');
-      expect(Milestone.compare(25 * 10100000), 'About 25 Eiffel Towers');
+      expect(Milestone.compare(25 * 450000), 'About 25 jumbo jets');
     });
 
     test('is empty under the smallest object', () {
@@ -54,8 +54,9 @@ void main() {
     });
   });
 
-  test('kg under 10,000, tonnes above', () {
-    expect(formatVolumeAmount(8420), '8,420 kg');
+  test('kg under 1,000, tonnes above', () {
+    expect(formatVolumeAmount(840), '840 kg');
+    expect(formatVolumeAmount(8420), '8.4 t');
     expect(formatVolumeAmount(12400), '12.4 t');
     expect(formatVolumeAmount(2100000), '2,100 t');
   });
@@ -70,7 +71,7 @@ void main() {
 
     final volume = VolumeStats.fromJson(json);
 
-    expect(volume.milestones, hasLength(9));
+    expect(volume.milestones, hasLength(7));
     expect(volume.next!.milestone.key, 'city-bus');
     expect(volume.progressToNext, closeTo(8420 / 12000, 0.001));
     expect(volume.milestones[2].reachedAt, DateTime.utc(2026, 11, 12, 18));
@@ -105,10 +106,10 @@ void main() {
         })),
       );
 
-      expect(find.textContaining('8,420'), findsOneWidget);
+      expect(find.textContaining('8.4'), findsOneWidget);
       expect(find.text('About 1.4 elephants'), findsOneWidget);
       expect(find.text('Next: a city bus'), findsOneWidget);
-      expect(find.text('3,580 kg to go'), findsOneWidget);
+      expect(find.text('3.6 t to go'), findsOneWidget);
     });
 
     testWidgets('tapping the card lists every milestone', (tester) async {
@@ -126,8 +127,8 @@ void main() {
       expect(find.text('Milestones'), findsOneWidget);
       expect(find.text('A grand piano'), findsOneWidget);
       expect(find.textContaining('Reached'), findsNWidgets(2));
-      await tester.scrollUntilVisible(find.text('The Eiffel Tower'), 200, scrollable: find.byType(Scrollable).last);
-      expect(find.text('The Eiffel Tower'), findsOneWidget);
+      await tester.scrollUntilVisible(find.text('A jumbo jet at takeoff'), 200, scrollable: find.byType(Scrollable).last);
+      expect(find.text('A jumbo jet at takeoff'), findsOneWidget);
     });
 
     testWidgets('a new user is told how to start', (tester) async {

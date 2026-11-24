@@ -17,9 +17,8 @@ public static class VolumeMilestones
         ("city-bus", 12_000m),
         ("loaded-truck", 40_000m),
         ("blue-whale", 150_000m),
-        ("jumbo-jet", 450_000m),
-        ("london-eye", 2_100_000m),
-        ("eiffel-tower", 10_100_000m)
+        // the London Eye and the Eiffel Tower were dropped on 2026-11-25: years out of reach
+        ("jumbo-jet", 450_000m)
     ];
 }
 

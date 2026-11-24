@@ -315,6 +315,7 @@ class LocalRestNotifier implements RestNotifier {
         'title': RestTexts.countdownTitle,
         'nextLine': RestTexts.countdownBody(timer),
         'skipLabel': l10n.skip,
+        'rtl': isArabic,
       });
     } catch (_) {
       // older iPhone, Live Activities turned off, or a build without the extension

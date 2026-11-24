@@ -37,7 +37,8 @@ final class RestLiveActivity: NSObject, FlutterPlugin {
         // sent by the app in its own language; English if an older app didn't send them
         title: args["title"] as? String ?? "Resting",
         nextLine: args["nextLine"] as? String ?? "Next: \(next)",
-        skipLabel: args["skipLabel"] as? String ?? "Skip"
+        skipLabel: args["skipLabel"] as? String ?? "Skip",
+        rtl: args["rtl"] as? Bool
       )
       // Flutter wants its answer on the main thread
       Task { @MainActor in result(await RestActivities.show(state)) }

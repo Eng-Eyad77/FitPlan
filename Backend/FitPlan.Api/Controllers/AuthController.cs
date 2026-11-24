@@ -65,7 +65,17 @@ public class AuthController(IAuthService authService) : ApiControllerBase
         return result.IsSuccess ? Accepted() : Problem(result.Error);
     }
 
-    // Step 2: the emailed code and the new password. Shares the sign-in limit against guessing.
+    // Step 2: is the emailed code right? 204 if so. Nothing changes, but it counts as an attempt.
+    [HttpPost("password-reset/check")]
+    [EnableRateLimiting(RateLimitingExtensions.SignInPolicy)]
+    public async Task<IActionResult> CheckPasswordResetCode(ResetCodeCheckDto request)
+    {
+        var result = await authService.CheckPasswordResetCodeAsync(request);
+
+        return result.IsSuccess ? NoContent() : Problem(result.Error);
+    }
+
+    // Step 3: the emailed code and the new password. Shares the sign-in limit against guessing.
     [HttpPost("reset-password")]
     [EnableRateLimiting(RateLimitingExtensions.SignInPolicy)]
     public async Task<IActionResult> ResetPassword(ResetPasswordRequestDto request)

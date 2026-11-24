@@ -1622,30 +1622,6 @@ abstract class AppLocalizations {
   /// **'jumbo jets'**
   String get msJetPlural;
 
-  /// No description provided for @msLondonEye.
-  ///
-  /// In en, this message translates to:
-  /// **'the London Eye'**
-  String get msLondonEye;
-
-  /// No description provided for @msLondonEyePlural.
-  ///
-  /// In en, this message translates to:
-  /// **'London Eyes'**
-  String get msLondonEyePlural;
-
-  /// No description provided for @msEiffel.
-  ///
-  /// In en, this message translates to:
-  /// **'the Eiffel Tower'**
-  String get msEiffel;
-
-  /// No description provided for @msEiffelPlural.
-  ///
-  /// In en, this message translates to:
-  /// **'Eiffel Towers'**
-  String get msEiffelPlural;
-
   /// No description provided for @aboutOne.
   ///
   /// In en, this message translates to:
@@ -2761,6 +2737,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'BW'**
   String get bodyweightShort;
+
+  /// Empty weight field in a set row. Left empty, the set counts as bodyweight.
+  ///
+  /// In en, this message translates to:
+  /// **'kg'**
+  String get weightHint;
 
   /// No description provided for @restSheetBody.
   ///

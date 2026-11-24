@@ -48,7 +48,7 @@ class ReachedMilestone {
 }
 
 /// What the icon of a milestone shows.
-enum MilestoneArt { piano, car, elephant, bus, truck, whale, jet, wheel, tower }
+enum MilestoneArt { piano, car, elephant, bus, truck, whale, jet }
 
 /// The objects the volume is compared with. The weights are approximate and sourced
 /// (docs/PHASE-10-PROPOSAL.md); the server has the same keys and thresholds.
@@ -69,9 +69,8 @@ class Milestone {
     Milestone('city-bus', 12000, MilestoneArt.bus),
     Milestone('loaded-truck', 40000, MilestoneArt.truck),
     Milestone('blue-whale', 150000, MilestoneArt.whale),
+    // the London Eye (2,100 t) and the Eiffel Tower (10,100 t) were dropped: years out of reach (2026-11-25)
     Milestone('jumbo-jet', 450000, MilestoneArt.jet),
-    Milestone('london-eye', 2100000, MilestoneArt.wheel),
-    Milestone('eiffel-tower', 10100000, MilestoneArt.tower),
   ];
 
   /// "a small car", "سيارة صغيرة"
@@ -82,9 +81,7 @@ class Milestone {
         'city-bus' => l10n.msBus,
         'loaded-truck' => l10n.msTruck,
         'blue-whale' => l10n.msWhale,
-        'jumbo-jet' => l10n.msJet,
-        'london-eye' => l10n.msLondonEye,
-        _ => l10n.msEiffel,
+        _ => l10n.msJet,
       };
 
   /// "small cars", "سيارات صغيرة"
@@ -95,9 +92,7 @@ class Milestone {
         'city-bus' => l10n.msBusPlural,
         'loaded-truck' => l10n.msTruckPlural,
         'blue-whale' => l10n.msWhalePlural,
-        'jumbo-jet' => l10n.msJetPlural,
-        'london-eye' => l10n.msLondonEyePlural,
-        _ => l10n.msEiffelPlural,
+        _ => l10n.msJetPlural,
       };
 
   static Milestone? byKey(String key) => all.where((m) => m.key == key).firstOrNull;
@@ -123,8 +118,9 @@ class Milestone {
   }
 }
 
-/// 8420 -> ("8,420", "kg"), 12400 -> ("12.4", "t"), 2100000 -> ("2,100", "t")
-(String, String) volumeParts(double kg) => kg < 10000
+/// 840 -> ("840", "kg"), 8420 -> ("8.4", "t"), 2100000 -> ("2,100", "t"). Tonnes from 1 t, so
+/// 6 t and 12 t read as the same unit.
+(String, String) volumeParts(double kg) => kg < 1000
     ? (NumberFormat.decimalPattern().format(kg.round()), l10n.kg)
     : (NumberFormat('#,##0.#').format(kg / 1000), l10n.tonnes);
 
