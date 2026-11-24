@@ -40,7 +40,11 @@ class AuthRepository {
   Future<void> sendPasswordResetCode(String email) =>
       apiCall(() => _dio.post<void>('/api/auth/password-reset/code', data: {'email': email.trim()}));
 
-  /// Step 2: signs in with the new password; every other login ends.
+  /// Step 2: is the code right? Throws ApiException (InvalidEmailCode) if not; nothing is used up.
+  Future<void> checkPasswordResetCode({required String email, required String code}) => apiCall(() => _dio
+      .post<void>('/api/auth/password-reset/check', data: {'email': email.trim(), 'code': code.trim()}));
+
+  /// Step 3: signs in with the new password; every other login ends.
   Future<AuthSession> resetPassword({required String email, required String code, required String newPassword}) =>
       _authenticate('/api/auth/reset-password', {
         'email': email.trim(),

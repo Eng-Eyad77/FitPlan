@@ -31,7 +31,7 @@ public class VolumeTests(ApiFixture api)
         var volume = await GetVolumeAsync(user);
 
         Assert.Equal(0m, volume.TotalVolumeKg);
-        Assert.Equal(9, volume.Milestones.Length);
+        Assert.Equal(7, volume.Milestones.Length);
         Assert.All(volume.Milestones, m => Assert.Null(m.ReachedAt));
         Assert.Equal(volume.Milestones.OrderBy(m => m.ThresholdKg).Select(m => m.Key), volume.Milestones.Select(m => m.Key));
     }

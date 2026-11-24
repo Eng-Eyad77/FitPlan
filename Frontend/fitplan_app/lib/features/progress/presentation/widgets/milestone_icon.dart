@@ -4,7 +4,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../domain/volume.dart';
 
 /// The picture of a milestone, in a rounded tile. Material icons where one exists; the
-/// elephant, the whale and the Eiffel Tower are drawn here in the same filled style.
+/// elephant and the whale are drawn here in the same filled style.
 class MilestoneIcon extends StatelessWidget {
   const MilestoneIcon({super.key, required this.art, this.size = 52, this.reached = true, this.gold = false});
 
@@ -32,10 +32,8 @@ class MilestoneIcon extends StatelessWidget {
       MilestoneArt.bus => Icon(Icons.directions_bus_rounded, size: glyph, color: color),
       MilestoneArt.truck => Icon(Icons.local_shipping_rounded, size: glyph, color: color),
       MilestoneArt.jet => Icon(Icons.flight_rounded, size: glyph, color: color),
-      MilestoneArt.wheel => Icon(Icons.attractions_rounded, size: glyph, color: color),
       MilestoneArt.elephant => _Drawn(_elephant, glyph, color),
       MilestoneArt.whale => _Drawn(_whale, glyph, color),
-      MilestoneArt.tower => _Drawn(_tower, glyph, color),
     };
 
     return Container(
@@ -158,44 +156,5 @@ void _whale(Canvas canvas, Paint fill) {
       ..moveTo(2.4, 13.8)
       ..quadraticBezierTo(6, 14.6, 9.5, 13.9),
     _cut(0.7),
-  );
-}
-
-void _tower(Canvas canvas, Paint fill) {
-  final tower = Path()
-    ..moveTo(11.4, 3.2)
-    ..lineTo(12.6, 3.2)
-    ..lineTo(13.5, 8.8)
-    ..lineTo(15.2, 8.8)
-    ..lineTo(15.2, 10.4)
-    ..lineTo(14.3, 10.4)
-    ..lineTo(15.6, 14.2)
-    ..lineTo(17.2, 14.2)
-    ..lineTo(17.2, 15.8)
-    ..lineTo(16.3, 15.8)
-    ..lineTo(19.2, 22)
-    ..lineTo(15.6, 22)
-    ..quadraticBezierTo(15.2, 18, 12, 18)
-    ..quadraticBezierTo(8.8, 18, 8.4, 22)
-    ..lineTo(4.8, 22)
-    ..lineTo(7.7, 15.8)
-    ..lineTo(6.8, 15.8)
-    ..lineTo(6.8, 14.2)
-    ..lineTo(8.4, 14.2)
-    ..lineTo(9.7, 10.4)
-    ..lineTo(8.8, 10.4)
-    ..lineTo(8.8, 8.8)
-    ..lineTo(10.5, 8.8)
-    ..close();
-  canvas.drawPath(tower, fill);
-  // the spire
-  canvas.drawLine(const Offset(12, 1.2), const Offset(12, 3.4), _stroke(fill, 1.1));
-  // the small arch between the two platforms
-  canvas.drawPath(
-    Path()
-      ..moveTo(10.6, 14.2)
-      ..quadraticBezierTo(12, 12, 13.4, 14.2)
-      ..close(),
-    _cut(),
   );
 }

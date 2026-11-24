@@ -14,7 +14,7 @@ import 'widgets/auth_layout.dart';
 import 'widgets/email_code.dart';
 import '../../../l10n/l10n.dart';
 
-/// A forgotten password (D18): the account's email gets a code, then the code and a new password.
+/// A forgotten password (D18): the account's email gets a code, the code is checked, then the new password.
 class ResetPasswordScreen extends ConsumerStatefulWidget {
   const ResetPasswordScreen({super.key});
 
@@ -31,6 +31,9 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
 
   /// The address the code went to; null while on step 1.
   String? _sentTo;
+
+  /// The server accepted the code; step 3 asks for the new password.
+  bool _codeOk = false;
   bool _loading = false;
   String? _error;
 
@@ -72,12 +75,28 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     });
   }
 
+  Future<void> _checkCode() async {
+    if (_loading || !_formKey.currentState!.validate()) return;
+    await _run(() async {
+      await ref.read(authRepositoryProvider).checkPasswordResetCode(email: _sentTo!, code: _code.text);
+      if (mounted) setState(() => _codeOk = true);
+    });
+  }
+
   Future<void> _submit() async {
     if (_loading || !_formKey.currentState!.validate()) return;
     // signed in on success: the router opens Home
-    await _run(() => ref
-        .read(authControllerProvider.notifier)
-        .resetPassword(email: _sentTo!, code: _code.text, newPassword: _password.text));
+    await _run(() async {
+      try {
+        await ref
+            .read(authControllerProvider.notifier)
+            .resetPassword(email: _sentTo!, code: _code.text, newPassword: _password.text);
+      } on ApiException catch (error) {
+        // the code ran out meanwhile: back to it, with the message
+        if (error.code == 'InvalidEmailCode' && mounted) setState(() => _codeOk = false);
+        rethrow;
+      }
+    });
   }
 
   List<Widget> _emailStep() => [
@@ -90,7 +109,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
         LoadingButton(label: l10n.sendCode, loading: _loading, onPressed: _sendCode),
       ];
 
-  List<Widget> _passwordStep() => [
+  List<Widget> _codeStep() => [
         CodeSentNote(
           email: _sentTo!,
           onResend: _loading ? null : () => _sendCode(again: true),
@@ -103,8 +122,16 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                   }),
         ),
         const SizedBox(height: AppSpacing.md),
-        EmailCodeField(controller: _code),
-        const SizedBox(height: AppSpacing.md),
+        EmailCodeField(controller: _code, onSubmitted: (_) => _checkCode()),
+        const SizedBox(height: AppSpacing.xl),
+        if (_error != null) ...[
+          AuthErrorBanner(message: _error!),
+          const SizedBox(height: AppSpacing.lg),
+        ],
+        LoadingButton(label: l10n.confirm, loading: _loading, onPressed: _checkCode),
+      ];
+
+  List<Widget> _passwordStep() => [
         PasswordField(
           controller: _password,
           label: l10n.newPassword,
@@ -139,7 +166,11 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
         child: AutofillGroup(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: _sentTo == null ? _emailStep() : _passwordStep(),
+            children: _sentTo == null
+                ? _emailStep()
+                : _codeOk
+                    ? _passwordStep()
+                    : _codeStep(),
           ),
         ),
       ),

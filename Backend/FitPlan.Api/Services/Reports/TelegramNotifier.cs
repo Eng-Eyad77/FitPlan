@@ -26,7 +26,8 @@ public class TelegramNotifier(HttpClient http, IConfiguration configuration, ILo
         try
         {
             // plain text, so nothing a user writes is read as formatting
-            using var response = await http.PostAsJsonAsync($"bot{token}/sendMessage", new { chat_id = chatId, text });
+            // "./" because the token has a ":", which would otherwise make "bot123" read as a URL scheme
+            using var response = await http.PostAsJsonAsync($"./bot{token}/sendMessage", new { chat_id = chatId, text });
             if (response.IsSuccessStatusCode)
             {
                 return true;
@@ -34,8 +35,9 @@ public class TelegramNotifier(HttpClient http, IConfiguration configuration, ILo
 
             logger.LogError("Telegram refused a message with status {Status}", (int)response.StatusCode);
         }
-        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        catch (Exception ex)
         {
+            // any failure here only means no Telegram message: the report is already saved
             // the exception text can hold the URL, which holds the token, so only its type is logged
             logger.LogError("Could not reach Telegram: {Error}", ex.GetType().Name);
         }

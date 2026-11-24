@@ -33,18 +33,9 @@ class AuthController extends AsyncNotifier<AuthSession?> {
       return null;
     }
 
-    try {
-      final renewed = await ref.read(authRepositoryProvider).refresh(refreshToken);
-      await storage.save(renewed);
-      return renewed;
-    } on ApiException catch (error) {
-      if (_sessionEnded(error)) {
-        await storage.clear();
-        return null;
-      }
-      // offline or the server is waking: stay logged in, and renew on the first request
-      return saved;
-    }
+    // Open at once and renew on the first request that gets 401 (renewAfterUnauthorized). Waiting
+    // here kept the launch screen up for up to a minute while the Dev server and database woke.
+    return saved;
   }
 
   /// Called when a request sent with [sentToken] got 401. Returns the session to retry with, or

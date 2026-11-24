@@ -53,6 +53,11 @@ private struct RestButtons: View {
   }
 }
 
+/// The app's language decides the direction, not the phone's.
+private func direction(_ state: RestActivityAttributes.ContentState) -> LayoutDirection {
+  state.rtl == true ? .rightToLeft : .leftToRight
+}
+
 private func progress(_ state: RestActivityAttributes.ContentState) -> some View {
   ProgressView(timerInterval: state.startedAt...max(state.startedAt, state.endsAt), countsDown: true) {
     EmptyView()
@@ -85,6 +90,7 @@ struct RestActivityWidget: Widget {
         RestButtons(skipLabel: context.state.skipLabel)
       }
       .padding(16)
+      .environment(\.layoutDirection, direction(context.state))
       .activityBackgroundTint(Brand.background)
       .activitySystemActionForegroundColor(Brand.accent)
     } dynamicIsland: { context in
@@ -94,6 +100,7 @@ struct RestActivityWidget: Widget {
             Logo(size: 22)
             Text(context.state.title).font(.headline)
           }
+          .environment(\.layoutDirection, direction(context.state))
         }
         DynamicIslandExpandedRegion(.trailing) {
           countdown(context.state)
@@ -108,6 +115,7 @@ struct RestActivityWidget: Widget {
             Text(context.state.nextLine).font(.subheadline).lineLimit(1)
             RestButtons(skipLabel: context.state.skipLabel)
           }
+          .environment(\.layoutDirection, direction(context.state))
         }
       } compactLeading: {
         Logo(size: 18)

@@ -106,27 +106,14 @@ void main() {
       expect(repository.refreshCalls, 0);
     });
 
-    test('an expired session is renewed instead of logging out', () async {
-      final renewed = _session('b');
-      final (container, _, storage) = await _start(_session('a', life: const Duration(minutes: -1)), refreshAtStart: renewed);
-
-      expect(container.read(authControllerProvider).value, renewed);
-      expect(storage.saved, renewed);
-    });
-
-    test('a refused renewal logs out', () async {
-      final (container, _, storage) = await _start(_session('a', life: const Duration(minutes: -1)), refreshAtStart: _ended);
-
-      expect(container.read(authControllerProvider).value, isNull);
-      expect(storage.saved, isNull);
-    });
-
-    test('no connection keeps the user logged in', () async {
+    // the server may be asleep for a minute: the app opens at once and renews on the first 401
+    test('an expired session opens at once, without waiting for the server', () async {
       final saved = _session('a', life: const Duration(minutes: -1));
-      final (container, _, storage) = await _start(saved, refreshAtStart: _offline);
+      final (container, repository, storage) = await _start(saved);
 
       expect(container.read(authControllerProvider).value, saved);
       expect(storage.saved, saved);
+      expect(repository.refreshCalls, 0);
     });
 
     test('an expired session from an older app version, without a refresh token, logs out', () async {

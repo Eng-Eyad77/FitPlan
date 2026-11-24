@@ -126,7 +126,8 @@ class _PasswordFieldState extends State<PasswordField> {
           tooltip: _hidden ? l10n.showPassword : l10n.hidePassword,
           onPressed: () => setState(() => _hidden = !_hidden),
           icon: Icon(
-            _hidden ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+            // the eye shows the current state: open while the password can be read (Eyad's call)
+            _hidden ? Icons.visibility_off_outlined : Icons.visibility_outlined,
             color: AppColors.textTertiary,
           ),
         ),
