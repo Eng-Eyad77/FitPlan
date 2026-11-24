@@ -3139,6 +3139,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your email was changed.'**
   String get emailChanged;
+
+  /// No description provided for @reportProblem.
+  ///
+  /// In en, this message translates to:
+  /// **'Report a problem'**
+  String get reportProblem;
+
+  /// No description provided for @reportIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'What went wrong? We read every report and reply to your email.'**
+  String get reportIntro;
+
+  /// No description provided for @reportHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe what happened and what you were doing.'**
+  String get reportHint;
+
+  /// No description provided for @send.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get send;
+
+  /// No description provided for @reportSent.
+  ///
+  /// In en, this message translates to:
+  /// **'We got your report. Thank you 🙏'**
+  String get reportSent;
+
+  /// No description provided for @reportTooMany.
+  ///
+  /// In en, this message translates to:
+  /// **'You sent many reports. Try again a little later.'**
+  String get reportTooMany;
 }
 
 class _AppLocalizationsDelegate

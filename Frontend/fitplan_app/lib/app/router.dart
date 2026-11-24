@@ -14,6 +14,7 @@ import '../features/plans/presentation/plan_detail_screen.dart';
 import '../features/plans/presentation/plans_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/progress/presentation/progress_screen.dart';
+import '../features/reports/presentation/report_screen.dart';
 import '../features/session/domain/workout_session.dart';
 import '../features/session/presentation/session_screen.dart';
 import '../features/session/presentation/summary_screen.dart';
@@ -30,6 +31,7 @@ abstract final class Routes {
   static const history = '/history';
   static const progress = '/progress';
   static const profile = '/profile';
+  static const report = '/report';
   static String planDetail(String id) => '/plans/$id';
   static String historyDetail(String id) => '/history/$id';
 
@@ -76,6 +78,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: Routes.resetPassword, builder: (_, _) => const ResetPasswordScreen()),
       // outside the tab shell: covers the tab bar, with a back button
       GoRoute(path: Routes.profile, builder: (_, _) => const ProfileScreen()),
+      GoRoute(path: Routes.report, builder: (_, _) => const ReportScreen()),
       GoRoute(
         path: Routes.exerciseLibrary,
         builder: (_, _) => const ExercisePickerScreen(browse: true),

@@ -20,6 +20,10 @@ public static class RateLimitingExtensions
     public const string RefreshPolicy = "refresh";
     public const int RefreshPermitPerMinute = 30;
 
+    // Problem reports (D14): each user gets a few an hour, so one account can't flood the owner's Telegram.
+    public const string ReportsPolicy = "reports";
+    public const int ReportsPermitPerHour = 5;
+
     // The exercise library is open without signing in, so one caller could flood it.
     // Each signed-in user, or each IP address otherwise, gets ExercisesPermitPerMinute requests a minute.
     public static IServiceCollection AddRateLimits(this IServiceCollection services)
@@ -34,6 +38,15 @@ public static class RateLimitingExtensions
                 {
                     PermitLimit = ExercisesPermitPerMinute,
                     Window = TimeSpan.FromMinutes(1),
+                    QueueLimit = 0
+                }));
+
+            options.AddPolicy(ReportsPolicy, context => RateLimitPartition.GetFixedWindowLimiter(
+                PartitionKey(context),
+                _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = ReportsPermitPerHour,
+                    Window = TimeSpan.FromHours(1),
                     QueueLimit = 0
                 }));
 

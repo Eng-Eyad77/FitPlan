@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
+import '../../../app/router.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -62,6 +64,18 @@ class _ProfileBody extends ConsumerWidget {
         _EmailCard(email: profile.email),
         const SizedBox(height: AppSpacing.lg),
         const _LanguageCard(),
+        const SizedBox(height: AppSpacing.lg),
+        _Card(
+          child: InkWell(
+            onTap: () => context.push(Routes.report),
+            child: Row(
+              children: [
+                Expanded(child: Text(l10n.reportProblem, style: AppText.body)),
+                const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+              ],
+            ),
+          ),
+        ),
         const SizedBox(height: AppSpacing.xxxl),
         OutlinedButton.icon(
           onPressed: () => ref.read(authControllerProvider.notifier).logout(),

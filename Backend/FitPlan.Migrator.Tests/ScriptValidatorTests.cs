@@ -18,8 +18,8 @@ public sealed class ScriptValidatorTests
 
         var result = validator.Validate(Scripts.Bytes(script));
 
-        Assert.Equal([Scripts.InitialCreate, Scripts.AddWorkoutSessions, Scripts.AddUserWeeklyGoal, Scripts.AddRefreshTokens, Scripts.AddRecoveryCode, Scripts.AddRestSeconds, Scripts.AddCardioMachineDetails, Scripts.AddVolumeMilestones, Scripts.AddExerciseDetailsAndTranslations, Scripts.AddEmailAccounts], result.MigrationIds);
-        Assert.Equal(11, result.Batches.Count);
+        Assert.Equal([Scripts.InitialCreate, Scripts.AddWorkoutSessions, Scripts.AddUserWeeklyGoal, Scripts.AddRefreshTokens, Scripts.AddRecoveryCode, Scripts.AddRestSeconds, Scripts.AddCardioMachineDetails, Scripts.AddVolumeMilestones, Scripts.AddExerciseDetailsAndTranslations, Scripts.AddEmailAccounts, Scripts.AddProblemReports], result.MigrationIds);
+        Assert.Equal(12, result.Batches.Count);
         Assert.Null(result.Batches[0].MigrationId);
         Assert.Equal(Scripts.Sha256(script), result.Sha256);
     }
@@ -29,7 +29,7 @@ public sealed class ScriptValidatorTests
     {
         var bytes = new byte[] { 0xEF, 0xBB, 0xBF }.Concat(Scripts.Bytes(Scripts.Idempotent())).ToArray();
 
-        Assert.Equal(10, validator.Validate(bytes).MigrationIds.Count);
+        Assert.Equal(11, validator.Validate(bytes).MigrationIds.Count);
     }
 
     [Theory]

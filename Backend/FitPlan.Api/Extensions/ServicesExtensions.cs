@@ -10,6 +10,7 @@ using FitPlan.Api.Services.BodyWeight;
 using FitPlan.Api.Services.Stats;
 using FitPlan.Api.Services.Pictures;
 using FitPlan.Api.Services.Email;
+using FitPlan.Api.Services.Reports;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace FitPlan.Api.Extensions;
@@ -69,6 +70,14 @@ public static class ServicesExtensions
         // Stats
         services.AddScoped<IStatsService, StatsService>();
         services.AddScoped<IVolumeService, VolumeService>();
+
+        // Problem reports (D14)
+        services.AddScoped<IProblemReportService, ProblemReportService>();
+        services.AddHttpClient<ITelegramNotifier, TelegramNotifier>(client =>
+        {
+            client.BaseAddress = new Uri("https://api.telegram.org/");
+            client.Timeout = TimeSpan.FromSeconds(10);
+        });
 
         // External HTTP Client
         services.AddHttpClient("ExerciseDB", client =>

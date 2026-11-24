@@ -1361,5 +1361,11 @@
         "type": "String"
       }
     }
-  }
+  },
+  "reportProblem": "Report a problem",
+  "reportIntro": "What went wrong? We read every report and reply to your email.",
+  "reportHint": "Describe what happened and what you were doing.",
+  "send": "Send",
+  "reportSent": "We got your report. Thank you 🙏",
+  "reportTooMany": "You sent many reports. Try again a little later."
 }

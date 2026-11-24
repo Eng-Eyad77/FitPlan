@@ -5,6 +5,7 @@ using FitPlan.Api.Data;
 using FitPlan.Api.DTOs.Auth;
 using FitPlan.Api.Models;
 using FitPlan.Api.Services.Email;
+using FitPlan.Api.Services.Reports;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -69,10 +70,15 @@ public sealed class ApiFixture : IAsyncLifetime
     public WebApplicationFactory<Program> NewHost() =>
         new WebApplicationFactory<Program>().WithWebHostBuilder(builder => builder
             .UseEnvironment(TestEnvironment)
-            .ConfigureTestServices(services => services.AddSingleton<IEmailSender>(Emails)));
+            .ConfigureTestServices(services => services
+                .AddSingleton<IEmailSender>(Emails)
+                .AddSingleton<ITelegramNotifier>(Telegram)));
 
     // every email the API sends, from every host
     public FakeEmailSender Emails { get; } = new();
+
+    // every Telegram message the API sends, from every host
+    public FakeTelegramNotifier Telegram { get; } = new();
 
     public string UploadsRoot => uploadsRoot;
 

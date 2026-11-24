@@ -19,6 +19,7 @@ public sealed class MigrationTests : IAsyncLifetime
         "EmailCodes",
         "Exercises",
         "ExerciseTranslations",
+        "ProblemReports",
         "RefreshTokens",
         "SessionExercises",
         "SessionSets",

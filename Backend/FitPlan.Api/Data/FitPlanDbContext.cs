@@ -37,6 +37,8 @@ public class FitPlanDbContext : DbContext
 
     public DbSet<EmailCode> EmailCodes => Set<EmailCode>();
 
+    public DbSet<ProblemReport> ProblemReports => Set<ProblemReport>();
+
     public DbSet<VolumeMilestone> VolumeMilestones => Set<VolumeMilestone>();
 
 
