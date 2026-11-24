@@ -71,12 +71,17 @@ class ProfileRepository {
     return Uint8List.fromList(response.data!);
   }
 
-  /// Replaces the recovery code. Throws ApiException "WrongPassword" for a wrong password.
-  Future<String> createRecoveryCode(String password) async {
+  /// Email change, step 1: a code goes to the new address. Throws ApiException "WrongPassword".
+  Future<void> sendEmailChangeCode({required String newEmail, required String password}) => apiCall(
+        () => _dio.post<void>('/api/profile/me/email/code', data: {'newEmail': newEmail.trim(), 'password': password}),
+      );
+
+  /// Step 2: the code changes the email. Throws ApiException "InvalidEmailCode".
+  Future<Profile> confirmEmailChange(String code) async {
     final response = await apiCall(
-      () => _dio.post<Map<String, dynamic>>('/api/profile/me/recovery-code', data: {'password': password}),
+      () => _dio.put<Map<String, dynamic>>('/api/profile/me/email', data: {'code': code.trim()}),
     );
-    return response.data!['recoveryCode'] as String;
+    return Profile.fromJson(response.data!);
   }
 
   /// Deletes the account and everything in it. Throws ApiException "WrongPassword".

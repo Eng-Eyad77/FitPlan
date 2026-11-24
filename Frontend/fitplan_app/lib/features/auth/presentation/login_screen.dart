@@ -21,7 +21,7 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _username = TextEditingController();
+  final _login = TextEditingController();
   final _password = TextEditingController();
 
   bool _loading = false;
@@ -29,7 +29,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   void dispose() {
-    _username.dispose();
+    _login.dispose();
     _password.dispose();
     super.dispose();
   }
@@ -43,7 +43,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
 
     try {
-      await ref.read(authControllerProvider.notifier).login(_username.text, _password.text);
+      await ref.read(authControllerProvider.notifier).login(_login.text, _password.text);
       // the router sends the user to Home on its own
     } on ApiException catch (error) {
       if (mounted) setState(() => _error = authErrorMessage(error));
@@ -64,14 +64,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               TextFormField(
-                controller: _username,
+                controller: _login,
                 textInputAction: TextInputAction.next,
-                autofillHints: const [AutofillHints.username],
+                keyboardType: TextInputType.emailAddress,
+                autofillHints: const [AutofillHints.username, AutofillHints.email],
                 autocorrect: false,
                 style: AppText.body,
-                decoration: InputDecoration(labelText: l10n.username),
+                decoration: InputDecoration(labelText: l10n.emailOrUsername),
                 validator: (value) =>
-                    (value == null || value.trim().isEmpty) ? l10n.enterUsername : null,
+                    (value == null || value.trim().isEmpty) ? l10n.enterEmailOrUsername : null,
               ),
               const SizedBox(height: AppSpacing.md),
               PasswordField(

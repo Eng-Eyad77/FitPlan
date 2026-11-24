@@ -8,11 +8,13 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_text.dart';
 import '../../../shared/widgets/loading_button.dart';
 import '../application/auth_controller.dart';
+import '../data/auth_repository.dart';
 import 'auth_messages.dart';
 import 'widgets/auth_layout.dart';
+import 'widgets/email_code.dart';
 import '../../../l10n/l10n.dart';
 
-/// A forgotten password: the username, the recovery code saved at sign-up, and a new password.
+/// A forgotten password (D18): the account's email gets a code, then the code and a new password.
 class ResetPasswordScreen extends ConsumerStatefulWidget {
   const ResetPasswordScreen({super.key});
 
@@ -22,40 +24,110 @@ class ResetPasswordScreen extends ConsumerStatefulWidget {
 
 class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _username = TextEditingController();
+  final _email = TextEditingController();
   final _code = TextEditingController();
   final _password = TextEditingController();
   final _confirm = TextEditingController();
 
+  /// The address the code went to; null while on step 1.
+  String? _sentTo;
   bool _loading = false;
   String? _error;
 
   @override
   void dispose() {
-    _username.dispose();
+    _email.dispose();
     _code.dispose();
     _password.dispose();
     _confirm.dispose();
     super.dispose();
   }
 
-  Future<void> _submit() async {
-    if (_loading || !_formKey.currentState!.validate()) return;
-
+  Future<void> _run(Future<void> Function() action) async {
     setState(() {
       _loading = true;
       _error = null;
     });
-
     try {
-      await ref.read(authControllerProvider.notifier).resetPassword(_username.text, _code.text, _password.text);
-      // signed in: the router opens Home, and the new recovery code shows over it
+      await action();
     } on ApiException catch (error) {
       if (mounted) setState(() => _error = authErrorMessage(error));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
+
+  Future<void> _sendCode({bool again = false}) async {
+    if (_loading || (!again && !_formKey.currentState!.validate())) return;
+    final email = _sentTo ?? _email.text.trim();
+    await _run(() async {
+      await ref.read(authRepositoryProvider).sendPasswordResetCode(email);
+      if (!mounted) return;
+      setState(() => _sentTo = email);
+      if (again) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text(l10n.codeResent)));
+      }
+    });
+  }
+
+  Future<void> _submit() async {
+    if (_loading || !_formKey.currentState!.validate()) return;
+    // signed in on success: the router opens Home
+    await _run(() => ref
+        .read(authControllerProvider.notifier)
+        .resetPassword(email: _sentTo!, code: _code.text, newPassword: _password.text));
+  }
+
+  List<Widget> _emailStep() => [
+        EmailField(controller: _email, onSubmitted: (_) => _sendCode()),
+        const SizedBox(height: AppSpacing.xl),
+        if (_error != null) ...[
+          AuthErrorBanner(message: _error!),
+          const SizedBox(height: AppSpacing.lg),
+        ],
+        LoadingButton(label: l10n.sendCode, loading: _loading, onPressed: _sendCode),
+      ];
+
+  List<Widget> _passwordStep() => [
+        CodeSentNote(
+          email: _sentTo!,
+          onResend: _loading ? null : () => _sendCode(again: true),
+          onChangeEmail: _loading
+              ? null
+              : () => setState(() {
+                    _sentTo = null;
+                    _code.clear();
+                    _error = null;
+                  }),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        EmailCodeField(controller: _code),
+        const SizedBox(height: AppSpacing.md),
+        PasswordField(
+          controller: _password,
+          label: l10n.newPassword,
+          textInputAction: TextInputAction.next,
+          autofillHints: const [AutofillHints.newPassword],
+          validator: (value) =>
+              (value == null || value.length < 8 || value.length > 100) ? l10n.passwordLengthRange : null,
+        ),
+        const SizedBox(height: AppSpacing.md),
+        PasswordField(
+          controller: _confirm,
+          label: l10n.confirmNewPassword,
+          autofillHints: const [AutofillHints.newPassword],
+          onSubmitted: (_) => _submit(),
+          validator: (value) => value != _password.text ? l10n.thePasswordsDontMatch : null,
+        ),
+        const SizedBox(height: AppSpacing.xl),
+        if (_error != null) ...[
+          AuthErrorBanner(message: _error!),
+          const SizedBox(height: AppSpacing.lg),
+        ],
+        LoadingButton(label: l10n.resetPassword, loading: _loading, onPressed: _submit),
+      ];
 
   @override
   Widget build(BuildContext context) {
@@ -67,53 +139,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
         child: AutofillGroup(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextFormField(
-                controller: _username,
-                textInputAction: TextInputAction.next,
-                autofillHints: const [AutofillHints.username],
-                autocorrect: false,
-                style: AppText.body,
-                decoration: InputDecoration(labelText: l10n.username),
-                validator: (value) => (value == null || value.trim().isEmpty) ? l10n.enterUsername : null,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              TextFormField(
-                controller: _code,
-                textInputAction: TextInputAction.next,
-                autocorrect: false,
-                textCapitalization: TextCapitalization.characters,
-                style: AppText.body,
-                decoration: InputDecoration(labelText: l10n.recoveryCode, hintText: 'XXXX-XXXX-XXXX-XXXX'),
-                validator: (value) {
-                  final letters = (value ?? '').replaceAll(RegExp('[^A-Za-z0-9]'), '');
-                  return letters.length == 16 ? null : l10n.recoveryCodeLength;
-                },
-              ),
-              const SizedBox(height: AppSpacing.md),
-              PasswordField(
-                controller: _password,
-                label: l10n.newPassword,
-                textInputAction: TextInputAction.next,
-                autofillHints: const [AutofillHints.newPassword],
-                validator: (value) =>
-                    (value == null || value.length < 8 || value.length > 100) ? l10n.passwordLengthRange : null,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              PasswordField(
-                controller: _confirm,
-                label: l10n.confirmNewPassword,
-                autofillHints: const [AutofillHints.newPassword],
-                onSubmitted: (_) => _submit(),
-                validator: (value) => value != _password.text ? l10n.thePasswordsDontMatch : null,
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              if (_error != null) ...[
-                AuthErrorBanner(message: _error!),
-                const SizedBox(height: AppSpacing.lg),
-              ],
-              LoadingButton(label: l10n.resetPassword, loading: _loading, onPressed: _submit),
-            ],
+            children: _sentTo == null ? _emailStep() : _passwordStep(),
           ),
         ),
       ),

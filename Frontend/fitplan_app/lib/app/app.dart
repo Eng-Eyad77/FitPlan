@@ -3,7 +3,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/theme/app_theme.dart';
-import '../features/auth/presentation/recovery_code_notice.dart';
 import '../features/exercises/data/exercises_repository.dart';
 import '../features/history/application/history_controller.dart';
 import '../features/plans/application/plans_controller.dart';
@@ -83,9 +82,7 @@ class _FitPlanAppState extends ConsumerState<FitPlanApp> with WidgetsBindingObse
       routerConfig: ref.watch(routerProvider),
       builder: (context, child) => _RebuildOnLanguage(
         locale: locale,
-        child: DismissKeyboard(
-          child: RecoveryCodeNotice(child: child ?? const SizedBox.shrink()),
-        ),
+        child: DismissKeyboard(child: child ?? const SizedBox.shrink()),
       ),
     );
   }

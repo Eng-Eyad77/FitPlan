@@ -13,14 +13,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errUsernameAlreadyExists => 'Username is already taken.';
 
   @override
-  String get errInvalidCredentials => 'Invalid username or password.';
+  String get errInvalidCredentials => 'Invalid email, username or password.';
 
   @override
   String get errInvalidRefreshToken => 'Your session has ended. Log in again.';
-
-  @override
-  String get errInvalidRecoveryCode =>
-      'The username or recovery code is wrong.';
 
   @override
   String get errWrongPassword => 'Your password is wrong.';
@@ -198,7 +194,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get kg => 'kg';
 
   @override
-  String get authWrongLogin => 'Wrong username or password.';
+  String get authWrongLogin => 'Wrong email, username or password.';
 
   @override
   String get authUsernameTaken =>
@@ -236,16 +232,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get createAnAccount => 'Join now';
 
   @override
-  String get recoverySaveTitle => 'Save your recovery code';
-
-  @override
-  String get recoverySaveBody =>
-      'If you forget your password, this code is the only way back into your account. Keep it somewhere safe, like a password manager. It works once, and we can\'t show it again.';
-
-  @override
-  String get recoveryCopied => 'Recovery code copied.';
-
-  @override
   String get copyCode => 'Copy code';
 
   @override
@@ -266,7 +252,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get registerSubtitle =>
-      'One quick step and you\'re in. Plan your workouts, log every set, and watch yourself get stronger.';
+      'Plan your workouts, log every set, and watch yourself get stronger.';
 
   @override
   String get confirmPassword => 'Confirm password';
@@ -290,13 +276,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get resetSubtitle =>
-      'Enter the recovery code you saved when you joined, then pick a new password.';
-
-  @override
-  String get recoveryCode => 'Recovery code';
-
-  @override
-  String get recoveryCodeLength => 'The code has 16 letters and numbers';
+      'Enter your account\'s email. We\'ll send you a code to pick a new password.';
 
   @override
   String get newPassword => 'New password';
@@ -806,30 +786,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cancel => 'Cancel';
-
-  @override
-  String get newRecoveryCodeTitle => 'New recovery code';
-
-  @override
-  String get newRecoveryCodeBody =>
-      'Your old code will stop working. Enter your password to continue.';
-
-  @override
-  String get createCode => 'Create code';
-
-  @override
-  String get recoveryHasCode =>
-      'You can reset a forgotten password with your recovery code. Lost it? Create a new one.';
-
-  @override
-  String get recoveryNoCode =>
-      'You don\'t have a recovery code yet. Without one, a forgotten password means a lost account.';
-
-  @override
-  String get createNewCode => 'Create a new code';
-
-  @override
-  String get createRecoveryCode => 'Create a recovery code';
 
   @override
   String get deleteAccountTitle => 'Delete your account?';
@@ -1848,4 +1804,78 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get secondaryMusclesLabel => 'Also works';
+
+  @override
+  String get errInvalidEmailCode =>
+      'The code is wrong or has expired. Ask for a new one.';
+
+  @override
+  String get errEmailAlreadyExists => 'This email already has an account.';
+
+  @override
+  String get errTooManyEmails =>
+      'Too many codes for this email. Wait a little and try again.';
+
+  @override
+  String get errEmailNotSent => 'We couldn\'t send the email. Try again later.';
+
+  @override
+  String get email => 'Email';
+
+  @override
+  String get enterValidEmail => 'Enter a valid email';
+
+  @override
+  String get emailOrUsername => 'Email or username';
+
+  @override
+  String get enterEmailOrUsername => 'Enter your email or username';
+
+  @override
+  String get usernameNoAt => 'Username can\'t contain @';
+
+  @override
+  String get sendCode => 'Send code';
+
+  @override
+  String codeSentTo(String email) {
+    return 'We sent a 6-digit code to $email. It works for 10 minutes.';
+  }
+
+  @override
+  String get checkSpam => 'Can\'t find it? Check your spam folder.';
+
+  @override
+  String get emailCode => 'Code from the email';
+
+  @override
+  String get codeLength => 'The code has 6 digits';
+
+  @override
+  String get resendCode => 'Send a new code';
+
+  @override
+  String get codeResent => 'We sent a new code.';
+
+  @override
+  String get useAnotherEmail => 'Use another email';
+
+  @override
+  String get changeEmail => 'Change email';
+
+  @override
+  String get changeEmailBody =>
+      'Enter your new email and your password. We\'ll send a code to the new email.';
+
+  @override
+  String get newEmail => 'New email';
+
+  @override
+  String get enterCodeTitle => 'Enter the code';
+
+  @override
+  String get confirm => 'Confirm';
+
+  @override
+  String get emailChanged => 'Your email was changed.';
 }
