@@ -18,7 +18,7 @@ public class RefreshTokenTests(ApiFixture api)
 
     private async Task<AuthResponseDto> LoginAsync(TestUser user)
     {
-        var response = await api.CreateClient().PostAsJsonAsync("/api/auth/login", new { user.Username, user.Password });
+        var response = await api.CreateClient().PostAsJsonAsync("/api/auth/login", new { login = user.Username, user.Password });
         response.EnsureSuccessStatusCode();
         return (await response.Content.ReadFromJsonAsync<AuthResponseDto>())!;
     }
@@ -51,8 +51,7 @@ public class RefreshTokenTests(ApiFixture api)
     [Fact]
     public async Task Register_also_returns_a_working_refresh_token()
     {
-        var response = await api.CreateClient().PostAsJsonAsync(
-            "/api/auth/register", new { username = ApiFixture.NewUsername(), password = ApiFixture.NewPassword() });
+        var response = await api.SignUpAsync(ApiFixture.NewEmail(), ApiFixture.NewUsername(), ApiFixture.NewPassword());
         var auth = await response.Content.ReadFromJsonAsync<AuthResponseDto>();
 
         Assert.Equal(HttpStatusCode.OK, (await RefreshAsync(auth!.RefreshToken)).StatusCode);
@@ -148,7 +147,7 @@ public class RefreshTokenTests(ApiFixture api)
     public async Task Too_many_logins_from_one_caller_get_429_with_Retry_After()
     {
         var client = api.CreateClient();
-        var body = new { username = ApiFixture.NewUsername(), password = "wrong-password-123" };
+        var body = new { login = ApiFixture.NewUsername(), password = "wrong-password-123" };
 
         for (var i = 0; i < RateLimitingExtensions.SignInPermitPerMinute; i++)
         {
@@ -170,11 +169,11 @@ public class RefreshTokenTests(ApiFixture api)
         var client = api.CreateClient();
         for (var i = 0; i < RateLimitingExtensions.SignInPermitPerMinute; i++)
         {
-            await client.PostAsJsonAsync("/api/auth/login", new { username = "x", password = "wrong-password-123" });
+            await client.PostAsJsonAsync("/api/auth/login", new { login = "x", password = "wrong-password-123" });
         }
 
         var register = await client.PostAsJsonAsync(
-            "/api/auth/register", new { username = ApiFixture.NewUsername(), password = ApiFixture.NewPassword() });
+            "/api/auth/register", new { email = ApiFixture.NewEmail(), code = "123456", username = ApiFixture.NewUsername(), password = ApiFixture.NewPassword() });
 
         await register.AssertProblemAsync(HttpStatusCode.TooManyRequests, "TooManyRequests");
     }

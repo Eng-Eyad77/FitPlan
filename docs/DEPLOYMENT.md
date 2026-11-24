@@ -29,6 +29,7 @@ Both databases are serverless and pause when idle or when the monthly free limit
   - `ASPNETCORE_ENVIRONMENT`: `Dev` or `Production`
   - `Uploads__Root=/home/data/uploads`: profile pictures are saved here so they survive deploys.
   - `Exercises__CacheFile=/home/data/cache/exercises.json`: the exercise list is saved here, so an app that restarts after sleeping doesn't wake the database to read it again. Without it the list is kept in memory only.
+  - `Email__ResendApiKey` (secret) and `Email__From` (for example `FitPlan <no-reply@your-domain>`): sign-up, password reset and email change codes go through Resend. `Email__ReplyTo` is optional: where replies to those emails go. Without the key the API refuses to start, except in `Development`, where emails go to the log.
   - `Exercises:HiddenBodyParts` is set in `appsettings.json` to `cardio`. Those exercises are left out of the library, search and filter chips, but they still load by ID, so old plans and history show them. No data is deleted. To show them again, set `Exercises__HiddenBodyParts__0` to an empty value in Azure.
 
 Secret values live **only** in the Azure settings and in a local file outside the repository. Never commit them. The deploy identities can't read them.

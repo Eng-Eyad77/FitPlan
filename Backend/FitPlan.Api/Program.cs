@@ -10,7 +10,7 @@ builder.Services
     .AddErrorHandling()
     .AddDatabase(builder.Configuration, builder.Environment)
     .AddAuthenticationServices(builder.Configuration)
-    .AddApplicationServices()
+    .AddApplicationServices(builder.Configuration, builder.Environment)
     .AddRateLimits()
     .AddSwaggerDocumentation()
     .AddCors();

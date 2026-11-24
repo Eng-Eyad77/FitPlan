@@ -2,7 +2,7 @@ using FitPlan.Api.Common.Results;
 using FitPlan.Api.Data;
 using FitPlan.Api.DTOs.Profile;
 using FitPlan.Api.Models;
-using FitPlan.Api.Services.Auth;
+using FitPlan.Api.Services.Email;
 using FitPlan.Api.Services.BodyWeight;
 using FitPlan.Api.Services.Pictures;
 using Microsoft.AspNetCore.Identity;
@@ -15,7 +15,8 @@ public class ProfileService(
     FitPlanDbContext context,
     ProfilePictureStorage pictures,
     TimeProvider time,
-    IBodyWeightService bodyWeightService) : IProfileService
+    IBodyWeightService bodyWeightService,
+    EmailCodeService emailCodes) : IProfileService
 {
     private const long MaxFileSize = 5 * 1024 * 1024; // 5 MB in bytes
 
@@ -152,28 +153,65 @@ public class ProfileService(
     }
 
 
-    // A new recovery code replaces the old one, which stops working.
-    public async Task<Result<RecoveryCodeDto>> CreateRecoveryCodeAsync(Guid userId, PasswordConfirmationDto request)
+    // Needs the current password. A new address that already has an account gets nothing,
+    // but the answer is the same, so it doesn't show which addresses are registered.
+    public async Task<Result<bool>> SendEmailChangeCodeAsync(Guid userId, ChangeEmailRequestDto request, string language)
     {
         var user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
 
         if (user is null)
         {
-            return Result<RecoveryCodeDto>.Failure(Errors.UserNotFound);
+            return Result<bool>.Failure(Errors.UserNotFound);
         }
 
         if (!PasswordMatches(user, request.Password))
         {
-            return Result<RecoveryCodeDto>.Failure(Errors.WrongPassword);
+            return Result<bool>.Failure(Errors.WrongPassword);
         }
 
-        var code = RecoveryCodes.Generate();
-        RecoveryCodes.Assign(user, code, time.GetUtcNow().UtcDateTime);
-        await context.SaveChangesAsync();
+        var email = EmailCodeService.Normalize(request.NewEmail);
+        var taken = await context.Users.AnyAsync(u => u.Email == email);
 
-        return Result<RecoveryCodeDto>.Success(new RecoveryCodeDto(code));
+        return await emailCodes.SendAsync(email, EmailCodePurpose.ChangeEmail, userId,
+            taken ? EmailDelivery.Nothing : EmailDelivery.Code, language);
     }
 
+    // The code proves the new address. The old address is told, so the owner notices a change they didn't make.
+    public async Task<Result<ProfileDto>> ConfirmEmailChangeAsync(Guid userId, ConfirmEmailChangeDto request, string language)
+    {
+        var user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user is null)
+        {
+            return Result<ProfileDto>.Failure(Errors.UserNotFound);
+        }
+
+        if (await emailCodes.UseAsync(EmailCodePurpose.ChangeEmail, null, userId, request.Code) is not { } newEmail)
+        {
+            return Result<ProfileDto>.Failure(Errors.InvalidEmailCode);
+        }
+
+        var oldEmail = user.Email;
+        user.Email = newEmail;
+        user.UpdatedAt = time.GetUtcNow().UtcDateTime;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex) when (ex.IsUniqueConstraintViolation())
+        {
+            return Result<ProfileDto>.Failure(Errors.EmailAlreadyExists);
+        }
+
+        if (oldEmail != newEmail)
+        {
+            // best effort: the change is already saved
+            await emailCodes.NotifyAsync(oldEmail, EmailTexts.EmailChanged(newEmail, language));
+        }
+
+        return Result<ProfileDto>.Success(await ToProfileDtoAsync(user));
+    }
 
     // F-02: removes the user and everything they own: plans, workouts with their exercises, sets and
     // cardio, weights, logins and the picture. Workouts don't cascade from the user, so they go first,
@@ -216,11 +254,11 @@ public class ProfileService(
     {
         Id = user.Id,
         Username = user.Username,
+        Email = user.Email,
         Bio = user.Bio,
         ProfilePictureUrl = user.ProfilePictureUrl,
         CurrentWeightKg = await bodyWeightService.GetCurrentWeightAsync(user.Id),
         WeeklyGoal = user.WeeklyGoal,
-        HasRecoveryCode = user.RecoveryCodeHash is not null,
         CreatedAt = user.CreatedAt,
         UpdatedAt = user.UpdatedAt
     };

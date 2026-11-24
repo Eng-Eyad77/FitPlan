@@ -8,6 +8,9 @@ public class User
 
     public required string Username { get; set; }
 
+    // D18: verified before the account exists, stored lower case.
+    public required string Email { get; set; }
+
     public required string PasswordHash { get; set; }
 
     public string? Bio { get; set; }
@@ -19,10 +22,6 @@ public class User
     // Workouts per week the user aims for (1-7). null = no goal set.
     public int? WeeklyGoal { get; set; }
 
-    // Hash of the one-time recovery code (D11). null = the user has none.
-    public string? RecoveryCodeHash { get; set; }
-
-    public DateTime? RecoveryCodeCreatedAt { get; set; }
 
     public required DateTime CreatedAt { get; set; }
 

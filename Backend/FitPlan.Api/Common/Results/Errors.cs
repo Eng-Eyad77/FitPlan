@@ -9,15 +9,26 @@ public static class Errors
         new("UsernameAlreadyExists", "Username is already taken.", ErrorType.Conflict);
 
     public static readonly Error InvalidCredentials =
-        new("InvalidCredentials", "Invalid username or password.", ErrorType.Unauthorized);
+        new("InvalidCredentials", "Invalid email, username or password.", ErrorType.Unauthorized);
+
+    // Wrong, expired, used up or locked after too many tries. One message, so it reveals nothing.
+    public static readonly Error InvalidEmailCode =
+        new("InvalidEmailCode", "The code is wrong or has expired. Ask for a new one.", ErrorType.Validation);
+
+    // Only after the code proved the address, or on a race between two sign-ups.
+    public static readonly Error EmailAlreadyExists =
+        new("EmailAlreadyExists", "This email already has an account.", ErrorType.Conflict);
+
+    // Per address, on top of the per-IP limit, so nobody can use up the daily email allowance.
+    public static readonly Error TooManyEmails =
+        new("TooManyEmails", "Too many codes for this email. Wait a little and try again.", ErrorType.TooManyRequests);
+
+    public static readonly Error EmailNotSent =
+        new("EmailNotSent", "We couldn't send the email. Try again later.", ErrorType.ServiceUnavailable);
 
     // The refresh token is unknown, expired, revoked or was already used: the user must log in again.
     public static readonly Error InvalidRefreshToken =
         new("InvalidRefreshToken", "Your session has ended. Log in again.", ErrorType.Unauthorized);
-
-    // Wrong recovery code, or a username without one. One message, so it reveals nothing.
-    public static readonly Error InvalidRecoveryCode =
-        new("InvalidRecoveryCode", "The username or recovery code is wrong.", ErrorType.Validation);
 
     // Asked again while signed in. Not 401: that would end the session in the app.
     public static readonly Error WrongPassword =
