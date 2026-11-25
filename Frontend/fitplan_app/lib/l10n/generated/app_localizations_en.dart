@@ -1430,7 +1430,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Everything you logged in this workout will be deleted.';
 
   @override
-  String get keepGoingButton => 'Keep going';
+  String get keepGoingButton => 'Continue workout';
 
   @override
   String get discard => 'Discard';
@@ -1899,7 +1899,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reportTooMany =>
-      'You sent many reports. Try again a little later.';
+      'You\'ve sent a lot in a short time. Try again a little later.';
+
+  @override
+  String get suggestIdea => 'Share a suggestion';
+
+  @override
+  String get suggestIntro =>
+      'Have an idea that would make FitPlan better? We read every suggestion.';
+
+  @override
+  String get suggestHint => 'Write your idea and how it would help you.';
+
+  @override
+  String get suggestSent => 'We got your suggestion. Thank you 🙏';
 
   @override
   String get rangeAll => 'All';

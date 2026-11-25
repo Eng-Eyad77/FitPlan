@@ -43,15 +43,17 @@ private struct RestButtons: View {
           Text("-15s").font(.subheadline.weight(.semibold)).frame(maxWidth: .infinity)
         }
         .tint(Brand.accent)
-        Button(intent: AddRestTimeIntent()) {
-          Text("+15s").font(.subheadline.weight(.semibold)).frame(maxWidth: .infinity)
-        }
-        .tint(Brand.accent)
         Button(intent: SkipRestIntent()) {
           Text(skipLabel).font(.subheadline.weight(.semibold)).frame(maxWidth: .infinity)
         }
         .tint(.white.opacity(0.35))
+        Button(intent: AddRestTimeIntent()) {
+          Text("+15s").font(.subheadline.weight(.semibold)).frame(maxWidth: .infinity)
+        }
+        .tint(Brand.accent)
       }
+      // the same order in both languages: -15 left, Skip middle, +15 right
+      .environment(\.layoutDirection, .leftToRight)
       .buttonStyle(.bordered)
     }
   }

@@ -1448,7 +1448,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get discardWorkoutBody => 'كل اللي سجّلته في الحصة بينحذف.';
 
   @override
-  String get keepGoingButton => 'كمّل';
+  String get keepGoingButton => 'كمّل تمرينك';
 
   @override
   String get discard => 'إلغاء';
@@ -1914,7 +1914,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get reportSent => 'وصلنا بلاغك، شكراً لك 🙏';
 
   @override
-  String get reportTooMany => 'أرسلت بلاغات كثيرة. جرّب بعد شوي.';
+  String get reportTooMany => 'أرسلت كثير في وقت قصير. جرّب بعد شوي.';
+
+  @override
+  String get suggestIdea => 'شاركنا اقتراحك';
+
+  @override
+  String get suggestIntro => 'عندك فكرة تخلّي FitPlan أحسن؟ نقرأ كل اقتراح.';
+
+  @override
+  String get suggestHint => 'اكتب فكرتك، وكيف بتفيدك.';
+
+  @override
+  String get suggestSent => 'وصلنا اقتراحك، شكراً لك 🙏';
 
   @override
   String get rangeAll => 'الكل';

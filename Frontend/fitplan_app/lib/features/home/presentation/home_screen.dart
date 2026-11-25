@@ -18,6 +18,7 @@ import '../../session/application/active_session_controller.dart';
 import '../../session/presentation/start_workout.dart';
 import '../../session/presentation/widgets/elapsed_clock.dart';
 import '../../../l10n/l10n.dart';
+import '../../../shared/widgets/language_toggle.dart';
 
 /// Home: greeting, this week, what to do next and the last workout.
 class HomeScreen extends ConsumerWidget {
@@ -51,7 +52,7 @@ class HomeScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-                const _LanguageToggle(),
+                const LanguageToggle(),
                 const SizedBox(width: AppSpacing.sm),
                 Tooltip(
                   message: l10n.profile,
@@ -329,56 +330,6 @@ class _LastSession extends ConsumerWidget {
         summary: last,
         title: l10n.lastSession,
         onTap: () => context.push(Routes.historyDetail(last.id)),
-      ),
-    );
-  }
-}
-
-/// EN | AR beside the profile picture: one tap switches the whole app to the other language.
-/// Profile still has the full choice, including following the phone.
-class _LanguageToggle extends ConsumerWidget {
-  const _LanguageToggle();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    ref.watch(languageProvider);
-    final arabic = isArabic;
-
-    Widget side(String text, bool active) => AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            color: active ? AppColors.accent : Colors.transparent,
-            borderRadius: BorderRadius.circular(AppRadius.pill),
-          ),
-          child: Text(
-            text,
-            style: AppText.caption.copyWith(
-              fontWeight: FontWeight.w700,
-              color: active ? AppColors.onAccent : AppColors.textSecondary,
-            ),
-          ),
-        );
-
-    return Semantics(
-      button: true,
-      label: l10n.switchLanguage,
-      excludeSemantics: true,
-      child: GestureDetector(
-        onTap: () => ref.read(languageProvider.notifier).choose(arabic ? AppLanguage.english : AppLanguage.arabic),
-        child: Container(
-          padding: const EdgeInsets.all(3),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(AppRadius.pill),
-            border: Border.all(color: AppColors.border),
-          ),
-          // always EN on the left, AR on the right, in both languages
-          child: Directionality(
-            textDirection: TextDirection.ltr,
-            child: Row(mainAxisSize: MainAxisSize.min, children: [side('EN', !arabic), side('AR', arabic)]),
-          ),
-        ),
       ),
     );
   }

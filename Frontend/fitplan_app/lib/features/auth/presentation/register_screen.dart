@@ -135,7 +135,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
   List<Widget> _detailsStep() => [
-        EmailField(controller: _email, newEmail: true),
+        EmailField(controller: _email, newEmail: true, live: true),
         const SizedBox(height: AppSpacing.md),
         TextFormField(
           controller: _username,
@@ -146,6 +146,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           style: AppText.body,
           decoration: InputDecoration(labelText: l10n.username, counterText: ''),
           validator: _validateUsername,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
         ),
         const SizedBox(height: AppSpacing.md),
         PasswordField(
@@ -154,6 +155,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           textInputAction: TextInputAction.next,
           autofillHints: const [AutofillHints.newPassword],
           validator: _validatePassword,
+          live: true,
         ),
         const SizedBox(height: AppSpacing.md),
         PasswordField(
@@ -162,6 +164,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           autofillHints: const [AutofillHints.newPassword],
           onSubmitted: (_) => _continue(),
           validator: (value) => value != _password.text ? l10n.passwordsDontMatch : null,
+          live: true,
         ),
         const SizedBox(height: AppSpacing.sm),
         // turns green once the password is long enough
@@ -210,8 +213,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       subtitle: l10n.registerSubtitle,
       form: Form(
         key: _formKey,
-        // each field says what's wrong as soon as it's been touched, not only after tapping the button
-        autovalidateMode: AutovalidateMode.onUserInteraction,
         child: AutofillGroup(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,

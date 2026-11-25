@@ -29,13 +29,15 @@ public class ProblemReportService(FitPlanDbContext context, ITelegramNotifier te
             AppVersion = request.AppVersion?.Trim(),
             Platform = request.Platform?.Trim(),
             Language = language,
+            IsSuggestion = request.IsSuggestion,
             CreatedAt = time.GetUtcNow().UtcDateTime
         };
         context.ProblemReports.Add(report);
         await context.SaveChangesAsync();
 
         // no email in the message: the owner looks it up by the report number
-        var text = $"🐞 Report #{report.Id}\nUser: {username}\nApp: {report.AppVersion ?? "?"} · {report.Platform ?? "?"} · {language}\n───\n{report.Message}";
+        var title = report.IsSuggestion ? $"💡 Suggestion #{report.Id}" : $"🐞 Report #{report.Id}";
+        var text = $"{title}\nUser: {username}\nApp: {report.AppVersion ?? "?"} · {report.Platform ?? "?"} · {language}\n───\n{report.Message}";
         if (await telegram.SendAsync(text))
         {
             report.SentToTelegram = true;

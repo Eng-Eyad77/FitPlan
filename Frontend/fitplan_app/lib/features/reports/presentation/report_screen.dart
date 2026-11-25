@@ -9,9 +9,12 @@ import '../../../shared/widgets/feedback.dart';
 import '../../../shared/widgets/loading_button.dart';
 import '../data/report_repository.dart';
 
-/// "Report a problem" (D14), opened from Profile. On failure the text stays, so nothing typed is lost.
+/// "Report a problem" (D14) or "Share a suggestion", opened from Profile. On failure the text stays,
+/// so nothing typed is lost.
 class ReportScreen extends ConsumerStatefulWidget {
-  const ReportScreen({super.key});
+  const ReportScreen({super.key, this.suggestion = false});
+
+  final bool suggestion;
 
   @override
   ConsumerState<ReportScreen> createState() => _ReportScreenState();
@@ -36,9 +39,9 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
     if (_sending || !_formKey.currentState!.validate()) return;
     setState(() => _sending = true);
     try {
-      await ref.read(reportRepositoryProvider).send(_message.text);
+      await ref.read(reportRepositoryProvider).send(_message.text, suggestion: widget.suggestion);
       if (!mounted) return;
-      showMessage(context, l10n.reportSent);
+      showMessage(context, widget.suggestion ? l10n.suggestSent : l10n.reportSent);
       Navigator.of(context).pop();
     } on ApiException catch (error) {
       if (mounted) {
@@ -51,13 +54,14 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final suggestion = widget.suggestion;
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.reportProblem, style: AppText.heading)),
+      appBar: AppBar(title: Text(suggestion ? l10n.suggestIdea : l10n.reportProblem, style: AppText.heading)),
       body: SafeArea(
         child: ListView(
           padding: AppSpacing.screen.copyWith(top: AppSpacing.lg, bottom: AppSpacing.xxxl),
           children: [
-            Text(l10n.reportIntro, style: AppText.secondary),
+            Text(suggestion ? l10n.suggestIntro : l10n.reportIntro, style: AppText.secondary),
             const SizedBox(height: AppSpacing.xl),
             Form(
               key: _formKey,
@@ -69,7 +73,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                 maxLength: _max,
                 textCapitalization: TextCapitalization.sentences,
                 style: AppText.body,
-                decoration: InputDecoration(hintText: l10n.reportHint, alignLabelWithHint: true),
+                decoration: InputDecoration(hintText: suggestion ? l10n.suggestHint : l10n.reportHint, alignLabelWithHint: true),
                 validator: (value) => (value?.trim().length ?? 0) < _min ? l10n.atLeastChars(_min) : null,
               ),
             ),

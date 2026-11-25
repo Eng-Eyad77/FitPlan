@@ -32,6 +32,7 @@ abstract final class Routes {
   static const progress = '/progress';
   static const profile = '/profile';
   static const report = '/report';
+  static const suggest = '/suggest';
   static String planDetail(String id) => '/plans/$id';
   static String historyDetail(String id) => '/history/$id';
 
@@ -79,6 +80,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // outside the tab shell: covers the tab bar, with a back button
       GoRoute(path: Routes.profile, builder: (_, _) => const ProfileScreen()),
       GoRoute(path: Routes.report, builder: (_, _) => const ReportScreen()),
+      GoRoute(path: Routes.suggest, builder: (_, _) => const ReportScreen(suggestion: true)),
       GoRoute(
         path: Routes.exerciseLibrary,
         builder: (_, _) => const ExercisePickerScreen(browse: true),

@@ -99,7 +99,7 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
       context,
       title: l10n.discardWorkoutTitle,
       body: l10n.discardWorkoutBody,
-      confirmLabel: l10n.discard,
+      confirmLabel: l10n.discardWorkout,
       cancelLabel: l10n.keepGoingButton,
     );
     if (!confirmed || !mounted) return;

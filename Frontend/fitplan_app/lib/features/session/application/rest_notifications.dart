@@ -202,8 +202,8 @@ class LocalRestNotifier implements RestNotifier {
         category: AndroidNotificationCategory.progress,
         actions: [
           AndroidNotificationAction(RestActionIds.removeTime, l10n.restAdd15Notification(signed('-15')), cancelNotification: false),
-          AndroidNotificationAction(RestActionIds.addTime, l10n.restAdd15Notification(signed('+15')), cancelNotification: false),
           AndroidNotificationAction(RestActionIds.skip, l10n.skipRest),
+          AndroidNotificationAction(RestActionIds.addTime, l10n.restAdd15Notification(signed('+15')), cancelNotification: false),
         ],
       );
 

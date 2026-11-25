@@ -38,6 +38,20 @@ public class ReportTests(ApiFixture api)
     }
 
     [Fact]
+    public async Task A_suggestion_is_saved_as_one_and_titled_as_one_on_Telegram()
+    {
+        var user = await api.RegisterUserAsync();
+
+        var response = await user.Client.PostAsJsonAsync("/api/reports",
+            new { message = "A dark and light theme switch would be nice.", appVersion = "1.0.3", platform = "ios", isSuggestion = true });
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var id = (await response.Content.ReadFromJsonAsync<ProblemReportCreatedDto>())!.Id;
+        Assert.True(await api.WithDbContextAsync(c => c.ProblemReports.Where(r => r.Id == id).Select(r => r.IsSuggestion).SingleAsync()));
+        Assert.Single(api.Telegram.Sent, t => t.StartsWith($"💡 Suggestion #{id}\n", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public async Task A_report_is_kept_when_Telegram_fails()
     {
         var user = await api.RegisterUserAsync();

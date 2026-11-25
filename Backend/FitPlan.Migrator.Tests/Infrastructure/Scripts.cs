@@ -22,6 +22,7 @@ public static class Scripts
     public const string AddEmailAccounts = "20261124081623_AddEmailAccounts";
     public const string AddProblemReports = "20261124103130_AddProblemReports";
     public const string AddExerciseNotes = "20261125080705_AddExerciseNotes";
+    public const string AddReportSuggestions = "20261125100447_AddReportSuggestions";
 
     public static readonly KnownMigrations Known = KnownMigrations.FromApi();
 

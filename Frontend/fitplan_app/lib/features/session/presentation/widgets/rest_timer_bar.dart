@@ -123,24 +123,33 @@ class _CountdownState extends ConsumerState<_Countdown> {
                     ],
                   ),
                   const Spacer(),
-                  if (left > 0) ...[
-                    OutlinedButton(
-                      onPressed: () => controller.removeTime(const Duration(seconds: 15)),
-                      style: OutlinedButton.styleFrom(minimumSize: const Size(56, 48), padding: _compact),
-                      child: Text(l10n.restAdd15(signed('-15'))),
+                  // the same order in both languages: -15 on the left, Skip in the middle, +15 on the right
+                  Directionality(
+                    textDirection: TextDirection.ltr,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (left > 0) ...[
+                          OutlinedButton(
+                            onPressed: () => controller.removeTime(const Duration(seconds: 15)),
+                            style: OutlinedButton.styleFrom(minimumSize: const Size(56, 48), padding: _compact),
+                            child: Text(l10n.restAdd15(signed('-15'))),
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                        ],
+                        TextButton(
+                          onPressed: controller.skip,
+                          style: TextButton.styleFrom(minimumSize: const Size(56, 48), padding: _compact),
+                          child: Text(left == 0 ? l10n.close : l10n.skip),
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        OutlinedButton(
+                          onPressed: () => controller.addTime(const Duration(seconds: 15)),
+                          style: OutlinedButton.styleFrom(minimumSize: const Size(56, 48), padding: _compact),
+                          child: Text(l10n.restAdd15(signed('+15'))),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: AppSpacing.sm),
-                  ],
-                  OutlinedButton(
-                    onPressed: () => controller.addTime(const Duration(seconds: 15)),
-                    style: OutlinedButton.styleFrom(minimumSize: const Size(56, 48), padding: _compact),
-                    child: Text(l10n.restAdd15(signed('+15'))),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  TextButton(
-                    onPressed: controller.skip,
-                    style: TextButton.styleFrom(minimumSize: const Size(56, 48), padding: _compact),
-                    child: Text(left == 0 ? l10n.close : l10n.skip),
                   ),
                 ],
               ),
