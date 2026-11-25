@@ -53,6 +53,7 @@ public static class ServicesExtensions
         services.AddScoped<IExerciseImportService, ExerciseImportService>();
         services.AddScoped<IExerciseService, ExerciseService>();
         services.AddSingleton<ExerciseCatalog>();
+        services.AddMemoryCache();
         services.TryAddSingleton(TimeProvider.System);
 
         // Workout Plans

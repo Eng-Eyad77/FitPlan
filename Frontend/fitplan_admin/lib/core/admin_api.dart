@@ -203,6 +203,69 @@ typedef UserPlan = ({String name, DateTime createdAt, List<PlanExercise> exercis
 /// A cardio machine, the details the app records for it, and its entries this month.
 typedef CardioMachineRow = ({String machine, List<String> fields, int usesThisMonth});
 
+/// 12E: totals only. "Last 7 days" is rolling and counted in UTC on the server.
+class Overview {
+  const Overview({
+    required this.countedAt,
+    required this.users,
+    required this.newUsers,
+    required this.activeUsers,
+    required this.workouts,
+    required this.workoutsBefore,
+    required this.volumeKg,
+    required this.volumeKgBefore,
+    required this.cardioThisMonth,
+    required this.topCardio,
+    required this.reports,
+    required this.noDemo,
+    required this.emailsToday,
+    required this.emailLimit,
+    required this.workoutsPerDay,
+    required this.signUpsPerWeek,
+    required this.topExercises,
+  });
+
+  factory Overview.fromJson(Map<String, dynamic> json) => Overview(
+        countedAt: _date(json['countedAt'])!,
+        users: json['users'] as int,
+        newUsers: json['newUsersLast7Days'] as int,
+        activeUsers: json['activeUsersLast7Days'] as int,
+        workouts: json['workoutsLast7Days'] as int,
+        workoutsBefore: json['workoutsPrevious7Days'] as int,
+        volumeKg: (json['volumeKgLast7Days'] as num).toDouble(),
+        volumeKgBefore: (json['volumeKgPrevious7Days'] as num).toDouble(),
+        cardioThisMonth: json['cardioEntriesThisMonth'] as int,
+        topCardio: json['mostUsedCardioMachine'] as String?,
+        reports: json['reportsLast7Days'] as int,
+        noDemo: json['exercisesWithoutDemo'] as int,
+        emailsToday: json['emailsToday'] as int,
+        emailLimit: json['emailsPerDayLimit'] as int,
+        workoutsPerDay: [for (final n in json['workoutsPerDay'] as List) n as int],
+        signUpsPerWeek: [for (final n in json['signUpsPerWeek'] as List) n as int],
+        topExercises: [
+          for (final e in json['mostUsedExercises'] as List) (name: e['name'] as String, workouts: e['workouts'] as int),
+        ],
+      );
+
+  final DateTime countedAt;
+  final int users;
+  final int newUsers;
+  final int activeUsers;
+  final int workouts;
+  final int workoutsBefore;
+  final double volumeKg;
+  final double volumeKgBefore;
+  final int cardioThisMonth;
+  final String? topCardio;
+  final int reports;
+  final int noDemo;
+  final int emailsToday;
+  final int emailLimit;
+  final List<int> workoutsPerDay;
+  final List<int> signUpsPerWeek;
+  final List<({String name, int workouts})> topExercises;
+}
+
 DateTime? _date(Object? value) => value == null ? null : DateTime.parse(value as String).toLocal();
 
 /// A failed call, with a sentence to show.
@@ -370,6 +433,10 @@ class AdminApi {
       throw describe(error.response?.statusCode, error.response?.data);
     }
   }
+
+  /// Kept by the server for 10 minutes; [refresh] counts again.
+  Future<Overview> overview({bool refresh = false}) async => Overview.fromJson(
+      await _call(() => _dio.get<Map<String, dynamic>>('/api/admin/overview', queryParameters: {'refresh': refresh})));
 
   Future<void> _send(Future<Response<void>> Function() request) async {
     try {

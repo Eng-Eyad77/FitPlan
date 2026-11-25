@@ -33,7 +33,7 @@ class AdminShell extends StatelessWidget {
   final String location;
   final Widget child;
 
-  AdminArea get _current => AdminArea.values.firstWhere((a) => location.startsWith(a.path), orElse: () => AdminArea.admins);
+  AdminArea get _current => AdminArea.values.firstWhere((a) => location.startsWith(a.path), orElse: () => AdminArea.overview);
 
   @override
   Widget build(BuildContext context) {

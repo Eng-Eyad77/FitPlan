@@ -117,6 +117,32 @@ class _FakeApi extends AdminApi {
         (machine: 'StationaryBike', fields: ['level', 'distanceKm', 'cadenceRpm'], usesThisMonth: 5),
       ];
 
+  bool refreshed = false;
+
+  @override
+  Future<Overview> overview({bool refresh = false}) async {
+    refreshed = refreshed || refresh;
+    return Overview(
+      countedAt: DateTime.now(),
+      users: 38,
+      newUsers: 5,
+      activeUsers: 19,
+      workouts: 64,
+      workoutsBefore: 52,
+      volumeKg: 182400,
+      volumeKgBefore: 167000,
+      cardioThisMonth: 27,
+      topCardio: 'Treadmill',
+      reports: 3,
+      noDemo: 176,
+      emailsToday: 12,
+      emailLimit: 100,
+      workoutsPerDay: const [3, 4, 2, 5, 6, 3, 1, 5, 7, 4, 6, 8, 4, 6],
+      signUpsPerWeek: const [1, 2, 2, 4, 3, 5, 4, 5],
+      topExercises: const [(name: 'Barbell bench press', workouts: 41), (name: 'Barbell full squat', workouts: 34)],
+    );
+  }
+
   @override
   Future<AuditPage> audit({int page = 1}) async => AuditPage(
         items: [AuditEntry(adminName: 'eyad', action: 'Signed in', target: null, createdAt: DateTime(2026, 11, 25, 10, 12))],
@@ -170,6 +196,9 @@ void main() {
     await tester.tap(find.text('Sign in'));
     await tester.pumpAndSettle();
 
+    expect(find.text('Workouts per day'), findsOneWidget);
+    await tester.tap(find.text('Admins').first);
+    await tester.pumpAndSettle();
     expect(find.text('Audit log'), findsOneWidget);
     expect(find.text('Signed in'), findsOneWidget);
 
@@ -253,5 +282,26 @@ void main() {
     expect(find.text('2:30'), findsOneWidget);
     expect(find.text('Stationary bike'), findsOneWidget);
     expect(find.text('Level, distance, cadence'), findsOneWidget);
+  });
+
+  testWidgets('overview: totals and charts after sign-in, and Refresh counts again', (tester) async {
+    final api = await openApp(tester);
+    await enterPassword(tester);
+    await tester.enterText(find.byType(TextField), '123456');
+    await tester.tap(find.text('Sign in'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('38'), findsOneWidget);
+    expect(find.text('+5 in the last 7 days'), findsOneWidget);
+    expect(find.text('+23% on the 7 before'), findsOneWidget);
+    expect(find.text('182 t'), findsOneWidget);
+    expect(find.text('Most used: treadmill'), findsOneWidget);
+    expect(find.text('Barbell bench press'), findsOneWidget);
+    expect(find.text('176 exercises have no working demo GIF'), findsOneWidget);
+    expect(find.text('12 / 100'), findsOneWidget);
+
+    await tester.tap(find.text('Refresh'));
+    await tester.pumpAndSettle();
+    expect(api.refreshed, isTrue);
   });
 }
