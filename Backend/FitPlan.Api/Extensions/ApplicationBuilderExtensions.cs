@@ -21,20 +21,18 @@ public static class ApplicationBuilderExtensions
 
         }
 
-        // Browsers need CORS for Flutter Web; the phone apps don't use it at all. Locally and on Dev
-        // only localhost may call (the admin runs on your machine there, D10). Elsewhere only the admin
-        // site in Cors:AdminOrigin, and nothing if it isn't set.
-        var adminOrigin = app.Configuration["Cors:AdminOrigin"];
-        if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Dev"))
+        // Browsers need CORS for Flutter Web; the phone apps don't use it at all. Only the hosted admin
+        // site in Cors:AdminOrigin may call, and locally and on Dev also localhost, where the admin can
+        // run from your machine (D10, revised: the admin is hosted on Dev too).
+        var adminOrigin = app.Configuration["Cors:AdminOrigin"]?.TrimEnd('/');
+        var allowLocalhost = app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Dev");
+        if (allowLocalhost || !string.IsNullOrWhiteSpace(adminOrigin))
         {
             app.UseCors(policy => policy
-                .SetIsOriginAllowed(origin => new Uri(origin).IsLoopback)
+                .SetIsOriginAllowed(origin => string.Equals(origin, adminOrigin, StringComparison.OrdinalIgnoreCase) ||
+                    (allowLocalhost && Uri.TryCreate(origin, UriKind.Absolute, out var uri) && uri.IsLoopback))
                 .AllowAnyHeader()
                 .AllowAnyMethod());
-        }
-        else if (!string.IsNullOrWhiteSpace(adminOrigin))
-        {
-            app.UseCors(policy => policy.WithOrigins(adminOrigin).AllowAnyHeader().AllowAnyMethod());
         }
 
         app.UseHttpsRedirection();
