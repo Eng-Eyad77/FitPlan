@@ -54,6 +54,7 @@ public static class ServicesExtensions
         services.AddScoped<IExerciseService, ExerciseService>();
         services.AddSingleton<ExerciseCatalog>();
         services.AddMemoryCache();
+        services.AddSingleton<FitPlan.Api.Services.Exercises.IGifStorage, FitPlan.Api.Services.Exercises.R2GifStorage>();
         services.AddSingleton<FitPlan.Api.Services.Admin.ServerEventLog>();
         services.TryAddSingleton(TimeProvider.System);
 

@@ -285,6 +285,16 @@ class _ExerciseEditorState extends State<_ExerciseEditor> {
     }
   }
 
+  Future<void> _upload(String id) async {
+    final picked = await widget.api.pickGif();
+    if (picked == null || !mounted) return;
+    if (picked.bytes.length > AdminApi.maxGifBytes) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('The GIF is over 5 MB. Make it smaller and try again.')));
+      return;
+    }
+    await _run('Uploaded. The app shows the new demo now.', () => widget.api.uploadGif(id, picked.bytes, picked.name));
+  }
+
   void _save() {
     final english = _lines(_englishSteps.text);
     final arabic = _lines(_arabicSteps.text);
@@ -321,7 +331,12 @@ class _ExerciseEditorState extends State<_ExerciseEditor> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _Demo(exercise: ex, busy: _busy, onCheck: () => _run('Link checked.', () => widget.api.checkGif(ex.id))),
+              _Demo(
+                exercise: ex,
+                busy: _busy,
+                onCheck: () => _run('Link checked.', () => widget.api.checkGif(ex.id)),
+                onUpload: () => _upload(ex.id),
+              ),
               const SizedBox(height: AppSpacing.lg),
               LayoutBuilder(
                 builder: (context, constraints) {
@@ -376,11 +391,12 @@ class _ExerciseEditorState extends State<_ExerciseEditor> {
 }
 
 class _Demo extends StatelessWidget {
-  const _Demo({required this.exercise, required this.busy, required this.onCheck});
+  const _Demo({required this.exercise, required this.busy, required this.onCheck, required this.onUpload});
 
   final ExerciseDetail exercise;
   final bool busy;
   final VoidCallback onCheck;
+  final VoidCallback onUpload;
 
   @override
   Widget build(BuildContext context) {
@@ -420,12 +436,17 @@ class _Demo extends StatelessWidget {
                 Row(children: [_gifPill(exercise.gifStatus), const SizedBox(width: AppSpacing.sm), Text(exercise.bodyPart, style: AppText.caption)]),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                  broken ? 'The app shows the steps only. Uploading a replacement comes later.' : exercise.gifUrl,
+                  broken ? 'The app shows the steps only until you upload a GIF.' : exercise.gifUrl,
                   style: AppText.caption,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: AppSpacing.sm),
-                OutlinedButton(onPressed: busy ? null : onCheck, child: const Text('Check link again')),
+                Wrap(spacing: AppSpacing.sm, runSpacing: AppSpacing.sm, children: [
+                  OutlinedButton(onPressed: busy ? null : onUpload, child: Text(broken ? 'Upload GIF' : 'Replace GIF')),
+                  OutlinedButton(onPressed: busy ? null : onCheck, child: const Text('Check link again')),
+                ]),
+                const SizedBox(height: AppSpacing.xs),
+                const Text('A GIF file of up to 5 MB.', style: AppText.caption),
               ],
             ),
           ),

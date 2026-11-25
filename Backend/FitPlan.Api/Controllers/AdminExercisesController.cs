@@ -18,10 +18,13 @@ namespace FitPlan.Api.Controllers;
 public class AdminExercisesController(
     FitPlanDbContext context,
     ExerciseCatalog catalog,
+    IGifStorage gifs,
     IHttpClientFactory httpClients,
     TimeProvider time) : ApiControllerBase
 {
     public const string GifCheckClient = "gif-check";
+
+    public const int MaxGifBytes = 5 * 1024 * 1024;
 
     internal static readonly GifStatus[] Broken = [GifStatus.Missing, GifStatus.NotAGif];
 
@@ -193,6 +196,62 @@ public class AdminExercisesController(
             total,
             results.Count(r => Broken.Contains(r)),
             results.Count(r => r == GifStatus.Unreachable)));
+    }
+
+    // Replaces the exercise's demo with an uploaded GIF. The app shows it at once.
+    // shortcut: a replaced upload stays in R2, fine at a few MB each; clean up if storage nears the free 10 GB
+    [HttpPost("{id}/gif")]
+    [RequestSizeLimit(MaxGifBytes + 64 * 1024)]
+    public async Task<IActionResult> UploadGif(string id, IFormFile? file, CancellationToken cancellationToken)
+    {
+        if (!gifs.Configured)
+        {
+            return Problem(Errors.GifUploadNotSetUp);
+        }
+
+        if (file is null || file.Length == 0)
+        {
+            return Problem(Errors.GifNotValid);
+        }
+
+        if (file.Length > MaxGifBytes)
+        {
+            return Problem(Errors.GifTooLarge);
+        }
+
+        var exercise = await context.Exercises.FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
+        if (exercise is null)
+        {
+            return Problem(Errors.ExerciseNotFound);
+        }
+
+        using var buffer = new MemoryStream();
+        await file.CopyToAsync(buffer, cancellationToken);
+        var bytes = buffer.ToArray();
+        // the file itself must be a GIF, whatever its name or the type the browser sent
+        if (!IsGif(bytes))
+        {
+            return Problem(Errors.GifNotValid);
+        }
+
+        exercise.GifUrl = await gifs.SaveAsync(GifKey(id, bytes), bytes, cancellationToken);
+        exercise.GifStatus = GifStatus.Works;
+        exercise.GifCheckedAt = time.GetUtcNow().UtcDateTime;
+        await SaveAsync("Uploaded GIF", $"{exercise.Id} {exercise.Name}");
+
+        return Ok(new { exercise.GifUrl, exercise.GifStatus });
+    }
+
+    public static bool IsGif(byte[] bytes) =>
+        bytes.Length > 6 && bytes[0] == 'G' && bytes[1] == 'I' && bytes[2] == 'F' && bytes[3] == '8' &&
+        (bytes[4] == '7' || bytes[4] == '9') && bytes[5] == 'a';
+
+    // "exercises/0001/3f2a9c4e1b7d8a06.gif": safe characters only, and the hash gives each file its own address
+    public static string GifKey(string id, byte[] bytes)
+    {
+        var safeId = new string([.. id.Select(c => char.IsAsciiLetterOrDigit(c) || c is '-' or '_' ? c : '-')]);
+        var hash = Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(bytes))[..16];
+        return $"exercises/{safeId}/{hash}.gif";
     }
 
     private async Task<IActionResult> SetHiddenAsync(string id, bool hidden)
