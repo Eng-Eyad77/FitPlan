@@ -157,6 +157,22 @@ public class AdminUsersController(FitPlanDbContext context, IProfileService prof
             return NoContent();
         });
 
+    // Read only, for helping a user who asks. Opening them is logged, like showing the email.
+    [HttpPost("{id:guid}/view-plans")]
+    public Task<IActionResult> ViewPlans(Guid id) =>
+        ActAsync(id, "Viewed plans", async user =>
+        {
+            var plans = await context.WorkoutPlans.AsNoTracking()
+                .Where(p => p.UserId == user.Id)
+                .OrderByDescending(p => p.CreatedAt)
+                .Select(p => new AdminPlanDto(p.Id, p.Name, p.CreatedAt,
+                    p.Exercises.OrderBy(e => e.Order)
+                        .Select(e => new AdminPlanExerciseDto(e.ExerciseId, e.Exercise.Name, e.Sets, e.Reps, e.RestSeconds))
+                        .ToList()))
+                .ToListAsync();
+            return Ok(new AdminUserPlansDto(user.Username, plans));
+        });
+
     // Loads the user, runs the action, and logs it only when it succeeded.
     private async Task<IActionResult> ActAsync(Guid id, string action, Func<User, Task<IActionResult>> act)
     {

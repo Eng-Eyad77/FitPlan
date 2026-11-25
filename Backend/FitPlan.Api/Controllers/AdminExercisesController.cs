@@ -23,7 +23,7 @@ public class AdminExercisesController(
 {
     public const string GifCheckClient = "gif-check";
 
-    private static readonly GifStatus[] Broken = [GifStatus.Missing, GifStatus.NotAGif];
+    internal static readonly GifStatus[] Broken = [GifStatus.Missing, GifStatus.NotAGif];
 
     // filter: all, no-demo (the link is broken), not-checked or hidden. search: part of the name in
     // either language, or the id.

@@ -27,3 +27,13 @@ public class AdminDeleteUserDto
     [StringLength(50)]
     public required string Username { get; set; }
 }
+
+// 12D: a user's plans, read only. The user's own notes are left out.
+public record AdminPlanExerciseDto(string ExerciseId, string Name, int Sets, int Reps, int? RestSeconds);
+
+public record AdminPlanDto(Guid Id, string Name, DateTime CreatedAt, IReadOnlyList<AdminPlanExerciseDto> Exercises);
+
+public record AdminUserPlansDto(string Username, IReadOnlyList<AdminPlanDto> Plans);
+
+// Fields are the JSON names the app records for the machine (see CardioFields).
+public record AdminCardioMachineDto(string Machine, IReadOnlyList<string> Fields, int UsesThisMonth);

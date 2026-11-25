@@ -6,6 +6,8 @@ import 'core/admin_api.dart';
 import 'screens/admins_screen.dart';
 import 'screens/coming_soon_screen.dart';
 import 'screens/exercises_screen.dart';
+import 'screens/overview_screen.dart';
+import 'screens/plans_screen.dart';
 import 'screens/shell.dart';
 import 'screens/sign_in_screen.dart';
 import 'screens/users_screen.dart';
@@ -21,8 +23,7 @@ class AdminApp extends StatefulWidget {
 
 class _AdminAppState extends State<AdminApp> {
   late final GoRouter _router = GoRouter(
-    // the only finished area for now (12A); Overview becomes the start page in 12E
-    initialLocation: AdminArea.admins.path,
+    initialLocation: AdminArea.overview.path,
     refreshListenable: widget.api.session,
     redirect: (context, state) {
       final signedIn = widget.api.session.value != null;
@@ -33,7 +34,7 @@ class _AdminAppState extends State<AdminApp> {
       if (signedIn && atSignIn) {
         final from = state.uri.queryParameters['from'];
         // only a path inside this site, never another address
-        return from != null && from.startsWith('/') && !from.startsWith('//') ? from : AdminArea.admins.path;
+        return from != null && from.startsWith('/') && !from.startsWith('//') ? from : AdminArea.overview.path;
       }
       return null;
     },
@@ -47,9 +48,11 @@ class _AdminAppState extends State<AdminApp> {
               path: area.path,
               pageBuilder: (context, state) => NoTransitionPage(
                 child: switch (area) {
+                  AdminArea.overview => OverviewScreen(api: widget.api),
                   AdminArea.admins => AdminsScreen(api: widget.api),
                   AdminArea.users => UsersScreen(api: widget.api),
                   AdminArea.exercises => ExercisesScreen(api: widget.api),
+                  AdminArea.plans => PlansScreen(key: ValueKey(state.uri.query), api: widget.api, userId: state.uri.queryParameters['user']),
                   _ => ComingSoonScreen(area: area),
                 },
               ),
