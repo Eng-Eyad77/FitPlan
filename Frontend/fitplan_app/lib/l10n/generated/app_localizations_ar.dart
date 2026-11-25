@@ -1688,7 +1688,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get go => 'يلا!';
 
   @override
-  String get skip => 'تخطّ';
+  String get skip => 'تخطي';
 
   @override
   String setNumber(int number) {
@@ -1792,7 +1792,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'يعرض لك الراحة وهي تنقص وأنت برا التطبيق.';
 
   @override
-  String get skipRest => 'تخطّ الراحة';
+  String get skipRest => 'تخطي الراحة';
 
   @override
   String get logSet => 'سجّل الجولة';
