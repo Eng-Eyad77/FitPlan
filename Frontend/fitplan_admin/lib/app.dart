@@ -6,6 +6,7 @@ import 'core/admin_api.dart';
 import 'screens/admins_screen.dart';
 import 'screens/coming_soon_screen.dart';
 import 'screens/exercises_screen.dart';
+import 'screens/plans_screen.dart';
 import 'screens/shell.dart';
 import 'screens/sign_in_screen.dart';
 import 'screens/users_screen.dart';
@@ -50,6 +51,7 @@ class _AdminAppState extends State<AdminApp> {
                   AdminArea.admins => AdminsScreen(api: widget.api),
                   AdminArea.users => UsersScreen(api: widget.api),
                   AdminArea.exercises => ExercisesScreen(api: widget.api),
+                  AdminArea.plans => PlansScreen(key: ValueKey(state.uri.query), api: widget.api, userId: state.uri.queryParameters['user']),
                   _ => ComingSoonScreen(area: area),
                 },
               ),

@@ -98,6 +98,26 @@ class _FakeApi extends AdminApi {
   }
 
   @override
+  Future<({String username, List<UserPlan> plans})> viewPlans(String userId) async {
+    actions.add('$userId:view-plans');
+    return (
+      username: 'sami_lifts',
+      plans: [
+        (
+          name: 'Push day',
+          createdAt: DateTime(2026, 11, 5),
+          exercises: [(name: 'Barbell bench press', sets: 4, reps: 6, restSeconds: 150)],
+        ),
+      ],
+    );
+  }
+
+  @override
+  Future<List<CardioMachineRow>> cardioMachines() async => [
+        (machine: 'StationaryBike', fields: ['level', 'distanceKm', 'cadenceRpm'], usesThisMonth: 5),
+      ];
+
+  @override
   Future<AuditPage> audit({int page = 1}) async => AuditPage(
         items: [AuditEntry(adminName: 'eyad', action: 'Signed in', target: null, createdAt: DateTime(2026, 11, 25, 10, 12))],
         page: 1,
@@ -211,5 +231,27 @@ void main() {
     expect(api.savedText!['arabicName'], 'ضغط البار من المساند');
     expect(api.savedText!['arabicSteps'], ['اضبط المساند.', 'ادفع للأعلى.']);
     expect(api.savedText!['englishSteps'], ['Set the pins.', 'Press up.']);
+  });
+
+  testWidgets('plans: View on a user opens their plans with the logged banner, and cardio lists the machines', (tester) async {
+    final api = await openApp(tester);
+    await enterPassword(tester);
+    await tester.enterText(find.byType(TextField), '123456');
+    await tester.tap(find.text('Sign in'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Users').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('sami_lifts'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('View'));
+    await tester.pumpAndSettle();
+
+    expect(api.actions, contains('u1:view-plans'));
+    expect(find.textContaining('This view is logged.'), findsOneWidget);
+    expect(find.text('Barbell bench press'), findsOneWidget);
+    expect(find.text('2:30'), findsOneWidget);
+    expect(find.text('Stationary bike'), findsOneWidget);
+    expect(find.text('Level, distance, cadence'), findsOneWidget);
   });
 }

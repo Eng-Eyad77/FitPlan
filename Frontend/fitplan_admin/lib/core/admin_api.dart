@@ -195,6 +195,14 @@ class ExerciseDetail {
   final int workouts;
 }
 
+/// One exercise of a plan, as the admin sees it (the user's own note is left out).
+typedef PlanExercise = ({String name, int sets, int reps, int? restSeconds});
+
+typedef UserPlan = ({String name, DateTime createdAt, List<PlanExercise> exercises});
+
+/// A cardio machine, the details the app records for it, and its entries this month.
+typedef CardioMachineRow = ({String machine, List<String> fields, int usesThisMonth});
+
 DateTime? _date(Object? value) => value == null ? null : DateTime.parse(value as String).toLocal();
 
 /// A failed call, with a sentence to show.
@@ -330,6 +338,37 @@ class AdminApi {
   Future<({int nextOffset, int total, int broken})> checkGifBatch(int offset) async {
     final json = await _call(() => _dio.post<Map<String, dynamic>>('/api/admin/exercises/check-gifs', data: {'offset': offset}));
     return (nextOffset: json['nextOffset'] as int, total: json['total'] as int, broken: json['broken'] as int);
+  }
+
+  /// Read only. The server writes "Viewed plans" to the audit log.
+  Future<({String username, List<UserPlan> plans})> viewPlans(String userId) async {
+    final json = await _call(() => _dio.post<Map<String, dynamic>>('/api/admin/users/$userId/view-plans'));
+    return (
+      username: json['username'] as String,
+      plans: [
+        for (final p in json['plans'] as List)
+          (
+            name: p['name'] as String,
+            createdAt: _date(p['createdAt'])!,
+            exercises: [
+              for (final e in p['exercises'] as List)
+                (name: e['name'] as String, sets: e['sets'] as int, reps: e['reps'] as int, restSeconds: e['restSeconds'] as int?),
+            ],
+          ),
+      ],
+    );
+  }
+
+  Future<List<CardioMachineRow>> cardioMachines() async {
+    try {
+      final rows = (await _dio.get<List<dynamic>>('/api/admin/cardio')).data!;
+      return [
+        for (final m in rows)
+          (machine: m['machine'] as String, fields: [for (final f in m['fields'] as List) f as String], usesThisMonth: m['usesThisMonth'] as int),
+      ];
+    } on DioException catch (error) {
+      throw describe(error.response?.statusCode, error.response?.data);
+    }
   }
 
   Future<void> _send(Future<Response<void>> Function() request) async {

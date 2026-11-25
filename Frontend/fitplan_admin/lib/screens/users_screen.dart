@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:fitplan_shared/fitplan_shared.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../core/admin_api.dart';
@@ -300,7 +301,13 @@ class _UserDetailPanelState extends State<_UserDetailPanel> {
                 ],
               )),
               _Fact('Workouts', Text('${user.workouts}', style: AppText.body)),
-              _Fact('Plans', Text('${user.plans}', style: AppText.body)),
+              _Fact('Plans', Row(
+                children: [
+                  Text('${user.plans}', style: AppText.body),
+                  if (user.plans > 0)
+                    TextButton(onPressed: () => context.go('/plans?user=${user.id}'), child: const Text('View')),
+                ],
+              )),
               _Fact('Signed in on', Text('${user.signedInDevices} ${user.signedInDevices == 1 ? 'device' : 'devices'}', style: AppText.body)),
               _Fact('Reports sent', Text('${user.reports}', style: AppText.body)),
               if (disabled) _Fact('Disabled on', Text(_day.format(user.disabledAt!), style: AppText.body)),
