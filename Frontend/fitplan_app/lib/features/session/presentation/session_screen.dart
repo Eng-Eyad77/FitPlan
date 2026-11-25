@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../shared/widgets/adaptive.dart';
 import '../../../app/router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -94,22 +95,14 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
   }
 
   Future<void> _cancel() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.discardWorkoutTitle),
-        content: Text(l10n.discardWorkoutBody),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.keepGoingButton)),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
-            child: Text(l10n.discard),
-          ),
-        ],
-      ),
+    final confirmed = await confirmAction(
+      context,
+      title: l10n.discardWorkoutTitle,
+      body: l10n.discardWorkoutBody,
+      confirmLabel: l10n.discard,
+      cancelLabel: l10n.keepGoingButton,
     );
-    if (confirmed != true || !mounted) return;
+    if (!confirmed || !mounted) return;
 
     try {
       await _controller.cancel();
@@ -240,13 +233,10 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
             ],
           ),
           actions: [
-            PopupMenuButton<void>(
+            ActionsButton(
               tooltip: l10n.workoutOptions,
-              itemBuilder: (_) => [
-                PopupMenuItem(
-                  onTap: _cancel,
-                  child: Text(l10n.discardWorkout, style: const TextStyle(color: AppColors.danger)),
-                ),
+              actions: () => [
+                MenuAction(label: l10n.discardWorkout, icon: Icons.delete_outline_rounded, destructive: true, onTap: _cancel),
               ],
             ),
             Padding(

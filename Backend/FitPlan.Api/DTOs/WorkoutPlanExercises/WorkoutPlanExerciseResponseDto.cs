@@ -25,4 +25,5 @@ public class WorkoutPlanExerciseResponseDto : ILocalizedSteps
     public int Order { get; set; }
 
     public int? RestSeconds { get; set; }
+    public string? Note { get; set; }
 }

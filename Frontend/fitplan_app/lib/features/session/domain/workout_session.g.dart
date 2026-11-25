@@ -52,6 +52,7 @@ _SessionExercise _$SessionExerciseFromJson(Map<String, dynamic> json) =>
       targetSets: (json['targetSets'] as num?)?.toInt(),
       targetReps: (json['targetReps'] as num?)?.toInt(),
       restSeconds: (json['restSeconds'] as num?)?.toInt(),
+      note: json['note'] as String?,
       sets:
           (json['sets'] as List<dynamic>?)
               ?.map((e) => SessionSet.fromJson(e as Map<String, dynamic>))
@@ -79,6 +80,7 @@ Map<String, dynamic> _$SessionExerciseToJson(_SessionExercise instance) =>
       'targetSets': instance.targetSets,
       'targetReps': instance.targetReps,
       'restSeconds': instance.restSeconds,
+      'note': instance.note,
       'sets': instance.sets,
       'lastPerformance': instance.lastPerformance,
       'suggestion': instance.suggestion,

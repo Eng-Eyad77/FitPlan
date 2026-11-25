@@ -10,7 +10,7 @@ namespace FitPlan.Api.Controllers;
 [Route("api/auth")]
 public class AuthController(IAuthService authService) : ApiControllerBase
 {
-    // Step 1 of sign-up (D18). 202 for every address: a registered one gets a notice, not a code.
+    // Step 1 of sign-up (D18). 202 when the code went out; 409 if the email already has an account.
     [HttpPost("register/code")]
     [EnableRateLimiting(RateLimitingExtensions.SignInPolicy)]
     public async Task<IActionResult> SendSignUpCode(EmailRequestDto request)
@@ -55,7 +55,7 @@ public class AuthController(IAuthService authService) : ApiControllerBase
         return result.IsSuccess ? Ok(result.Data) : Problem(result.Error);
     }
 
-    // A forgotten password, step 1. 202 for every address, so it never shows which ones are registered.
+    // A forgotten password, step 1. 202 when the code went out; 404 if no account has this email.
     [HttpPost("password-reset/code")]
     [EnableRateLimiting(RateLimitingExtensions.SignInPolicy)]
     public async Task<IActionResult> SendPasswordResetCode(EmailRequestDto request)

@@ -220,7 +220,13 @@ class _MilestoneRow extends StatelessWidget {
             Text(formatVolumeAmount(milestone.weightKg), style: AppText.secondary),
             if (reachedAt != null) ...[
               const SizedBox(width: AppSpacing.xs),
-              const Icon(Icons.check_rounded, size: 18, color: AppColors.accent),
+              // a filled badge, so "reached" reads at a glance
+              Container(
+                width: 22,
+                height: 22,
+                decoration: const BoxDecoration(color: AppColors.accent, shape: BoxShape.circle),
+                child: const Icon(Icons.check_rounded, size: 15, color: AppColors.onAccent),
+              ),
             ],
           ],
         ),

@@ -853,7 +853,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get languageArabic => 'العربية';
 
   @override
-  String get tonnes => 't';
+  String tonnes(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'tons',
+      one: 'ton',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get msPiano => 'a grand piano';
@@ -892,10 +900,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get msWhalePlural => 'blue whales';
 
   @override
-  String get msJet => 'a jumbo jet at takeoff';
+  String get msJet => 'an airplane';
 
   @override
-  String get msJetPlural => 'jumbo jets';
+  String get msJetPlural => 'airplanes';
 
   @override
   String aboutOne(String name) {
@@ -1804,6 +1812,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errEmailAlreadyExists => 'This email already has an account.';
 
   @override
+  String get errEmailNotRegistered => 'There\'s no account with this email.';
+
+  @override
   String get errTooManyEmails =>
       'Too many codes for this email. Wait a little and try again.';
 
@@ -1889,4 +1900,38 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get reportTooMany =>
       'You sent many reports. Try again a little later.';
+
+  @override
+  String get rangeAll => 'All';
+
+  @override
+  String get rangeWeek => 'This week';
+
+  @override
+  String get rangeMonth => 'This month';
+
+  @override
+  String get rangeYear => 'This year';
+
+  @override
+  String get noWorkoutsInRange => 'No workouts in this period';
+
+  @override
+  String get noWorkoutsInRangeBody => 'Pick a longer period, or All.';
+
+  @override
+  String get addNote => 'Add a note';
+
+  @override
+  String get exerciseNote => 'Exercise note';
+
+  @override
+  String get exerciseNoteBody =>
+      'Just for you, like where you set the seat. It shows every time you do this exercise.';
+
+  @override
+  String get exerciseNoteHint => 'e.g. Seat on 4';
+
+  @override
+  String get removeNote => 'Remove note';
 }

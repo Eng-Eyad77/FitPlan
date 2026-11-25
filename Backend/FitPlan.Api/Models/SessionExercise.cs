@@ -22,6 +22,8 @@ public class SessionExercise
     // Rest after each set, in seconds (15 to 600), copied from the plan and changeable during the session.
     // null = the app's default (90 s).
     public int? RestSeconds { get; set; }
+    // Copied from the plan; a change here goes back to the plan when the session is completed.
+    public string? Note { get; set; }
 
     public ICollection<SessionSet> Sets { get; set; } = [];
 }

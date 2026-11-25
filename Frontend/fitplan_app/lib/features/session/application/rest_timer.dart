@@ -58,6 +58,19 @@ class RestTimer {
   RestTimer extendedBy(Duration extra) =>
       RestTimer(endsAt: endsAt.add(extra), total: total + extra, next: next, upNext: upNext);
 
+  /// "-15s": never before [now], so taking more than is left just ends the rest.
+  RestTimer shortenedBy(Duration less, DateTime now) {
+    final newEnd = endsAt.subtract(less).isBefore(now) ? now : endsAt.subtract(less);
+    final removed = endsAt.difference(newEnd);
+    final newTotal = total - removed;
+    return RestTimer(
+      endsAt: newEnd,
+      total: newTotal > Duration.zero ? newTotal : const Duration(seconds: 1),
+      next: next,
+      upNext: upNext,
+    );
+  }
+
   RestTimer withUpNext(NextSet? set) => RestTimer(endsAt: endsAt, total: total, next: next, upNext: set);
 }
 
@@ -245,8 +258,11 @@ class RestTimerController extends Notifier<RestTimer?> {
   static RestTimer? _changed(RestTimer? timer, LiveChange change) {
     if (change.skipped || timer == null) return null;
     final endsAt = change.endsAt;
-    if (endsAt == null || !endsAt.isAfter(timer.endsAt)) return timer;
-    return timer.extendedBy(endsAt.difference(timer.endsAt));
+    if (endsAt == null || endsAt == timer.endsAt) return timer;
+    // +15s or -15s on the Lock Screen
+    return endsAt.isAfter(timer.endsAt)
+        ? timer.extendedBy(endsAt.difference(timer.endsAt))
+        : timer.shortenedBy(timer.endsAt.difference(endsAt), DateTime.now());
   }
 
   void _set(RestTimer? timer) {
@@ -273,6 +289,12 @@ class RestTimerController extends Notifier<RestTimer?> {
     final timer = state;
     if (timer == null) return;
     _set(timer.extendedBy(extra));
+  }
+
+  void removeTime(Duration less) {
+    final timer = state;
+    if (timer == null || timer.secondsLeft(DateTime.now()) == 0) return;
+    _set(timer.shortenedBy(less, DateTime.now()));
   }
 
   void skip() => _set(null);

@@ -46,6 +46,9 @@ abstract class SessionExercise with _$SessionExercise {
 
     /// Rest after each set, in seconds. Null = the default (90 s).
     int? restSeconds,
+
+    /// Copied from the plan; a change here goes back to the plan when the workout is finished.
+    String? note,
     @Default([]) List<SessionSet> sets,
     LastPerformance? lastPerformance,
     Suggestion? suggestion,

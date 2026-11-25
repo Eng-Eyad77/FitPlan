@@ -56,14 +56,15 @@ public class AuthService(FitPlanDbContext context, IConfiguration configuration,
     }
 
 
-    // The answer is the same whether or not the email has an account: a registered one gets a notice instead.
     public async Task<Result<bool>> SendSignUpCodeAsync(string email, string language)
     {
         email = EmailCodeService.Normalize(email);
-        var registered = await context.Users.AnyAsync(u => u.Email == email);
+        if (await context.Users.AnyAsync(u => u.Email == email))
+        {
+            return Result<bool>.Failure(Errors.EmailAlreadyExists);
+        }
 
-        return await emailCodes.SendAsync(email, EmailCodePurpose.SignUp, null,
-            registered ? EmailDelivery.AlreadyRegistered : EmailDelivery.Code, language);
+        return await emailCodes.SendAsync(email, EmailCodePurpose.SignUp, null, language);
     }
 
     public async Task<Result<AuthResponseDto>> RegisterAsync(RegisterRequestDto request)
@@ -112,14 +113,16 @@ public class AuthService(FitPlanDbContext context, IConfiguration configuration,
         return Result<AuthResponseDto>.Success(await IssueAsync(user, Guid.NewGuid()));
     }
 
-    // Unknown addresses get no email, but the same answer and the same quota.
     public async Task<Result<bool>> SendPasswordResetCodeAsync(string email, string language)
     {
         email = EmailCodeService.Normalize(email);
         var userId = await context.Users.Where(u => u.Email == email).Select(u => (Guid?)u.Id).FirstOrDefaultAsync();
+        if (userId is null)
+        {
+            return Result<bool>.Failure(Errors.EmailNotRegistered);
+        }
 
-        return await emailCodes.SendAsync(email, EmailCodePurpose.ResetPassword, userId,
-            userId is null ? EmailDelivery.Nothing : EmailDelivery.Code, language);
+        return await emailCodes.SendAsync(email, EmailCodePurpose.ResetPassword, userId, language);
     }
 
     // Checks the emailed code without using it up, so the app can ask for the new password next.

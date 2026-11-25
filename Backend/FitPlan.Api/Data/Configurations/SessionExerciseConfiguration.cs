@@ -1,3 +1,4 @@
+using FitPlan.Api.DTOs.Common;
 using FitPlan.Api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -9,6 +10,7 @@ public class SessionExerciseConfiguration : IEntityTypeConfiguration<SessionExer
     public void Configure(EntityTypeBuilder<SessionExercise> builder)
     {
         //to link it to the table and put the condition to the table
+        builder.Property(e => e.Note).HasMaxLength(ExerciseNoteDto.MaxLength);
         builder.ToTable("SessionExercises", table =>
         {
             table.HasCheckConstraint(

@@ -74,7 +74,8 @@ public class WorkoutPlanExerciseService(FitPlanDbContext context) : IWorkoutPlan
             Sets = newWorkoutPlanExercise.Sets,
             Reps = newWorkoutPlanExercise.Reps,
             Order = newWorkoutPlanExercise.Order,
-            RestSeconds = newWorkoutPlanExercise.RestSeconds
+            RestSeconds = newWorkoutPlanExercise.RestSeconds,
+            Note = newWorkoutPlanExercise.Note
         };
 
         return Result<WorkoutPlanExerciseResponseDto>.Success(response);
@@ -107,7 +108,8 @@ public class WorkoutPlanExerciseService(FitPlanDbContext context) : IWorkoutPlan
                 Sets = item.Sets,
                 Reps = item.Reps,
                 Order = item.Order,
-                RestSeconds = item.RestSeconds
+                RestSeconds = item.RestSeconds,
+                Note = item.Note
             })
             .ToArrayAsync();
 
@@ -152,7 +154,8 @@ public class WorkoutPlanExerciseService(FitPlanDbContext context) : IWorkoutPlan
             Sets = planExercise.Sets,
             Reps = planExercise.Reps,
             Order = planExercise.Order,
-            RestSeconds = planExercise.RestSeconds
+            RestSeconds = planExercise.RestSeconds,
+            Note = planExercise.Note
         };
 
         return Result<WorkoutPlanExerciseResponseDto>.Success(response);
@@ -185,6 +188,20 @@ public class WorkoutPlanExerciseService(FitPlanDbContext context) : IWorkoutPlan
 
     // Ownership check: the plan must exist AND belong to the authenticated user.
     // Returned as a tracked entity so the caller can update its UpdatedAt.
+    public async Task<Result<bool>> UpdateNoteAsync(Guid userId, Guid planId, Guid id, string? note)
+    {
+        if (await FindUserPlanAsync(userId, planId) is null)
+        {
+            return Result<bool>.Failure(Errors.WorkoutPlanNotFound);
+        }
+
+        var updated = await context.WorkoutPlanExercises
+            .Where(p => p.WorkoutPlanId == planId && p.Id == id)
+            .ExecuteUpdateAsync(s => s.SetProperty(p => p.Note, note));
+
+        return updated == 1 ? Result<bool>.Success(true) : Result<bool>.Failure(Errors.WorkoutPlanExerciseNotFound);
+    }
+
     private Task<WorkoutPlan?> FindUserPlanAsync(Guid userId, Guid planId) =>
         context.WorkoutPlans.FirstOrDefaultAsync(p => p.Id == planId && p.UserId == userId);
 }

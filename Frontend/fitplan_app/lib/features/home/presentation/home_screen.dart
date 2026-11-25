@@ -215,7 +215,7 @@ class _WeekCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final sessions = ref.watch(historyControllerProvider).value?.items ?? const [];
+    final sessions = ref.watch(historyControllerProvider(HistoryRange.all)).value?.items ?? const [];
     final localizations = MaterialLocalizations.of(context);
     final firstDay = weekStartOf(context);
 
@@ -320,7 +320,7 @@ class _LastSession extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final last = ref.watch(historyControllerProvider).value?.items.firstOrNull;
+    final last = ref.watch(historyControllerProvider(HistoryRange.all)).value?.items.firstOrNull;
     if (last == null) return const SizedBox.shrink();
 
     return Padding(

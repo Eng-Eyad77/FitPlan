@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../shared/widgets/adaptive.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_text.dart';
@@ -24,25 +25,17 @@ class PastSessionScreen extends ConsumerWidget {
   final String sessionId;
 
   Future<void> _delete(BuildContext context, WidgetRef ref, WorkoutSession session) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.deleteWorkoutTitle),
-        content: Text(l10n.deleteWorkoutBody(session.name)),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.keep)),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
-            child: Text(l10n.delete),
-          ),
-        ],
-      ),
+    final confirmed = await confirmAction(
+      context,
+      title: l10n.deleteWorkoutTitle,
+      body: l10n.deleteWorkoutBody(session.name),
+      confirmLabel: l10n.delete,
+      cancelLabel: l10n.keep,
     );
-    if (confirmed != true || !context.mounted) return;
+    if (!confirmed || !context.mounted) return;
 
     try {
-      await ref.read(historyControllerProvider.notifier).delete(session.id);
+      await ref.read(historyControllerProvider(HistoryRange.all).notifier).delete(session.id);
       if (context.mounted) context.pop();
     } catch (error) {
       if (context.mounted) showError(context, error);
@@ -58,12 +51,14 @@ class PastSessionScreen extends ConsumerWidget {
         title: Text(session.value?.name ?? l10n.workout, style: AppText.heading),
         actions: [
           if (session.value != null)
-            PopupMenuButton<void>(
+            ActionsButton(
               tooltip: l10n.workoutOptions,
-              itemBuilder: (_) => [
-                PopupMenuItem(
+              actions: () => [
+                MenuAction(
+                  label: l10n.deleteWorkout,
+                  icon: Icons.delete_outline_rounded,
+                  destructive: true,
                   onTap: () => _delete(context, ref, session.value!),
-                  child: Text(l10n.deleteWorkout, style: const TextStyle(color: AppColors.danger)),
                 ),
               ],
             ),

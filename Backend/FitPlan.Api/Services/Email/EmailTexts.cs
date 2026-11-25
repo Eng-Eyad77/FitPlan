@@ -26,13 +26,6 @@ public static class EmailTexts
                 $"{what} {code}\n\nIt works once, for 10 minutes. If you didn't ask for it, ignore this email.");
     }
 
-    // Sent instead of a sign-up code, so the sign-up answer never shows whether an email is registered.
-    public static EmailText AlreadyRegistered(string language) => language == ContentLanguage.Arabic
-        ? new("لديك حساب في FitPlan",
-            "حاول أحدهم إنشاء حساب في FitPlan بهذا البريد، ولديك حساب مسجّل به من قبل.\n\nإذا كنت أنت فسجّل دخولك، أو استخدم «نسيت كلمة المرور». وإذا لم تكن أنت فتجاهل هذه الرسالة.")
-        : new("You already have a FitPlan account",
-            "Someone tried to create a FitPlan account with this email, but it already has one.\n\nIf it was you, sign in, or use Forgot password. If not, ignore this email.");
-
     // To the old address after a change, so the owner notices a change they didn't make.
     public static EmailText EmailChanged(string newEmail, string language) => language == ContentLanguage.Arabic
         ? new("تغيّر بريدك في FitPlan",

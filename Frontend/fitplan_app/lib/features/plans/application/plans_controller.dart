@@ -90,6 +90,16 @@ class PlanExercisesController extends AsyncNotifier<List<PlanExercise>> {
     ]);
   }
 
+  /// [note] empty or null removes it.
+  Future<void> setNote(PlanExercise exercise, String? note) async {
+    final cleaned = (note == null || note.trim().isEmpty) ? null : note.trim();
+    if (cleaned == exercise.note) return;
+    await _repository.updateNote(planId, exercise.id, cleaned);
+    _set([
+      for (final e in state.value ?? const <PlanExercise>[]) e.id == exercise.id ? e.copyWith(note: cleaned) : e,
+    ]);
+  }
+
   Future<void> remove(String id) async {
     await _repository.removeExercise(planId, id);
     _set([...?state.value?.where((e) => e.id != id)]);

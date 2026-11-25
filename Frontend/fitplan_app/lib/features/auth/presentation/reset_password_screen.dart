@@ -163,6 +163,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
       subtitle: l10n.resetSubtitle,
       form: Form(
         key: _formKey,
+        autovalidateMode: AutovalidateMode.onUserInteraction,
         child: AutofillGroup(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,

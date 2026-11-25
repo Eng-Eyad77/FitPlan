@@ -63,6 +63,7 @@ abstract final class RestTexts {
 /// The buttons on the notifications.
 abstract final class RestActionIds {
   static const addTime = 'rest_add_time';
+  static const removeTime = 'rest_remove_time';
   static const skip = 'rest_skip';
   static const logSet = 'rest_log_set';
 
@@ -93,6 +94,13 @@ class RestActions {
         await timers.write(longer);
         await notifier.show(longer);
         await notifier.showLive(longer);
+      case RestActionIds.removeTime:
+        final timer = await timers.read();
+        if (timer == null || timer.secondsLeft(_now()) == 0) return;
+        final shorter = timer.shortenedBy(RestActionIds.addedTime, _now());
+        await timers.write(shorter);
+        await notifier.show(shorter);
+        await notifier.showLive(shorter);
       case RestActionIds.skip:
         await timers.write(null);
         await notifier.cancel();
@@ -193,6 +201,7 @@ class LocalRestNotifier implements RestNotifier {
         timeoutAfter: timer.endsAt.difference(now).inMilliseconds,
         category: AndroidNotificationCategory.progress,
         actions: [
+          AndroidNotificationAction(RestActionIds.removeTime, l10n.restAdd15Notification(signed('-15')), cancelNotification: false),
           AndroidNotificationAction(RestActionIds.addTime, l10n.restAdd15Notification(signed('+15')), cancelNotification: false),
           AndroidNotificationAction(RestActionIds.skip, l10n.skipRest),
         ],

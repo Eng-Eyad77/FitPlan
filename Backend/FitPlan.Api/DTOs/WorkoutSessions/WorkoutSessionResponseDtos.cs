@@ -51,6 +51,8 @@ public class SessionExerciseResponseDto : ILocalizedExercise
     // null = the app's default (90 s)
     public int? RestSeconds { get; set; }
 
+    public string? Note { get; set; }
+
     public SessionSetResponseDto[] Sets { get; set; } = [];
 
     // what the user did the last time with this exercise ("آخر مرة").

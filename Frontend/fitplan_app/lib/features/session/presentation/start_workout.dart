@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../shared/widgets/adaptive.dart';
 import '../../../app/router.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../shared/widgets/feedback.dart';
@@ -36,15 +37,12 @@ Future<void> startWorkout(BuildContext context, WidgetRef ref, {String? planId})
 }
 
 Future<bool?> _askResume(BuildContext context, String name) {
-  return showDialog<bool>(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: Text(l10n.workoutInProgressTitle),
-      content: Text(l10n.workoutInProgressBody(name)),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.notNow)),
-        TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l10n.resume)),
-      ],
-    ),
+  return confirmAction(
+    context,
+    title: l10n.workoutInProgressTitle,
+    body: l10n.workoutInProgressBody(name),
+    confirmLabel: l10n.resume,
+    cancelLabel: l10n.notNow,
+    destructive: false,
   );
 }

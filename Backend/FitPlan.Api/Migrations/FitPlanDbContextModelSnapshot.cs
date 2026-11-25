@@ -345,6 +345,10 @@ namespace FitPlan.Api.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<int>("Order")
                         .HasColumnType("int");
 
@@ -548,6 +552,10 @@ namespace FitPlan.Api.Migrations
                     b.Property<string>("ExerciseId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<int>("Order")
                         .HasColumnType("int");

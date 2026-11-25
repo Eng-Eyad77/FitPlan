@@ -398,30 +398,18 @@ class _EmailCard extends ConsumerStatefulWidget {
 }
 
 class _EmailCardState extends ConsumerState<_EmailCard> {
-  bool _busy = false;
-
   Future<void> _change() async {
-    final request = await showDialog<({String email, String password})>(
+    // the dialog sends the code itself and stays open on a wrong password or a taken email
+    final email = await showDialog<String>(
       context: context,
       builder: (_) => const _NewEmailDialog(),
     );
-    if (request == null || !mounted) return;
-
-    setState(() => _busy = true);
-    try {
-      await ref.read(profileControllerProvider.notifier).sendEmailChangeCode(request.email, request.password);
-    } catch (error) {
-      if (mounted) showError(context, error);
-      return;
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-    if (!mounted) return;
+    if (email == null || !mounted) return;
 
     final changed = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => _EmailCodeDialog(email: request.email),
+      builder: (_) => _EmailCodeDialog(email: email),
     );
     if (changed == true && mounted) showMessage(context, l10n.emailChanged);
   }
@@ -436,24 +424,28 @@ class _EmailCardState extends ConsumerState<_EmailCard> {
           const SizedBox(height: AppSpacing.sm),
           Text(widget.email, style: AppText.body, textDirection: TextDirection.ltr),
           const SizedBox(height: AppSpacing.md),
-          LoadingButton(label: l10n.changeEmail, loading: _busy, onPressed: _change),
+          LoadingButton(label: l10n.changeEmail, loading: false, onPressed: _change),
         ],
       ),
     );
   }
 }
 
-class _NewEmailDialog extends StatefulWidget {
+/// Sends the code to the new email. Stays open on an error, with what was typed, and pops the email
+/// once the code is on its way.
+class _NewEmailDialog extends ConsumerStatefulWidget {
   const _NewEmailDialog();
 
   @override
-  State<_NewEmailDialog> createState() => _NewEmailDialogState();
+  ConsumerState<_NewEmailDialog> createState() => _NewEmailDialogState();
 }
 
-class _NewEmailDialogState extends State<_NewEmailDialog> {
+class _NewEmailDialogState extends ConsumerState<_NewEmailDialog> {
   final _formKey = GlobalKey<FormState>();
   final _email = TextEditingController();
   final _password = TextEditingController();
+  bool _busy = false;
+  String? _error;
 
   @override
   void dispose() {
@@ -462,9 +454,21 @@ class _NewEmailDialogState extends State<_NewEmailDialog> {
     super.dispose();
   }
 
-  void _submit() {
-    if (!_formKey.currentState!.validate()) return;
-    Navigator.of(context).pop((email: _email.text.trim(), password: _password.text));
+  Future<void> _submit() async {
+    if (_busy || !_formKey.currentState!.validate()) return;
+    final email = _email.text.trim();
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await ref.read(profileControllerProvider.notifier).sendEmailChangeCode(email, _password.text);
+      if (mounted) Navigator.of(context).pop(email);
+    } catch (error) {
+      if (mounted) setState(() => _error = errorMessage(error));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   @override
@@ -489,12 +493,16 @@ class _NewEmailDialogState extends State<_NewEmailDialog> {
               validator: (value) => (value == null || value.isEmpty) ? l10n.enterPassword : null,
               onFieldSubmitted: (_) => _submit(),
             ),
+            if (_error != null) ...[
+              const SizedBox(height: AppSpacing.md),
+              Text(_error!, style: AppText.secondary.copyWith(color: AppColors.danger)),
+            ],
           ],
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(l10n.cancel)),
-        FilledButton(onPressed: _submit, child: Text(l10n.sendCode)),
+        TextButton(onPressed: _busy ? null : () => Navigator.of(context).pop(), child: Text(l10n.cancel)),
+        FilledButton(onPressed: _busy ? null : _submit, child: Text(l10n.sendCode)),
       ],
     );
   }

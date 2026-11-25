@@ -36,6 +36,9 @@ abstract class PlanExercise with _$PlanExercise {
 
     /// Rest after each set, in seconds. Null = the default (90 s).
     int? restSeconds,
+
+    /// The user's own reminder ("seat on 4"). Shown and changeable in a workout.
+    String? note,
   }) = _PlanExercise;
 
   factory PlanExercise.fromJson(Map<String, dynamic> json) => _$PlanExerciseFromJson(json);
@@ -47,4 +50,5 @@ abstract final class PlanLimits {
   static const maxReps = 20;
   static const nameLength = 100;
   static const descriptionLength = 500;
+  static const noteLength = 500;
 }

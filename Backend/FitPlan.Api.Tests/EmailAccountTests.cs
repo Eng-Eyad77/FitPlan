@@ -52,17 +52,16 @@ public class EmailAccountTests(ApiFixture api)
     }
 
     [Fact]
-    public async Task A_registered_email_gets_the_same_answer_but_a_notice_instead_of_a_code()
+    public async Task A_registered_email_is_told_so_and_gets_no_email()
     {
         var user = await api.RegisterUserAsync();
         await AgeEmailsAsync(user.Email);
+        var before = api.Emails.To(user.Email).Count;
 
         var response = await SendSignUpCodeAsync(user.Email);
 
-        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
-        var last = api.Emails.To(user.Email)[^1];
-        Assert.Equal(EmailTexts.AlreadyRegistered("en"), last);
-        Assert.DoesNotMatch(@"\b\d{6}\b", last.Body);
+        await response.AssertProblemAsync(HttpStatusCode.Conflict, "EmailAlreadyExists");
+        Assert.Equal(before, api.Emails.To(user.Email).Count);
     }
 
     [Fact]
@@ -200,13 +199,13 @@ public class EmailAccountTests(ApiFixture api)
     // ---------------------------------------------------------------- password reset
 
     [Fact]
-    public async Task An_unknown_email_gets_the_same_answer_and_no_email()
+    public async Task An_unknown_email_is_told_so_and_gets_no_email()
     {
         var email = ApiFixture.NewEmail();
 
         var response = await SendResetCodeAsync(email);
 
-        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+        await response.AssertProblemAsync(HttpStatusCode.NotFound, "EmailNotRegistered");
         Assert.Empty(api.Emails.To(email));
     }
 
@@ -290,7 +289,7 @@ public class EmailAccountTests(ApiFixture api)
     }
 
     [Fact]
-    public async Task A_taken_address_gets_no_code_and_the_change_cannot_be_confirmed()
+    public async Task A_taken_address_is_refused_and_gets_no_code()
     {
         var user = await api.RegisterUserAsync();
         var other = await api.RegisterUserAsync();
@@ -299,9 +298,7 @@ public class EmailAccountTests(ApiFixture api)
 
         var sent = await user.Client.PostAsJsonAsync("/api/profile/me/email/code", new { newEmail = other.Email, password = user.Password });
 
-        Assert.Equal(HttpStatusCode.Accepted, sent.StatusCode);
+        await sent.AssertProblemAsync(HttpStatusCode.Conflict, "EmailAlreadyExists");
         Assert.Equal(before, api.Emails.To(other.Email).Count);
-        await (await user.Client.PutAsJsonAsync("/api/profile/me/email", new { code = "123456" }))
-            .AssertProblemAsync(HttpStatusCode.BadRequest, "InvalidEmailCode");
     }
 }

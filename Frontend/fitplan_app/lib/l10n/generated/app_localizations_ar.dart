@@ -385,10 +385,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get keep => 'خلّه';
+  String get keep => 'خلّيه';
 
   @override
-  String get delete => 'احذف';
+  String get delete => 'حذف';
 
   @override
   String get plan => 'جدول';
@@ -397,10 +397,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get planOptions => 'خيارات الجدول';
 
   @override
-  String get editName => 'عدّل الاسم';
+  String get editName => 'تعديل الاسم';
 
   @override
-  String get deletePlan => 'احذف الجدول';
+  String get deletePlan => 'حذف الجدول';
 
   @override
   String get couldNotLoadPlan => 'ما قدرنا نجيب الجدول.';
@@ -443,7 +443,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get createPlan => 'سوّي الجدول';
 
   @override
-  String get save => 'احفظ';
+  String get save => 'حفظ';
 
   @override
   String get plansTitle => 'جداولي';
@@ -729,7 +729,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get workoutOptions => 'خيارات الحصة';
 
   @override
-  String get deleteWorkout => 'احذف الحصة';
+  String get deleteWorkout => 'حذف الحصة';
 
   @override
   String get couldNotLoadWorkout => 'ما قدرنا نجيب الحصة.';
@@ -799,7 +799,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get accountDeleted => 'انحذف حسابك.';
 
   @override
-  String get deleteAccount => 'احذف الحساب';
+  String get deleteAccount => 'حذف الحساب';
 
   @override
   String get bodyWeight => 'وزن جسمك';
@@ -852,7 +852,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get languageArabic => 'العربية';
 
   @override
-  String get tonnes => 'طن';
+  String tonnes(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'طن',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get msPiano => 'بيانو كبير';
@@ -891,10 +898,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get msWhalePlural => 'حيتان زرقاء';
 
   @override
-  String get msJet => 'طيارة جامبو وهي تقلع';
+  String get msJet => 'طيارة';
 
   @override
-  String get msJetPlural => 'طيارات جامبو';
+  String get msJetPlural => 'طيارات';
 
   @override
   String aboutOne(String name) {
@@ -1444,7 +1451,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get keepGoingButton => 'كمّل';
 
   @override
-  String get discard => 'ألغِ';
+  String get discard => 'إلغاء';
 
   @override
   String get noCardioToday => 'ما فيه كارديو اليوم؟';
@@ -1476,7 +1483,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get minimise => 'صغّر';
 
   @override
-  String get discardWorkout => 'ألغِ الحصة';
+  String get discardWorkout => 'إلغاء الحصة';
 
   @override
   String get finish => 'خلّصت';
@@ -1529,7 +1536,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get noKcal => '— سعرة';
 
   @override
-  String get deleteCardio => 'احذف الكارديو';
+  String get deleteCardio => 'حذف الكارديو';
 
   @override
   String get workoutInProgressTitle => 'عندك حصة شغّالة';
@@ -1604,7 +1611,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get remove => 'شيله';
+  String get remove => 'إزالة';
 
   @override
   String targetSetsReps(int sets, int reps) {
@@ -1620,7 +1627,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get exerciseOptions => 'خيارات التمرين';
 
   @override
-  String get removeFromWorkout => 'شيله من الحصة';
+  String get removeFromWorkout => 'إزالة من الحصة';
 
   @override
   String get addSet => 'ضيف جولة';
@@ -1691,7 +1698,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get emptyIsBodyweight => 'فاضي = وزن جسمك';
 
   @override
-  String get deleteSet => 'احذف الجولة';
+  String get deleteSet => 'حذف الجولة';
 
   @override
   String repsRange(int max) {
@@ -1821,6 +1828,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get errEmailAlreadyExists => 'هذا الإيميل عليه حساب من قبل.';
 
   @override
+  String get errEmailNotRegistered => 'ما فيه حساب بهذا الإيميل.';
+
+  @override
   String get errTooManyEmails =>
       'طلبت رموز كثيرة لهذا الإيميل. انتظر شوي وجرّب مرة ثانية.';
 
@@ -1905,4 +1915,38 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get reportTooMany => 'أرسلت بلاغات كثيرة. جرّب بعد شوي.';
+
+  @override
+  String get rangeAll => 'الكل';
+
+  @override
+  String get rangeWeek => 'هذا الأسبوع';
+
+  @override
+  String get rangeMonth => 'هذا الشهر';
+
+  @override
+  String get rangeYear => 'هذي السنة';
+
+  @override
+  String get noWorkoutsInRange => 'ما فيه حصص في هذي الفترة';
+
+  @override
+  String get noWorkoutsInRangeBody => 'اختر فترة أطول، أو الكل.';
+
+  @override
+  String get addNote => 'إضافة ملاحظة';
+
+  @override
+  String get exerciseNote => 'ملاحظة التمرين';
+
+  @override
+  String get exerciseNoteBody =>
+      'لك أنت، مثل رقم الكرسي اللي تضبطه. تطلع لك كل ما سويت هذا التمرين.';
+
+  @override
+  String get exerciseNoteHint => 'مثال: الكرسي على رقم 4';
+
+  @override
+  String get removeNote => 'حذف الملاحظة';
 }

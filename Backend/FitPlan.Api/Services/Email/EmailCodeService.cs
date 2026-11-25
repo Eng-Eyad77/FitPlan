@@ -7,15 +7,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FitPlan.Api.Services.Email;
 
-public enum EmailDelivery
-{
-    Code,
-    // the address is already registered: it gets a notice instead of the code
-    AlreadyRegistered,
-    // the address isn't one we may write to: nothing is sent, but the answer looks the same
-    Nothing
-}
-
 // 6-digit codes for sign-up, password reset and email change (D18). A code lives 10 minutes, works once
 // and locks after 5 tries. Each address gets at most one email a minute and 5 an hour.
 public class EmailCodeService(FitPlanDbContext context, IEmailSender sender, TimeProvider time)
@@ -27,9 +18,9 @@ public class EmailCodeService(FitPlanDbContext context, IEmailSender sender, Tim
 
     public static string Normalize(string email) => email.Trim().ToLowerInvariant();
 
-    // Every request makes a row, even when nothing is sent, so the quota answers the same for every address.
-    public async Task<Result<bool>> SendAsync(
-        string email, EmailCodePurpose purpose, Guid? userId, EmailDelivery delivery, string language)
+    // The callers check first that the address may get this code (D18 revised 2026-11-25: the app says
+    // plainly when an email is or isn't registered; the quotas still limit how fast anyone can ask).
+    public async Task<Result<bool>> SendAsync(string email, EmailCodePurpose purpose, Guid? userId, string language)
     {
         var now = time.GetUtcNow().UtcDateTime;
 
@@ -57,22 +48,12 @@ public class EmailCodeService(FitPlanDbContext context, IEmailSender sender, Tim
             CreatedAt = now,
             ExpiresAt = now + Lifetime
         };
-        if (delivery == EmailDelivery.Code)
-        {
-            entry.CodeHash = Hash(entry.Id, code);
-        }
+        entry.CodeHash = Hash(entry.Id, code);
 
         context.EmailCodes.Add(entry);
         await context.SaveChangesAsync();
 
-        var text = delivery switch
-        {
-            EmailDelivery.Code => EmailTexts.Code(purpose, code, language),
-            EmailDelivery.AlreadyRegistered => EmailTexts.AlreadyRegistered(language),
-            _ => null
-        };
-
-        return text is null || await sender.SendAsync(email, text)
+        return await sender.SendAsync(email, EmailTexts.Code(purpose, code, language))
             ? Result<bool>.Success(true)
             : Result<bool>.Failure(Errors.EmailNotSent);
     }

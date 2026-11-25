@@ -498,6 +498,17 @@ void main() {
       expect(t.notifier.shown, isNull);
     });
 
+    test('-15 s moves the end earlier, but never before now', () async {
+      final t = make(RestTimer(endsAt: now.add(const Duration(seconds: 40)), total: const Duration(seconds: 90)));
+      await t.actions.handle(RestActionIds.removeTime, null);
+      expect(t.timers.saved?.endsAt, now.add(const Duration(seconds: 25)));
+      expect(t.timers.saved?.total, const Duration(seconds: 75));
+
+      final almostDone = make(RestTimer(endsAt: now.add(const Duration(seconds: 5)), total: const Duration(seconds: 90)));
+      await almostDone.actions.handle(RestActionIds.removeTime, null);
+      expect(almostDone.timers.saved?.endsAt, now);
+    });
+
     test('skip ends the rest and removes the notifications', () async {
       final t = make(RestTimer(endsAt: now.add(const Duration(seconds: 20)), total: const Duration(seconds: 90)));
       t.notifier.shown = t.timers.saved;

@@ -122,7 +122,7 @@ class Milestone {
 /// 6 t and 12 t read as the same unit.
 (String, String) volumeParts(double kg) => kg < 1000
     ? (NumberFormat.decimalPattern().format(kg.round()), l10n.kg)
-    : (NumberFormat('#,##0.#').format(kg / 1000), l10n.tonnes);
+    : (NumberFormat('#,##0.#').format(kg / 1000), l10n.tonnes(kg / 1000));
 
 /// "3,580 kg", "27.6 t"
 String formatVolumeAmount(double kg) {
