@@ -1,7 +1,6 @@
+import 'package:fitplan_shared/fitplan_shared.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_text.dart';
 import '../../../../shared/format.dart';
 
 /// An exercise's name, with the English name small under it when the name is in Arabic

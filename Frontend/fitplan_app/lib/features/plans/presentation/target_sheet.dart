@@ -1,8 +1,6 @@
+import 'package:fitplan_shared/fitplan_shared.dart';
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/app_text.dart';
 import '../../../shared/widgets/number_stepper.dart';
 import '../../session/domain/workout_session.dart';
 import '../domain/workout_plan.dart';

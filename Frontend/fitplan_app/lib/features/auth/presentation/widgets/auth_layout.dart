@@ -1,10 +1,7 @@
+import 'package:fitplan_shared/fitplan_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_text.dart';
-import '../../../../shared/widgets/brand_mark.dart';
 import '../../../../shared/widgets/language_toggle.dart';
 import '../../../../l10n/l10n.dart';
 

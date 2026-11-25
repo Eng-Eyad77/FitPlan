@@ -1,11 +1,10 @@
+import 'package:fitplan_shared/fitplan_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../core/network/api_exception.dart';
-import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/app_text.dart';
 import '../../../shared/widgets/loading_button.dart';
 import '../application/auth_controller.dart';
 import 'auth_messages.dart';

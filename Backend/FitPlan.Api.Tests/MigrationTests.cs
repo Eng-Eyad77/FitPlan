@@ -14,6 +14,8 @@ public sealed class MigrationTests : IAsyncLifetime
 {
     private static readonly string[] ExpectedTables =
     [
+        "AdminAccounts",
+        "AdminAuditEntries",
         "BodyWeightEntries",
         "CardioEntries",
         "EmailCodes",

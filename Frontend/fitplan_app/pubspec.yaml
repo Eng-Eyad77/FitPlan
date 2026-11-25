@@ -8,6 +8,8 @@ environment:
 
 dependencies:
   dio: ^5.11.1
+  fitplan_shared:
+    path: ../fitplan_shared
   fl_chart: ^1.3.0
   flutter:
     sdk: flutter
@@ -38,21 +40,17 @@ flutter:
   # app_en.arb and app_ar.arb in lib/l10n become AppLocalizations (Phase 11)
   generate: true
 
-  # the app logo inside the app (login, sign-up, launch screen): the app icon, smaller
-  assets:
-    - assets/brand/logo.png
-
-  # Readex Pro (SIL Open Font License, see assets/fonts/OFL.txt): Latin + Arabic
+  # Readex Pro (SIL Open Font License): Latin + Arabic. The files and the logo live in fitplan_shared.
   fonts:
     - family: ReadexPro
       fonts:
-        - asset: assets/fonts/ReadexPro-Regular.ttf
+        - asset: packages/fitplan_shared/fonts/ReadexPro-Regular.ttf
           weight: 400
-        - asset: assets/fonts/ReadexPro-Medium.ttf
+        - asset: packages/fitplan_shared/fonts/ReadexPro-Medium.ttf
           weight: 500
-        - asset: assets/fonts/ReadexPro-SemiBold.ttf
+        - asset: packages/fitplan_shared/fonts/ReadexPro-SemiBold.ttf
           weight: 600
-        - asset: assets/fonts/ReadexPro-Bold.ttf
+        - asset: packages/fitplan_shared/fonts/ReadexPro-Bold.ttf
           weight: 700
 
 # app icons: run `dart run flutter_launcher_icons` after changing assets/icon/

@@ -4,20 +4,54 @@
     {
       "name": "api",
       "runtimeExecutable": "dotnet",
-      "runtimeArgs": ["run", "--project", "Backend/FitPlan.Api", "--launch-profile", "http"],
+      "runtimeArgs": [
+        "run",
+        "--project",
+        "Backend/FitPlan.Api",
+        "--launch-profile",
+        "http"
+      ],
       "port": 5264
     },
     {
       "name": "api-lan",
       "runtimeExecutable": "dotnet",
-      "runtimeArgs": ["run", "--project", "Backend/FitPlan.Api", "--launch-profile", "lan"],
+      "runtimeArgs": [
+        "run",
+        "--project",
+        "Backend/FitPlan.Api",
+        "--launch-profile",
+        "lan"
+      ],
       "port": 5264
     },
     {
       "name": "app-web",
       "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "8085", "--bind", "127.0.0.1", "--directory", "Frontend/fitplan_app/build/web"],
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8085",
+        "--bind",
+        "127.0.0.1",
+        "--directory",
+        "Frontend/fitplan_app/build/web"
+      ],
       "port": 8085
+    },
+    {
+      "name": "admin-web",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8086",
+        "--bind",
+        "127.0.0.1",
+        "--directory",
+        "Frontend/fitplan_admin/build/web"
+      ],
+      "port": 8086
     }
   ]
 }

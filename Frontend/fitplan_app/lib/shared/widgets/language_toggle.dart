@@ -1,9 +1,7 @@
+import 'package:fitplan_shared/fitplan_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_spacing.dart';
-import '../../core/theme/app_text.dart';
 import '../../l10n/l10n.dart';
 
 /// EN | AR on Home and the sign-in screens: one tap switches the whole app to the other language.

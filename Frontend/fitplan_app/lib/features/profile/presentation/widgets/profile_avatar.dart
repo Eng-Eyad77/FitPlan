@@ -1,8 +1,7 @@
+import 'package:fitplan_shared/fitplan_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_text.dart';
 import '../../application/profile_controller.dart';
 
 /// Round profile picture, or the first letter of the username when there is none.

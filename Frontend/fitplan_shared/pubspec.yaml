@@ -1,0 +1,20 @@
+name: fitplan_shared
+description: "The FitPlan look (colors, type, theme, logo), shared by the phone app and the admin."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.13.7
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+
+# The Readex Pro files (SIL Open Font License, lib/fonts/OFL.txt) live here; each app declares the
+# ReadexPro family from packages/fitplan_shared/fonts/, so the family name stays plain "ReadexPro".
+flutter:
+  assets:
+    - lib/brand/logo.png

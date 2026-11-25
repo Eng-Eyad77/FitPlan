@@ -22,6 +22,66 @@ namespace FitPlan.Api.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("FitPlan.Api.Models.AdminAccount", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("LastTotpStep")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TotpSecret")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("AdminAccounts", (string)null);
+                });
+
+            modelBuilder.Entity("FitPlan.Api.Models.AdminAuditEntry", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("AdminName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<Guid>("AdminUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Target")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.ToTable("AdminAuditEntries", (string)null);
+                });
+
             modelBuilder.Entity("FitPlan.Api.Models.BodyWeightEntry", b =>
                 {
                     b.Property<Guid>("Id")
@@ -632,6 +692,17 @@ namespace FitPlan.Api.Migrations
                         .HasFilter("[CompletedAt] IS NULL");
 
                     b.ToTable("WorkoutSessions", (string)null);
+                });
+
+            modelBuilder.Entity("FitPlan.Api.Models.AdminAccount", b =>
+                {
+                    b.HasOne("FitPlan.Api.Models.User", "User")
+                        .WithOne()
+                        .HasForeignKey("FitPlan.Api.Models.AdminAccount", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("FitPlan.Api.Models.BodyWeightEntry", b =>
