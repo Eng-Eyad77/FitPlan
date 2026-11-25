@@ -214,6 +214,14 @@ repo:Eng-Eyad77@177796235/FitPlan@1408724659:environment:dev
 
 GitHub sends this immutable format for repositories created after July 15, 2026. The numbers are the account and repository IDs, which don't change if either is renamed. If sign-in fails with `AADSTS700213`, compare the subject in the error with the federated credential. Any new environment, such as Production, needs a credential in the same format.
 
+### Admin on Dev
+
+The admin web app for Dev is published to Cloudflare Pages by `deploy-admin-dev.yml`, after a merge into `develop` that changes `Frontend/fitplan_admin` or `Frontend/fitplan_shared`, or by hand from the Actions tab. It runs the CI checks first, builds the admin against the Dev API, and publishes it to the Pages project `fitplan-admin-dev`. The first run creates the project.
+
+- It's served at `https://admin-dev.fitplan-app.com`. Cloudflare Access sits in front of that address and of `fitplan-admin-dev.pages.dev`, and lets in only the emails in its policy, after a one-time code by email. The admin's own sign-in, with a password and an authenticator code, comes after that.
+- The Dev API accepts browser calls only from the address in its `Cors__AdminOrigin` setting, and from localhost, so the admin can still run from your machine.
+- `web/_headers` stops the admin from being shown inside another site and asks search engines not to index it.
+
 ### If a deploy fails
 
 The run turns red, and nothing rolls back or deploys an older version by itself. Check the failed step and the App Service logs, then decide. To go back, open a pull request that reverts the bad commit, which goes through the same checks and deploy. Undoing a schema change is a separate decision with its own plan.
@@ -365,14 +373,14 @@ The API reads `Accept-Language`. For `ar` it returns the Arabic name with `engli
 
 ### Environment settings
 
-| Setting | `dev` | `dev-schema` | `production` |
-| --- | --- | --- | --- |
-| Deployment branches | `develop` only | `develop` only | `main` only |
-| Required reviewer | None | `Eng-Eyad77` | `Eng-Eyad77` |
-| Prevent self-review | Not applicable | Off, because there's one reviewer | Off, because there's one reviewer |
-| Allow administrators to bypass | Off | Off | Off |
-| Secrets | `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID` | None | `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID` |
-| Azure identity | `fitplan-gh-dev`, FitPlan Web Deploy on `fitplan-api-dev` only | None | `fitplan-gh-prod`, FitPlan Web Deploy on `fitplan-api-eyad` only |
+| Setting | `dev` | `dev-schema` | `production` | `admin-dev` |
+| --- | --- | --- | --- | --- |
+| Deployment branches | `develop` only | `develop` only | `main` only | `develop` only |
+| Required reviewer | None | `Eng-Eyad77` | `Eng-Eyad77` | None |
+| Prevent self-review | Not applicable | Off, because there's one reviewer | Off, because there's one reviewer | Not applicable |
+| Allow administrators to bypass | Off | Off | Off | Off |
+| Secrets | `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID` | None | `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID` | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` |
+| Azure identity | `fitplan-gh-dev`, FitPlan Web Deploy on `fitplan-api-dev` only | None | `fitplan-gh-prod`, FitPlan Web Deploy on `fitplan-api-eyad` only | None. The Cloudflare token can only edit Pages |
 
 FitPlan Web Deploy is a custom role that can only read the web app and publish to it. It can't read app settings or connection strings. [RECOVERY.md](RECOVERY.md#rebuild-dev-from-scratch) lists its permissions.
 

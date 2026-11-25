@@ -1,0 +1,60 @@
+# Publishes the admin web app for Dev to Cloudflare Pages (project fitplan-admin-dev), served at
+# https://admin-dev.fitplan-app.com behind Cloudflare Access. It talks to the Dev API only.
+# The Cloudflare token sits in the admin-dev environment and can only edit Pages.
+name: Deploy Admin Dev
+
+on:
+  push:
+    branches: [develop]
+    paths:
+      - Frontend/fitplan_admin/**
+      - Frontend/fitplan_shared/**
+      - .github/workflows/deploy-admin-dev.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-admin-dev
+  cancel-in-progress: false
+
+env:
+  PROJECT: fitplan-admin-dev
+  API_BASE_URL: https://fitplan-api-dev.azurewebsites.net
+
+jobs:
+  checks:
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    name: Publish to Cloudflare Pages
+    needs: checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: admin-dev
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          flutter-version: 3.47.9
+
+      - name: Build
+        working-directory: Frontend/fitplan_admin
+        run: |
+          flutter pub get --enforce-lockfile
+          flutter build web --release --dart-define=API_BASE_URL="$API_BASE_URL" --dart-define=ADMIN_ENV=Dev
+
+      - name: Publish
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          # the first run creates the project; later runs find it
+          if ! npx --yes wrangler@4.168.0 pages project list | grep -qw "$PROJECT"; then
+            npx --yes wrangler@4.168.0 pages project create "$PROJECT" --production-branch=develop
+          fi
+          npx --yes wrangler@4.168.0 pages deploy Frontend/fitplan_admin/build/web \
+            --project-name="$PROJECT" --branch=develop --commit-hash="$GITHUB_SHA"
