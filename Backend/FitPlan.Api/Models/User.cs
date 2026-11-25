@@ -23,6 +23,9 @@ public class User
     public int? WeeklyGoal { get; set; }
 
 
+    // Phase 12B: set by an admin. A disabled user can't sign in, refresh or reset the password.
+    public DateTime? DisabledAt { get; set; }
+
     public required DateTime CreatedAt { get; set; }
 
     public required DateTime UpdatedAt { get; set; }

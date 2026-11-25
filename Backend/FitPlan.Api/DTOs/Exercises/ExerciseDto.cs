@@ -22,4 +22,7 @@ public record class ExerciseDto
     public List<string> TargetMuscles { get; set; } = [];
 
     public List<string> SecondaryMuscles { get; set; } = [];
+
+    // Phase 12C: hidden by an admin, so the library and search leave it out
+    public bool Hidden { get; set; }
 }

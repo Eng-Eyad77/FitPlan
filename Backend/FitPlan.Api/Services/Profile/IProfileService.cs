@@ -23,4 +23,6 @@ public interface IProfileService
     Task<Result<ProfileDto>> ConfirmEmailChangeAsync(Guid userId, ConfirmEmailChangeDto request, string language);
 
     Task<Result<bool>> DeleteAccountAsync(Guid userId, PasswordConfirmationDto request);
+
+    Task RemoveAccountAsync(FitPlan.Api.Models.User user);
 }

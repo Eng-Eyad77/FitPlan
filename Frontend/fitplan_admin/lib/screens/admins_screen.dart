@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../core/admin_api.dart';
+import 'widgets.dart';
 
 /// 12A: who the admins are, and the audit log of every admin action.
 class AdminsScreen extends StatefulWidget {
@@ -17,13 +18,13 @@ class AdminsScreen extends StatefulWidget {
 class _AdminsScreenState extends State<AdminsScreen> {
   late Future<AuditPage> _audit = widget.api.audit();
 
-  void _open(int page) => setState(() => _audit = widget.api.audit(page: page));
+  void _open(int page) => setState(() { _audit = widget.api.audit(page: page); });
 
   @override
   Widget build(BuildContext context) {
     final me = widget.api.session.value;
     final wide = MediaQuery.sizeOf(context).width >= 1100;
-    final admins = _Panel(
+    final admins = Panel(
       title: 'Admins',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -32,7 +33,7 @@ class _AdminsScreenState extends State<AdminsScreen> {
             Row(
               children: [
                 Expanded(child: Text('${me.username} (you)', style: AppText.body)),
-                _Pill(me.role),
+                Pill(me.role),
               ],
             ),
           const SizedBox(height: AppSpacing.lg),
@@ -44,22 +45,13 @@ class _AdminsScreenState extends State<AdminsScreen> {
         ],
       ),
     );
-    final audit = _Panel(
+    final audit = Panel(
       title: 'Audit log',
       trailing: const Text('Every admin action, newest first', style: AppText.caption),
       child: FutureBuilder(
         future: _audit,
         builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('${snapshot.error}', style: AppText.secondary.copyWith(color: AppColors.danger)),
-                const SizedBox(height: AppSpacing.sm),
-                OutlinedButton(onPressed: () => _open(1), child: const Text('Try again')),
-              ],
-            );
-          }
+          if (snapshot.hasError) return ErrorRetry(error: snapshot.error!, onRetry: () => _open(1));
           final page = snapshot.data;
           if (page == null) {
             return const Padding(padding: EdgeInsets.all(24), child: Center(child: CircularProgressIndicator()));
@@ -117,48 +109,4 @@ class _AdminsScreenState extends State<AdminsScreen> {
             ),
         ],
       );
-}
-
-class _Panel extends StatelessWidget {
-  const _Panel({required this.title, required this.child, this.trailing});
-
-  final String title;
-  final Widget child;
-  final Widget? trailing;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        border: Border.all(color: AppColors.border),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(children: [Expanded(child: Text(title, style: AppText.bodyStrong)), ?trailing]),
-          const SizedBox(height: AppSpacing.md),
-          child,
-        ],
-      ),
-    );
-  }
-}
-
-class _Pill extends StatelessWidget {
-  const _Pill(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 2),
-      decoration: BoxDecoration(color: AppColors.accentTint(0.12), borderRadius: BorderRadius.circular(AppRadius.pill)),
-      child: Text(text, style: AppText.caption.copyWith(color: AppColors.accent, fontWeight: FontWeight.w500)),
-    );
-  }
 }

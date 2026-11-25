@@ -142,6 +142,28 @@ public sealed class ApiFixture : IAsyncLifetime
         return new TestUser(auth!.Id, username, email, password, CreateClient(auth.AccessToken));
     }
 
+    // Phase 12: a new user made Owner, signed in to the admin with a code. Returns the admin client.
+    public async Task<(TestUser Owner, HttpClient Admin)> SignInAsOwnerAsync()
+    {
+        var owner = await RegisterUserAsync();
+        var secret = FitPlan.Api.Services.Admin.Totp.NewSecret();
+        await WithDbContextAsync(async c =>
+        {
+            c.AdminAccounts.Add(new FitPlan.Api.Models.AdminAccount
+            {
+                UserId = owner.Id, Role = FitPlan.Api.Models.AdminRole.Owner, TotpSecret = secret, CreatedAt = DateTime.UtcNow
+            });
+            await c.SaveChangesAsync();
+        });
+
+        var code = FitPlan.Api.Services.Admin.Totp.Code(
+            FitPlan.Api.Services.Admin.Totp.FromBase32(secret), FitPlan.Api.Services.Admin.Totp.StepAt(DateTimeOffset.UtcNow), 6);
+        var response = await CreateClient().PostAsJsonAsync("/api/admin/auth/login", new { login = owner.Username, password = owner.Password, code });
+        response.EnsureSuccessStatusCode();
+        using var body = System.Text.Json.JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        return (owner, CreateClient(body.RootElement.GetProperty("accessToken").GetString()));
+    }
+
     public async Task<string> AddExerciseAsync(string name = "Bench Press", string bodyPart = "chest")
     {
         var id = "test-" + Guid.NewGuid().ToString("N");

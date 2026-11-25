@@ -1,3 +1,4 @@
+using FitPlan.Api.Services.Exercises;
 using FitPlan.Migrator;
 
 // Usage:

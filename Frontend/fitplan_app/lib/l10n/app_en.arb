@@ -2,6 +2,7 @@
   "@@locale": "en",
   "errUsernameAlreadyExists": "Username is already taken.",
   "errInvalidCredentials": "Invalid email, username or password.",
+  "errAccountDisabled": "This account is disabled. Contact support@fitplan-app.com.",
   "errInvalidRefreshToken": "Your session has ended. Log in again.",
   "errWrongPassword": "Your password is wrong.",
   "errUserNotFound": "User not found.",

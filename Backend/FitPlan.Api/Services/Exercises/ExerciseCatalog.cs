@@ -23,7 +23,7 @@ public sealed class ExerciseCatalog(
     public static readonly TimeSpan RefreshAfter = TimeSpan.FromHours(24);
 
     // a saved file with another version is from an older build, so the database is read instead
-    private const int CacheVersion = 2;
+    private const int CacheVersion = 3;
 
     private readonly string? _cacheFile = configuration[CacheFileSetting] is { Length: > 0 } path ? path : null;
     private readonly SemaphoreSlim _loading = new(1, 1);
@@ -48,6 +48,22 @@ public sealed class ExerciseCatalog(
         IReadOnlyDictionary<string, ExerciseDto> ById,
         DateTimeOffset LoadedAt,
         IReadOnlyDictionary<string, LanguageContent> Languages);
+
+    // After an admin changes an exercise (12C): the next request reads the database again, not the saved
+    // file. Waits for a load already running, so that load can't put the old list back afterwards.
+    public async Task InvalidateAsync()
+    {
+        await _loading.WaitAsync();
+        try
+        {
+            _fileChecked = true;
+            _snapshot = null;
+        }
+        finally
+        {
+            _loading.Release();
+        }
+    }
 
     public static string TermKey(string kind, string term) => $"{kind}:{term}";
 
@@ -192,7 +208,8 @@ public sealed class ExerciseCatalog(
                 Instructions = e.Instructions,
                 Equipments = e.Equipments,
                 TargetMuscles = e.TargetMuscles,
-                SecondaryMuscles = e.SecondaryMuscles
+                SecondaryMuscles = e.SecondaryMuscles,
+                Hidden = e.Hidden
             })
             .ToListAsync(cancellationToken);
 

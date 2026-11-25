@@ -56,9 +56,10 @@ public static class AuthenticationExtensions
 
                         var id = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
                         var database = context.HttpContext.RequestServices.GetRequiredService<FitPlanDbContext>();
-                        if (!Guid.TryParse(id, out var userId) || !await database.Users.AnyAsync(u => u.Id == userId))
+                        // a disabled account (12B) stops here too, without waiting for its token to expire
+                        if (!Guid.TryParse(id, out var userId) || !await database.Users.AnyAsync(u => u.Id == userId && u.DisabledAt == null))
                         {
-                            context.Fail("The account no longer exists.");
+                            context.Fail("The account no longer exists or is disabled.");
                         }
                         // an admin removed during the hour their token lasts loses access at once
                         else if (context.Principal!.HasClaim(c => c.Type == AuthService.AdminClaim)

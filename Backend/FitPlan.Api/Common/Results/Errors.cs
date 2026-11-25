@@ -42,6 +42,18 @@ public static class Errors
     public static readonly Error InvalidAdminSignIn =
         new("InvalidAdminSignIn", "The sign-in details or the code are wrong.", ErrorType.Unauthorized);
 
+    // Phase 12B: only shown after the right password, so it reveals nothing to a guesser.
+    public static readonly Error AccountDisabled =
+        new("AccountDisabled", "This account is disabled. Contact support.", ErrorType.Unauthorized);
+
+    // An admin's own account can't be disabled or deleted from the admin.
+    public static readonly Error AdminAccountProtected =
+        new("AdminAccountProtected", "Admin accounts can't be disabled or deleted here.", ErrorType.Conflict);
+
+    // Deleting needs the username typed out, so a slip can't delete the wrong account.
+    public static readonly Error ConfirmationMismatch =
+        new("ConfirmationMismatch", "The username you typed doesn't match.", ErrorType.Validation);
+
     // Users & Profile
     public static readonly Error UserNotFound =
         new("UserNotFound", "User not found.", ErrorType.NotFound);
@@ -58,6 +70,10 @@ public static class Errors
     // Exercises
     public static readonly Error ExerciseNotFound =
         new("ExerciseNotFound", "Exercise not found.", ErrorType.NotFound);
+
+    // 12C: both languages need a name and at least one step before an exercise is saved.
+    public static readonly Error ExerciseTextIncomplete =
+        new("ExerciseTextIncomplete", "Fill in the name and at least one step in both English and Arabic.", ErrorType.Validation);
 
     // Workout Plans
     public static readonly Error WorkoutPlanNotFound =

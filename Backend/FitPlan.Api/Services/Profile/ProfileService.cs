@@ -232,6 +232,15 @@ public class ProfileService(
             return Result<bool>.Failure(Errors.WrongPassword);
         }
 
+        await RemoveAccountAsync(user);
+
+        return Result<bool>.Success(true);
+    }
+
+    // Also used by the admin (12B), which checks the typed username instead of the password.
+    public async Task RemoveAccountAsync(User user)
+    {
+        var userId = user.Id;
         var pictureUrl = user.ProfilePictureUrl;
 
         // the retry strategy needs the whole transaction inside it, so a retry repeats all of it
@@ -244,8 +253,6 @@ public class ProfileService(
         });
 
         pictures.Delete(pictureUrl);
-
-        return Result<bool>.Success(true);
     }
 
 
