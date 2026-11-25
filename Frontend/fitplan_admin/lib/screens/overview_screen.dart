@@ -68,7 +68,7 @@ class _OverviewBody extends StatelessWidget {
       _Tile('Volume, last 7 days', _weight(o.volumeKg), _change(o.volumeKg, o.volumeKgBefore, 'the 7 before')),
       _Tile('Cardio this month', '${o.cardioThisMonth}',
           o.topCardio == null ? 'No entries yet' : 'Most used: ${_machineLabels[o.topCardio] ?? o.topCardio!.toLowerCase()}'),
-      _Tile('Reports, last 7 days', '${o.reports}', 'Read them in Reports and errors'),
+      _Tile('Open reports', '${o.openReports}', 'Read them in Reports and errors'),
     ];
 
     final workoutsPanel = Panel(
@@ -142,8 +142,8 @@ class _OverviewBody extends StatelessWidget {
       title: 'Needs attention',
       child: Column(children: [
         _AttentionRow(
-          o.reports == 0 ? 'No reports in the last 7 days' : '${o.reports} ${o.reports == 1 ? 'report' : 'reports'} in the last 7 days',
-          o.reports == 0 ? null : const Pill('Read', color: AppColors.danger),
+          o.openReports == 0 ? 'No open reports' : '${o.openReports} open ${o.openReports == 1 ? 'report' : 'reports'}',
+          o.openReports == 0 ? null : const Pill('Open', color: AppColors.danger),
         ),
         _AttentionRow(
           o.noDemo == 0 ? 'No exercises with a broken demo link' : '${o.noDemo} exercises have no working demo GIF',

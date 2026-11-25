@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore.Storage;
+using FitPlan.Api.Models;
+using FitPlan.Api.Services.Admin;
 
 namespace FitPlan.Api.Common.Exceptions;
 
@@ -11,7 +13,8 @@ namespace FitPlan.Api.Common.Exceptions;
 // everything else is a 500.
 public sealed class GlobalExceptionHandler(
     ILogger<GlobalExceptionHandler> logger,
-    IProblemDetailsService problemDetailsService) : IExceptionHandler
+    IProblemDetailsService problemDetailsService,
+    ServerEventLog events) : IExceptionHandler
 {
     public const string DatabaseUnavailableCode = "DatabaseUnavailable";
     public const int RetryAfterSeconds = 10;
@@ -43,6 +46,8 @@ public sealed class GlobalExceptionHandler(
                 "Unhandled exception while processing {Method} {Path}",
                 httpContext.Request.Method,
                 httpContext.Request.Path);
+            // a sleeping database is expected on the free plan, and couldn't take the write anyway
+            await events.RecordAsync(ServerEventKind.ApiError, ServerEventLog.Endpoint(httpContext), exception.GetType().Name, httpContext);
         }
 
         var status = databaseUnavailable

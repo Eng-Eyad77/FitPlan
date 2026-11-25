@@ -23,6 +23,7 @@ public sealed class MigrationTests : IAsyncLifetime
         "ExerciseTranslations",
         "ProblemReports",
         "RefreshTokens",
+        "ServerEvents",
         "SessionExercises",
         "SessionSets",
         "TermTranslations",

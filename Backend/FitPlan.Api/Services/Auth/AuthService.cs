@@ -15,7 +15,7 @@ using System.Security.Claims;
 
 namespace FitPlan.Api.Services.Auth;
 
-public class AuthService(FitPlanDbContext context, IConfiguration configuration, TimeProvider time, EmailCodeService emailCodes) : IAuthService
+public class AuthService(FitPlanDbContext context, IConfiguration configuration, TimeProvider time, EmailCodeService emailCodes, ServerEventLog events) : IAuthService
 {
     // A phone can lose the response to a refresh and send the same token again. Inside this window
     // that isn't treated as theft: a second new token is issued and the family stays valid.
@@ -193,11 +193,14 @@ public class AuthService(FitPlanDbContext context, IConfiguration configuration,
         if (user is null ||
             new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, request.Password) == PasswordVerificationResult.Failed)
         {
+            // what was typed is never stored: it could be someone's email or a password in the wrong box
+            await events.RecordAsync(ServerEventKind.FailedSignIn, user?.Username ?? "Unknown account", user is null ? "No such account" : "Wrong password");
             return Result<AuthResponseDto>.Failure(Errors.InvalidCredentials);
         }
 
         if (user.DisabledAt is not null)
         {
+            await events.RecordAsync(ServerEventKind.FailedSignIn, user.Username, "Disabled account");
             return Result<AuthResponseDto>.Failure(Errors.AccountDisabled);
         }
 
@@ -219,6 +222,8 @@ public class AuthService(FitPlanDbContext context, IConfiguration configuration,
             new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, request.Password) == PasswordVerificationResult.Failed ||
             Totp.Match(admin.TotpSecret, request.Code.Trim(), now, admin.LastTotpStep) is not { } step)
         {
+            // which part was wrong isn't recorded either, like the answer to the caller
+            await events.RecordAsync(ServerEventKind.FailedSignIn, user?.Username ?? "Unknown account", "Admin sign-in refused");
             return Result<AdminSignInResponseDto>.Failure(Errors.InvalidAdminSignIn);
         }
 

@@ -45,6 +45,8 @@ public class FitPlanDbContext : DbContext
 
     public DbSet<AdminAuditEntry> AdminAuditEntries => Set<AdminAuditEntry>();
 
+    public DbSet<ServerEvent> ServerEvents => Set<ServerEvent>();
+
 
     // Applies to every DateTime property in every entity, including ones we add later.
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)

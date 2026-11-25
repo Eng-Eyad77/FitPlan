@@ -216,7 +216,7 @@ class Overview {
     required this.volumeKgBefore,
     required this.cardioThisMonth,
     required this.topCardio,
-    required this.reports,
+    required this.openReports,
     required this.noDemo,
     required this.emailsToday,
     required this.emailLimit,
@@ -236,7 +236,7 @@ class Overview {
         volumeKgBefore: (json['volumeKgPrevious7Days'] as num).toDouble(),
         cardioThisMonth: json['cardioEntriesThisMonth'] as int,
         topCardio: json['mostUsedCardioMachine'] as String?,
-        reports: json['reportsLast7Days'] as int,
+        openReports: json['openReports'] as int,
         noDemo: json['exercisesWithoutDemo'] as int,
         emailsToday: json['emailsToday'] as int,
         emailLimit: json['emailsPerDayLimit'] as int,
@@ -257,7 +257,7 @@ class Overview {
   final double volumeKgBefore;
   final int cardioThisMonth;
   final String? topCardio;
-  final int reports;
+  final int openReports;
   final int noDemo;
   final int emailsToday;
   final int emailLimit;
@@ -265,6 +265,26 @@ class Overview {
   final List<int> signUpsPerWeek;
   final List<({String name, int workouts})> topExercises;
 }
+
+/// 12F: a report from the app. Users are named by username only.
+typedef Report = ({
+  int id,
+  String username,
+  String message,
+  bool isSuggestion,
+  String? platform,
+  String? appVersion,
+  String language,
+  bool sentToTelegram,
+  DateTime createdAt,
+  DateTime? doneAt,
+});
+
+typedef ReportPage = ({List<Report> items, int page, int totalPages, int open, int suggestions, int done});
+
+typedef ApiError = ({DateTime createdAt, String endpoint, String error, String? requestId});
+
+typedef FailedSignIn = ({String account, String reason, int attempts, DateTime lastAt});
 
 DateTime? _date(Object? value) => value == null ? null : DateTime.parse(value as String).toLocal();
 
@@ -437,6 +457,72 @@ class AdminApi {
   /// Kept by the server for 10 minutes; [refresh] counts again.
   Future<Overview> overview({bool refresh = false}) async => Overview.fromJson(
       await _call(() => _dio.get<Map<String, dynamic>>('/api/admin/overview', queryParameters: {'refresh': refresh})));
+
+  /// filter: open, suggestions or done
+  Future<ReportPage> reports({String filter = 'open', int page = 1}) async {
+    final json = await _call(() => _dio.get<Map<String, dynamic>>('/api/admin/reports', queryParameters: {'filter': filter, 'page': page}));
+    final counts = json['counts'] as Map<String, dynamic>;
+    return (
+      items: [
+        for (final r in json['items'] as List)
+          (
+            id: r['id'] as int,
+            username: r['username'] as String,
+            message: r['message'] as String,
+            isSuggestion: r['isSuggestion'] as bool,
+            platform: r['platform'] as String?,
+            appVersion: r['appVersion'] as String?,
+            language: r['language'] as String,
+            sentToTelegram: r['sentToTelegram'] as bool,
+            createdAt: _date(r['createdAt'])!,
+            doneAt: _date(r['doneAt']),
+          ),
+      ],
+      page: json['page'] as int,
+      totalPages: json['totalPages'] as int,
+      open: counts['open'] as int,
+      suggestions: counts['suggestions'] as int,
+      done: counts['done'] as int,
+    );
+  }
+
+  Future<void> setReportDone(int id, bool done) => _send(() => _dio.post<void>('/api/admin/reports/$id/${done ? 'done' : 'reopen'}'));
+
+  /// The CSV file of every report (no emails). Logged by the server.
+  Future<List<int>> exportReports() async {
+    try {
+      return (await _dio.get<List<int>>('/api/admin/reports/export', options: Options(responseType: ResponseType.bytes))).data!;
+    } on DioException catch (error) {
+      throw describe(error.response?.statusCode, null);
+    }
+  }
+
+  /// API errors and failed sign-ins of the last 24 hours.
+  Future<({List<ApiError> apiErrors, List<FailedSignIn> failedSignIns})> errors() async {
+    final json = await _call(() => _dio.get<Map<String, dynamic>>('/api/admin/errors'));
+    return (
+      apiErrors: [
+        for (final e in json['apiErrors'] as List)
+          (createdAt: _date(e['createdAt'])!, endpoint: e['endpoint'] as String, error: e['error'] as String, requestId: e['requestId'] as String?),
+      ],
+      failedSignIns: [
+        for (final f in json['failedSignIns'] as List)
+          (account: f['account'] as String, reason: f['reason'] as String, attempts: f['attempts'] as int, lastAt: _date(f['lastAt'])!),
+      ],
+    );
+  }
+
+  /// Outside Production: makes the server fail once, so the error list can be checked. Returns its request ID.
+  Future<String?> throwTestError() async {
+    try {
+      await _dio.post<void>('/api/admin/errors/test');
+      return null;
+    } on DioException catch (error) {
+      final body = error.response?.data;
+      if (error.response?.statusCode == 500 && body is Map) return body['traceId'] as String?;
+      throw describe(error.response?.statusCode, body);
+    }
+  }
 
   Future<void> _send(Future<Response<void>> Function() request) async {
     try {

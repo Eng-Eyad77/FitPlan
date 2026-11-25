@@ -12,7 +12,8 @@ public record AdminOverviewDto(
     decimal VolumeKgPrevious7Days,
     int CardioEntriesThisMonth,
     string? MostUsedCardioMachine,
-    int ReportsLast7Days,
+    // problems not marked done yet (suggestions not counted)
+    int OpenReports,
     int ExercisesWithoutDemo,
     int EmailsToday,
     int EmailsPerDayLimit,

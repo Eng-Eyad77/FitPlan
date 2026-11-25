@@ -26,6 +26,7 @@ public static class Scripts
     public const string AddAdminAccounts = "20261125111341_AddAdminAccounts";
     public const string AddUserDisabledAt = "20261125115809_AddUserDisabledAt";
     public const string AddExerciseAdminFields = "20261125121402_AddExerciseAdminFields";
+    public const string AddReportStatusAndServerEvents = "20261125174304_AddReportStatusAndServerEvents";
 
     public static readonly KnownMigrations Known = KnownMigrations.FromApi();
 
