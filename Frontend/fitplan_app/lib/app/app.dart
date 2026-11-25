@@ -1,8 +1,8 @@
+import 'package:fitplan_shared/fitplan_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../core/theme/app_theme.dart';
 import '../features/exercises/data/exercises_repository.dart';
 import '../features/history/application/history_controller.dart';
 import '../features/plans/application/plans_controller.dart';

@@ -6,7 +6,7 @@ class BrandMark extends StatelessWidget {
 
   final double size;
 
-  static const asset = 'assets/brand/logo.png';
+  static const asset = 'lib/brand/logo.png';
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +16,7 @@ class BrandMark extends StatelessWidget {
       child: ClipRRect(
         // the icon has its own rounded frame; this only trims the corners outside it
         borderRadius: BorderRadius.circular(size * 0.22),
-        child: Image.asset(asset, width: size, height: size, filterQuality: FilterQuality.medium),
+        child: Image.asset(asset, package: 'fitplan_shared', width: size, height: size, filterQuality: FilterQuality.medium),
       ),
     );
   }

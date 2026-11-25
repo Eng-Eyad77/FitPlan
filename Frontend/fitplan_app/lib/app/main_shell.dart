@@ -1,8 +1,7 @@
+import 'package:fitplan_shared/fitplan_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../core/theme/app_colors.dart';
-import '../core/theme/app_text.dart';
 import '../l10n/l10n.dart';
 
 /// The screen frame with the bottom tab bar (Home, Plans, History, Progress).

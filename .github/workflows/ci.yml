@@ -74,3 +74,10 @@ jobs:
       - run: flutter pub get --enforce-lockfile
       - run: flutter analyze
       - run: flutter test
+      # the admin (Phase 12) shares fitplan_shared with the phone app
+      - run: flutter pub get --enforce-lockfile
+        working-directory: Frontend/fitplan_admin
+      - run: flutter analyze
+        working-directory: Frontend/fitplan_admin
+      - run: flutter test
+        working-directory: Frontend/fitplan_admin

@@ -4,7 +4,9 @@ using FitPlan.Api.Common.Results;
 using FitPlan.Api.Data;
 using FitPlan.Api.DTOs.Auth;
 using FitPlan.Api.Models;
+using FitPlan.Api.Services.Admin;
 using FitPlan.Api.Services.Email;
+using FitPlan.Api.DTOs.Admin;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -17,17 +19,24 @@ public class AuthService(FitPlanDbContext context, IConfiguration configuration,
 {
     // A phone can lose the response to a refresh and send the same token again. Inside this window
     // that isn't treated as theft: a second new token is issued and the family stays valid.
+    public const string AdminClaim = "fitplan_admin";
+
     public static readonly TimeSpan ReuseGrace = TimeSpan.FromSeconds(30);
 
     private TimeSpan RefreshLifetime =>
         TimeSpan.FromDays(configuration.GetValue<int?>("Jwt:RefreshTokenDays") is > 0 and var days ? days : 30);
 
-    private string GenerateAccessToken(User user)
+    // Admin sessions are short and can't be refreshed: after an hour the admin signs in again with a new code.
+    public static readonly TimeSpan AdminSessionLifetime = TimeSpan.FromHours(1);
+
+    private string GenerateAccessToken(User user, AdminRole? adminRole = null)
     {
         var issuer = configuration["Jwt:Issuer"];
         var audience = configuration["Jwt:Audience"];
         var key = configuration["Jwt:Key"];
-        var expirationInMinutes = configuration.GetValue<int>("Jwt:ExpirationInMinutes");
+        var expirationInMinutes = adminRole is null
+            ? configuration.GetValue<int>("Jwt:ExpirationInMinutes")
+            : (int)AdminSessionLifetime.TotalMinutes;
 
         if (string.IsNullOrWhiteSpace(issuer) || string.IsNullOrWhiteSpace(audience) || string.IsNullOrWhiteSpace(key) || expirationInMinutes <= 0)
         {
@@ -42,6 +51,12 @@ public class AuthService(FitPlanDbContext context, IConfiguration configuration,
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
         };
+
+        // only tokens from the admin sign-in carry it, so the phone app's tokens never open /api/admin
+        if (adminRole is { } role)
+        {
+            claims.Add(new Claim(AdminClaim, role.ToString()));
+        }
 
         var tokenDescriptor = new JwtSecurityToken
         (
@@ -176,6 +191,41 @@ public class AuthService(FitPlanDbContext context, IConfiguration configuration,
         }
 
         return Result<AuthResponseDto>.Success(await IssueAsync(user, Guid.NewGuid()));
+    }
+
+    // Phase 12: the password and the authenticator code, both checked before anything is said.
+    public async Task<Result<AdminSignInResponseDto>> AdminLoginAsync(AdminLoginRequestDto request)
+    {
+        var login = request.Login.Trim();
+        var email = EmailCodeService.Normalize(login);
+        var user = login.Contains('@')
+            ? await context.Users.FirstOrDefaultAsync(u => u.Email == email)
+            : await context.Users.FirstOrDefaultAsync(u => u.Username == login);
+        var admin = user is null ? null : await context.AdminAccounts.FirstOrDefaultAsync(a => a.UserId == user.Id);
+
+        var now = time.GetUtcNow();
+        if (user is null || admin is null ||
+            new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, request.Password) == PasswordVerificationResult.Failed ||
+            Totp.Match(admin.TotpSecret, request.Code.Trim(), now, admin.LastTotpStep) is not { } step)
+        {
+            return Result<AdminSignInResponseDto>.Failure(Errors.InvalidAdminSignIn);
+        }
+
+        admin.LastTotpStep = step;
+        AdminAudit.Add(context, user, "Signed in", null, now.UtcDateTime);
+
+        // two sign-ins racing with the same code: only the first one saves
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return Result<AdminSignInResponseDto>.Failure(Errors.InvalidAdminSignIn);
+        }
+
+        return Result<AdminSignInResponseDto>.Success(new AdminSignInResponseDto(
+            user.Username, admin.Role, GenerateAccessToken(user, admin.Role), now.UtcDateTime + AdminSessionLifetime));
     }
 
     public async Task<Result<AuthResponseDto>> RefreshAsync(string refreshToken)

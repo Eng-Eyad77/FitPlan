@@ -8,6 +8,7 @@ using FitPlan.Migrator;
 //   FitPlan.Migrator import-exercises <file.json> --sha256 <approved hash> --target dev
 //   (import-exercises takes --target prod --confirm FitPlanDb the same way as apply)
 //   FitPlan.Migrator check-gifs <file.json>
+//   FitPlan.Migrator make-owner <email or username> --target dev   (or --target prod --confirm FitPlanDb)
 //   FitPlan.Migrator update-exercise-details <file.json> --sha256 <approved hash> --target dev
 //   FitPlan.Migrator import-translations <pack.json> --sha256 <approved hash> --target dev
 //   (both take --target prod --confirm FitPlanDb the same way as apply)
@@ -76,6 +77,29 @@ if (args.Length >= 2 && args[0] == "check-gifs")
 
     // exit 0 only when every link was answered, so "broken" never hides "not checked"
     return results.Any(r => r.Status == GifStatus.Unreachable) ? Failed : 0;
+}
+
+if (args.Length >= 2 && args[0] == "make-owner")
+{
+    // make-owner <email or username> --target dev | --target prod --confirm FitPlanDb
+    var ownerTarget = Option("--target");
+    if (ownerTarget is not ("dev" or "prod") || (ownerTarget == "prod" && Option("--confirm") != MigrationTarget.ProdDatabase))
+    {
+        Console.Error.WriteLine($"make-owner needs --target dev, or --target prod --confirm {MigrationTarget.ProdDatabase}. Nothing was changed.");
+        return Usage;
+    }
+
+    var outcome = await OwnerCommand.MakeOwnerAsync(ownerTarget == "prod" ? MigrationTarget.Prod : MigrationTarget.Dev, args[1], DateTime.UtcNow);
+    Console.WriteLine(outcome.Message);
+    if (outcome.Secret is null)
+    {
+        return Refused;
+    }
+
+    // shown once and never saved anywhere else
+    Console.WriteLine($"Secret (type it in by hand): {outcome.Secret}");
+    Console.WriteLine($"Or open this link on the phone: {FitPlan.Api.Services.Admin.Totp.SetupUri(outcome.Username!, outcome.Secret)}");
+    return 0;
 }
 
 if (args.Length < 2 || args[0] is not ("validate" or "apply" or "import-exercises" or "update-exercise-details" or "import-translations"))

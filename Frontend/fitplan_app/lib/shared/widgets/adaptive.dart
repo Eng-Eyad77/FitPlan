@@ -1,10 +1,8 @@
+import 'package:fitplan_shared/fitplan_shared.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_spacing.dart';
-import '../../core/theme/app_text.dart';
 import '../../l10n/l10n.dart';
 
 /// Menus and confirmations that look native: the iOS action sheet and alert on iPhone, Material on

@@ -1,6 +1,6 @@
+import 'package:fitplan_shared/fitplan_shared.dart';
 import 'package:flutter/material.dart';
 
-import '../shared/widgets/brand_mark.dart';
 
 /// Shown for a moment while the saved session is read from secure storage. Same colour and logo
 /// size as the native launch screen (iOS LaunchScreen.storyboard, Android launch_background.xml),

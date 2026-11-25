@@ -1,6 +1,6 @@
+import 'package:fitplan_shared/fitplan_shared.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
 import '../../domain/volume.dart';
 
 /// The picture of a milestone, in a rounded tile. Material icons where one exists; the

@@ -19,12 +19,22 @@ public static class ApplicationBuilderExtensions
             app.UseSwaggerUI();
             app.MapOpenApi();
 
-            // Flutter Web runs on another localhost port, so the browser needs CORS to call the API.
-            // Development only: the mobile apps do not use CORS at all.
+        }
+
+        // Browsers need CORS for Flutter Web; the phone apps don't use it at all. Locally and on Dev
+        // only localhost may call (the admin runs on your machine there, D10). Elsewhere only the admin
+        // site in Cors:AdminOrigin, and nothing if it isn't set.
+        var adminOrigin = app.Configuration["Cors:AdminOrigin"];
+        if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Dev"))
+        {
             app.UseCors(policy => policy
                 .SetIsOriginAllowed(origin => new Uri(origin).IsLoopback)
                 .AllowAnyHeader()
                 .AllowAnyMethod());
+        }
+        else if (!string.IsNullOrWhiteSpace(adminOrigin))
+        {
+            app.UseCors(policy => policy.WithOrigins(adminOrigin).AllowAnyHeader().AllowAnyMethod());
         }
 
         app.UseHttpsRedirection();

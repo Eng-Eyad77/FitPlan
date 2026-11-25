@@ -1,9 +1,7 @@
+import 'package:fitplan_shared/fitplan_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_text.dart';
 import '../../../../shared/format.dart';
 import '../../domain/workout_session.dart';
 import '../../../../l10n/l10n.dart';

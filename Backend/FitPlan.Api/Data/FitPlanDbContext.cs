@@ -41,6 +41,10 @@ public class FitPlanDbContext : DbContext
 
     public DbSet<VolumeMilestone> VolumeMilestones => Set<VolumeMilestone>();
 
+    public DbSet<AdminAccount> AdminAccounts => Set<AdminAccount>();
+
+    public DbSet<AdminAuditEntry> AdminAuditEntries => Set<AdminAuditEntry>();
+
 
     // Applies to every DateTime property in every entity, including ones we add later.
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)

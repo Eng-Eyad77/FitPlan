@@ -38,6 +38,10 @@ public static class Errors
     public static readonly Error WrongPassword =
         new("WrongPassword", "Your password is wrong.", ErrorType.Validation);
 
+    // Admin sign-in (Phase 12). One error for a wrong password, a wrong code and a non-admin, so it reveals nothing.
+    public static readonly Error InvalidAdminSignIn =
+        new("InvalidAdminSignIn", "The sign-in details or the code are wrong.", ErrorType.Unauthorized);
+
     // Users & Profile
     public static readonly Error UserNotFound =
         new("UserNotFound", "User not found.", ErrorType.NotFound);

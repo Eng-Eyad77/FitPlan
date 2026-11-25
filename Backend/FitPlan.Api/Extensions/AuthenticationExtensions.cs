@@ -2,6 +2,8 @@
 using System.Security.Claims;
 using System.Text;
 using FitPlan.Api.Data;
+using FitPlan.Api.Models;
+using FitPlan.Api.Services.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +13,9 @@ namespace FitPlan.Api.Extensions;
 
 public static class AuthenticationExtensions
 {
+    // every /api/admin endpoint needs it (Phase 12)
+    public const string AdminPolicy = "admin";
+
     public static IServiceCollection AddAuthenticationServices(
         this IServiceCollection services,
         IConfiguration configuration)
@@ -55,11 +60,18 @@ public static class AuthenticationExtensions
                         {
                             context.Fail("The account no longer exists.");
                         }
+                        // an admin removed during the hour their token lasts loses access at once
+                        else if (context.Principal!.HasClaim(c => c.Type == AuthService.AdminClaim)
+                                 && !await database.AdminAccounts.AnyAsync(a => a.UserId == userId))
+                        {
+                            context.Fail("The account is no longer an admin.");
+                        }
                     }
                 };
             });
 
-        services.AddAuthorization();
+        services.AddAuthorization(options =>
+            options.AddPolicy(AdminPolicy, policy => policy.RequireClaim(AuthService.AdminClaim, nameof(AdminRole.Owner))));
 
         return services;
     }

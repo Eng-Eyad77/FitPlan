@@ -1,9 +1,8 @@
+import 'package:fitplan_shared/fitplan_shared.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_text.dart';
 import '../../../../l10n/l10n.dart';
 
 /// One bar per week (oldest first, the last is this week), with the value on touch.
