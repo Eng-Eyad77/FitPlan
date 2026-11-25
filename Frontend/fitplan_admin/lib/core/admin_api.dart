@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
+import 'browser/pick.dart';
 import 'env.dart';
 
 class AdminSession {
@@ -522,6 +523,21 @@ class AdminApi {
       if (error.response?.statusCode == 500 && body is Map) return body['traceId'] as String?;
       throw describe(error.response?.statusCode, body);
     }
+  }
+
+  /// The largest GIF the server takes.
+  static const maxGifBytes = 5 * 1024 * 1024;
+
+  /// The browser's file picker, for a GIF. A method here so the tests can stand in for it.
+  Future<({String name, Uint8List bytes})?> pickGif() => pickFile('.gif,image/gif');
+
+  /// Replaces the exercise's demo. Returns the new address.
+  Future<String> uploadGif(String id, Uint8List bytes, String name) async {
+    final json = await _call(() => _dio.post<Map<String, dynamic>>(
+          '/api/admin/exercises/${Uri.encodeComponent(id)}/gif',
+          data: FormData.fromMap({'file': MultipartFile.fromBytes(bytes, filename: name, contentType: DioMediaType('image', 'gif'))}),
+        ));
+    return json['gifUrl'] as String;
   }
 
   Future<void> _send(Future<Response<void>> Function() request) async {

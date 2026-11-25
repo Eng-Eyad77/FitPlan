@@ -75,6 +75,15 @@ public static class Errors
         new("ExerciseNotFound", "Exercise not found.", ErrorType.NotFound);
 
     // 12C: both languages need a name and at least one step before an exercise is saved.
+    public static readonly Error GifNotValid =
+        new("GifNotValid", "Upload a GIF file of up to 5 MB.", ErrorType.Validation);
+
+    public static readonly Error GifTooLarge =
+        new("GifTooLarge", "The GIF is over 5 MB. Make it smaller and try again.", ErrorType.PayloadTooLarge);
+
+    public static readonly Error GifUploadNotSetUp =
+        new("GifUploadNotSetUp", "GIF upload isn't set up on this server yet.", ErrorType.ServiceUnavailable);
+
     public static readonly Error ExerciseTextIncomplete =
         new("ExerciseTextIncomplete", "Fill in the name and at least one step in both English and Arabic.", ErrorType.Validation);
 

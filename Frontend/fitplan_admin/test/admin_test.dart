@@ -1,5 +1,7 @@
 import 'package:fitplan_admin/app.dart';
 import 'package:fitplan_admin/core/admin_api.dart';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -118,6 +120,17 @@ class _FakeApi extends AdminApi {
       ];
 
   bool refreshed = false;
+  ({String name, Uint8List bytes})? nextPick;
+  String? uploadedName;
+
+  @override
+  Future<({String name, Uint8List bytes})?> pickGif() async => nextPick;
+
+  @override
+  Future<String> uploadGif(String id, Uint8List bytes, String name) async {
+    uploadedName = name;
+    return 'https://media.example.test/a.gif';
+  }
   bool exported = false;
 
   @override
@@ -365,5 +378,31 @@ void main() {
     await tester.tap(find.text('Export CSV'));
     await tester.pumpAndSettle();
     expect(api.exported, isTrue);
+  });
+
+  testWidgets('exercises: a broken demo can be replaced by an uploaded GIF, and one over 5 MB is stopped first', (tester) async {
+    final api = await openApp(tester);
+    await enterPassword(tester);
+    await tester.enterText(find.byType(TextField), '123456');
+    await tester.tap(find.text('Sign in'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Exercises').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Barbell pin presses'));
+    await tester.pumpAndSettle();
+
+    api.nextPick = (name: 'big.gif', bytes: Uint8List(AdminApi.maxGifBytes + 1));
+    await tester.tap(find.text('Upload GIF'));
+    await tester.pumpAndSettle();
+    expect(api.uploadedName, isNull);
+    expect(find.textContaining('over 5 MB'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 5)); // let the message go
+    await tester.pumpAndSettle();
+
+    api.nextPick = (name: 'press.gif', bytes: Uint8List.fromList([71, 73, 70, 56, 57, 97, 0]));
+    await tester.tap(find.text('Upload GIF'));
+    await tester.pumpAndSettle();
+    expect(api.uploadedName, 'press.gif');
+    expect(find.textContaining('Uploaded.'), findsOneWidget);
   });
 }

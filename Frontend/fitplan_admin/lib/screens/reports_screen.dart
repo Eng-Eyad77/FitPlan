@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
 import '../core/admin_api.dart';
-import '../core/download/download.dart';
+import '../core/browser/download.dart';
 import '../core/env.dart';
 import 'widgets.dart';
 

@@ -72,10 +72,13 @@ public sealed class ApiFixture : IAsyncLifetime
             .UseEnvironment(TestEnvironment)
             .ConfigureTestServices(services => services
                 .AddSingleton<IEmailSender>(Emails)
-                .AddSingleton<ITelegramNotifier>(Telegram)));
+                .AddSingleton<ITelegramNotifier>(Telegram)
+                .AddSingleton<FitPlan.Api.Services.Exercises.IGifStorage>(Gifs)));
 
     // every email the API sends, from every host
     public FakeEmailSender Emails { get; } = new();
+
+    public FakeGifStorage Gifs { get; } = new();
 
     // every Telegram message the API sends, from every host
     public FakeTelegramNotifier Telegram { get; } = new();
