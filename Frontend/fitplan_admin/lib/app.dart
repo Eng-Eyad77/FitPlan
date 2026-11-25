@@ -7,6 +7,7 @@ import 'screens/admins_screen.dart';
 import 'screens/coming_soon_screen.dart';
 import 'screens/shell.dart';
 import 'screens/sign_in_screen.dart';
+import 'screens/users_screen.dart';
 
 class AdminApp extends StatefulWidget {
   const AdminApp({super.key, required this.api});
@@ -44,7 +45,11 @@ class _AdminAppState extends State<AdminApp> {
             GoRoute(
               path: area.path,
               pageBuilder: (context, state) => NoTransitionPage(
-                child: area == AdminArea.admins ? AdminsScreen(api: widget.api) : ComingSoonScreen(area: area),
+                child: switch (area) {
+                  AdminArea.admins => AdminsScreen(api: widget.api),
+                  AdminArea.users => UsersScreen(api: widget.api),
+                  _ => ComingSoonScreen(area: area),
+                },
               ),
             ),
         ],

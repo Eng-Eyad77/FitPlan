@@ -26,6 +26,7 @@ class ApiException implements Exception {
   String get message => switch (code) {
         'UsernameAlreadyExists' => l10n.errUsernameAlreadyExists,
         'InvalidCredentials' => l10n.errInvalidCredentials,
+        'AccountDisabled' => l10n.errAccountDisabled,
         'InvalidRefreshToken' || 'Unauthorized' => l10n.errInvalidRefreshToken,
         'InvalidEmailCode' => l10n.errInvalidEmailCode,
         'EmailAlreadyExists' => l10n.errEmailAlreadyExists,

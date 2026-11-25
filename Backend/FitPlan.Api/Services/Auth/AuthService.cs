@@ -163,6 +163,12 @@ public class AuthService(FitPlanDbContext context, IConfiguration configuration,
             return Result<AuthResponseDto>.Failure(Errors.InvalidEmailCode);
         }
 
+        // a new password doesn't bring a disabled account back
+        if (user.DisabledAt is not null)
+        {
+            return Result<AuthResponseDto>.Failure(Errors.AccountDisabled);
+        }
+
         var now = time.GetUtcNow().UtcDateTime;
         user.PasswordHash = new PasswordHasher<User>().HashPassword(user, request.NewPassword);
         user.UpdatedAt = now;
@@ -188,6 +194,11 @@ public class AuthService(FitPlanDbContext context, IConfiguration configuration,
             new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, request.Password) == PasswordVerificationResult.Failed)
         {
             return Result<AuthResponseDto>.Failure(Errors.InvalidCredentials);
+        }
+
+        if (user.DisabledAt is not null)
+        {
+            return Result<AuthResponseDto>.Failure(Errors.AccountDisabled);
         }
 
         return Result<AuthResponseDto>.Success(await IssueAsync(user, Guid.NewGuid()));
@@ -235,7 +246,7 @@ public class AuthService(FitPlanDbContext context, IConfiguration configuration,
             .Include(t => t.User)
             .FirstOrDefaultAsync(t => t.TokenHash == Hash(refreshToken));
 
-        if (stored is null || stored.RevokedAt is not null || stored.ExpiresAt <= now)
+        if (stored is null || stored.RevokedAt is not null || stored.ExpiresAt <= now || stored.User.DisabledAt is not null)
         {
             return Result<AuthResponseDto>.Failure(Errors.InvalidRefreshToken);
         }

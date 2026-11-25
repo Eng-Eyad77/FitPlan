@@ -17,6 +17,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'الإيميل أو اسم المستخدم أو كلمة المرور غلط.';
 
   @override
+  String get errAccountDisabled =>
+      'هذا الحساب موقوف. تواصل معنا على support@fitplan-app.com';
+
+  @override
   String get errInvalidRefreshToken => 'انتهت جلستك. سجّل دخولك مرة ثانية.';
 
   @override

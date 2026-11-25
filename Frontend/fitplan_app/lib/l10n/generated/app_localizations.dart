@@ -110,6 +110,12 @@ abstract class AppLocalizations {
   /// **'Invalid email, username or password.'**
   String get errInvalidCredentials;
 
+  /// No description provided for @errAccountDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'This account is disabled. Contact support@fitplan-app.com.'**
+  String get errAccountDisabled;
+
   /// No description provided for @errInvalidRefreshToken.
   ///
   /// In en, this message translates to:

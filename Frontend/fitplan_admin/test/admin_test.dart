@@ -19,6 +19,50 @@ class _FakeApi extends AdminApi {
     );
   }
 
+  final actions = <String>[];
+
+  @override
+  Future<UserPage> users({String search = '', String status = 'all', int page = 1}) async => UserPage(
+        items: [
+          UserRow(
+            id: 'u1',
+            username: 'sami_lifts',
+            email: 's***@gmail.com',
+            createdAt: DateTime(2026, 11, 4),
+            lastWorkoutAt: null,
+            disabled: actions.contains('u1:disable'),
+            isAdmin: false,
+          ),
+        ],
+        page: 1,
+        totalPages: 1,
+        totalCount: 1,
+      );
+
+  @override
+  Future<UserDetail> user(String id) async => UserDetail(
+        id: id,
+        username: 'sami_lifts',
+        email: 's***@gmail.com',
+        createdAt: DateTime(2026, 11, 4),
+        disabledAt: actions.contains('$id:disable') ? DateTime(2026, 11, 25) : null,
+        isAdmin: false,
+        workouts: 23,
+        plans: 3,
+        signedInDevices: 2,
+        reports: 1,
+        lastWorkoutAt: null,
+      );
+
+  @override
+  Future<String> revealEmail(String id) async {
+    actions.add('$id:reveal');
+    return 'sami@gmail.com';
+  }
+
+  @override
+  Future<void> userAction(String id, String action) async => actions.add('$id:$action');
+
   @override
   Future<AuditPage> audit({int page = 1}) async => AuditPage(
         items: [AuditEntry(adminName: 'eyad', action: 'Signed in', target: null, createdAt: DateTime(2026, 11, 25, 10, 12))],
@@ -78,5 +122,32 @@ void main() {
     api.signOut();
     await tester.pumpAndSettle();
     expect(find.text('Admin sign in'), findsOneWidget);
+  });
+
+  testWidgets('users: pick one, show the email, disable after confirming', (tester) async {
+    final api = await openApp(tester);
+    await enterPassword(tester);
+    await tester.enterText(find.byType(TextField), '123456');
+    await tester.tap(find.text('Sign in'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Users').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('sami_lifts'));
+    await tester.pumpAndSettle();
+    expect(find.text('23'), findsOneWidget);
+
+    await tester.tap(find.text('Show'));
+    await tester.pumpAndSettle();
+    expect(find.text('sami@gmail.com'), findsOneWidget);
+
+    await tester.tap(find.text('Disable account'));
+    await tester.pumpAndSettle();
+    expect(api.actions, isNot(contains('u1:disable')));
+    await tester.tap(find.widgetWithText(FilledButton, 'Disable'));
+    await tester.pumpAndSettle();
+
+    expect(api.actions, containsAll(['u1:reveal', 'u1:disable']));
+    expect(find.text('Enable account'), findsOneWidget);
   });
 }

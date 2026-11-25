@@ -2,6 +2,7 @@
   "@@locale": "ar",
   "errUsernameAlreadyExists": "اسم المستخدم مأخوذ.",
   "errInvalidCredentials": "الإيميل أو اسم المستخدم أو كلمة المرور غلط.",
+  "errAccountDisabled": "هذا الحساب موقوف. تواصل معنا على support@fitplan-app.com",
   "errInvalidRefreshToken": "انتهت جلستك. سجّل دخولك مرة ثانية.",
   "errWrongPassword": "كلمة المرور غلط.",
   "errUserNotFound": "ما لقينا الحساب.",

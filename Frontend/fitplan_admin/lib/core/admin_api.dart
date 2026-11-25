@@ -36,6 +36,91 @@ class AuditPage {
   final int totalPages;
 }
 
+class UserRow {
+  const UserRow({
+    required this.id,
+    required this.username,
+    required this.email,
+    required this.createdAt,
+    required this.lastWorkoutAt,
+    required this.disabled,
+    required this.isAdmin,
+  });
+
+  factory UserRow.fromJson(Map<String, dynamic> json) => UserRow(
+        id: json['id'] as String,
+        username: json['username'] as String,
+        email: json['email'] as String,
+        createdAt: _date(json['createdAt'])!,
+        lastWorkoutAt: _date(json['lastWorkoutAt']),
+        disabled: json['disabled'] as bool,
+        isAdmin: json['isAdmin'] as bool,
+      );
+
+  final String id;
+  final String username;
+
+  /// masked, such as s***@gmail.com
+  final String email;
+  final DateTime createdAt;
+  final DateTime? lastWorkoutAt;
+  final bool disabled;
+  final bool isAdmin;
+}
+
+class UserPage {
+  const UserPage({required this.items, required this.page, required this.totalPages, required this.totalCount});
+
+  final List<UserRow> items;
+  final int page;
+  final int totalPages;
+  final int totalCount;
+}
+
+class UserDetail {
+  const UserDetail({
+    required this.id,
+    required this.username,
+    required this.email,
+    required this.createdAt,
+    required this.disabledAt,
+    required this.isAdmin,
+    required this.workouts,
+    required this.plans,
+    required this.signedInDevices,
+    required this.reports,
+    required this.lastWorkoutAt,
+  });
+
+  factory UserDetail.fromJson(Map<String, dynamic> json) => UserDetail(
+        id: json['id'] as String,
+        username: json['username'] as String,
+        email: json['email'] as String,
+        createdAt: _date(json['createdAt'])!,
+        disabledAt: _date(json['disabledAt']),
+        isAdmin: json['isAdmin'] as bool,
+        workouts: json['workouts'] as int,
+        plans: json['plans'] as int,
+        signedInDevices: json['signedInDevices'] as int,
+        reports: json['reports'] as int,
+        lastWorkoutAt: _date(json['lastWorkoutAt']),
+      );
+
+  final String id;
+  final String username;
+  final String email;
+  final DateTime createdAt;
+  final DateTime? disabledAt;
+  final bool isAdmin;
+  final int workouts;
+  final int plans;
+  final int signedInDevices;
+  final int reports;
+  final DateTime? lastWorkoutAt;
+}
+
+DateTime? _date(Object? value) => value == null ? null : DateTime.parse(value as String).toLocal();
+
 /// A failed call, with a sentence to show.
 class AdminApiException implements Exception {
   const AdminApiException(this.code, this.message);
@@ -98,6 +183,41 @@ class AdminApi {
       page: json['page'] as int,
       totalPages: json['totalPages'] as int,
     );
+  }
+
+  // 12B: users and accounts
+  Future<UserPage> users({String search = '', String status = 'all', int page = 1}) async {
+    final json = await _call(() => _dio.get<Map<String, dynamic>>(
+          '/api/admin/users',
+          queryParameters: {if (search.isNotEmpty) 'search': search, 'status': status, 'page': page},
+        ));
+    return UserPage(
+      items: [for (final item in json['items'] as List) UserRow.fromJson(item as Map<String, dynamic>)],
+      page: json['page'] as int,
+      totalPages: json['totalPages'] as int,
+      totalCount: json['totalCount'] as int,
+    );
+  }
+
+  Future<UserDetail> user(String id) async =>
+      UserDetail.fromJson(await _call(() => _dio.get<Map<String, dynamic>>('/api/admin/users/$id')));
+
+  /// The full address. The server writes it to the audit log.
+  Future<String> revealEmail(String id) async =>
+      (await _call(() => _dio.post<Map<String, dynamic>>('/api/admin/users/$id/reveal-email')))['email'] as String;
+
+  /// disable, enable or end-sessions
+  Future<void> userAction(String id, String action) => _send(() => _dio.post<void>('/api/admin/users/$id/$action'));
+
+  Future<void> deleteUser(String id, String typedUsername) =>
+      _send(() => _dio.post<void>('/api/admin/users/$id/delete', data: {'username': typedUsername}));
+
+  Future<void> _send(Future<Response<void>> Function() request) async {
+    try {
+      await request();
+    } on DioException catch (error) {
+      throw describe(error.response?.statusCode, error.response?.data);
+    }
   }
 
   Future<Map<String, dynamic>> _call(Future<Response<Map<String, dynamic>>> Function() request) async {

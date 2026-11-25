@@ -16,6 +16,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errInvalidCredentials => 'Invalid email, username or password.';
 
   @override
+  String get errAccountDisabled =>
+      'This account is disabled. Contact support@fitplan-app.com.';
+
+  @override
   String get errInvalidRefreshToken => 'Your session has ended. Log in again.';
 
   @override
