@@ -4,6 +4,8 @@ using System.Security.Claims;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using FitPlan.Api.Models;
+using FitPlan.Api.Services.Admin;
 
 namespace FitPlan.Api.Extensions;
 
@@ -59,6 +61,12 @@ public static class RateLimitingExtensions
                     ? (int)Math.Ceiling(wait.TotalSeconds)
                     : 60;
                 context.HttpContext.Response.Headers.RetryAfter = retryAfter.ToString(CultureInfo.InvariantCulture);
+
+                if (context.HttpContext.GetEndpoint()?.Metadata.GetMetadata<EnableRateLimitingAttribute>()?.PolicyName == SignInPolicy)
+                {
+                    await context.HttpContext.RequestServices.GetRequiredService<ServerEventLog>().RecordAsync(
+                        ServerEventKind.FailedSignIn, "Rate limited", "Too many tries: " + ServerEventLog.Endpoint(context.HttpContext));
+                }
 
                 var problems = context.HttpContext.RequestServices.GetRequiredService<IProblemDetailsService>();
                 await problems.TryWriteAsync(new ProblemDetailsContext

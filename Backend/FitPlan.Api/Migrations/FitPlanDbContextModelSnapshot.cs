@@ -337,6 +337,9 @@ namespace FitPlan.Api.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("DoneAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool>("IsSuggestion")
                         .HasColumnType("bit");
 
@@ -406,6 +409,43 @@ namespace FitPlan.Api.Migrations
                     b.HasIndex("UserId", "ExpiresAt");
 
                     b.ToTable("RefreshTokens", (string)null);
+                });
+
+            modelBuilder.Entity("FitPlan.Api.Models.ServerEvent", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Detail")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("RequestId")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Kind", "CreatedAt");
+
+                    b.ToTable("ServerEvents", (string)null);
                 });
 
             modelBuilder.Entity("FitPlan.Api.Models.SessionExercise", b =>

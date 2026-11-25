@@ -25,4 +25,7 @@ public class ProblemReport
 
     // false when Telegram couldn't be reached; the report is still here
     public bool SentToTelegram { get; set; }
+
+    // 12F: set when the admin marks it done; null = still open
+    public DateTime? DoneAt { get; set; }
 }

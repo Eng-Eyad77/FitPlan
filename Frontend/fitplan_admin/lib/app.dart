@@ -4,10 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import 'core/admin_api.dart';
 import 'screens/admins_screen.dart';
-import 'screens/coming_soon_screen.dart';
 import 'screens/exercises_screen.dart';
 import 'screens/overview_screen.dart';
 import 'screens/plans_screen.dart';
+import 'screens/reports_screen.dart';
 import 'screens/shell.dart';
 import 'screens/sign_in_screen.dart';
 import 'screens/users_screen.dart';
@@ -53,7 +53,7 @@ class _AdminAppState extends State<AdminApp> {
                   AdminArea.users => UsersScreen(api: widget.api),
                   AdminArea.exercises => ExercisesScreen(api: widget.api),
                   AdminArea.plans => PlansScreen(key: ValueKey(state.uri.query), api: widget.api, userId: state.uri.queryParameters['user']),
-                  _ => ComingSoonScreen(area: area),
+                  AdminArea.reports => ReportsScreen(api: widget.api),
                 },
               ),
             ),

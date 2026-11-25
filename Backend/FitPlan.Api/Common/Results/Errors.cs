@@ -55,6 +55,9 @@ public static class Errors
         new("ConfirmationMismatch", "The username you typed doesn't match.", ErrorType.Validation);
 
     // Users & Profile
+    public static readonly Error ReportNotFound =
+        new("ReportNotFound", "Report not found.", ErrorType.NotFound);
+
     public static readonly Error UserNotFound =
         new("UserNotFound", "User not found.", ErrorType.NotFound);
 

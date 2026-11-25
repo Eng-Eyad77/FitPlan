@@ -6,20 +6,19 @@ import 'package:intl/intl.dart';
 import '../core/admin_api.dart';
 import '../core/env.dart';
 
-/// The six areas, in the order of the side menu, with the part of Phase 12 that builds each.
+/// The six areas, in the order of the side menu.
 enum AdminArea {
-  overview('/overview', 'Overview', '12E'),
-  users('/users', 'Users', '12B'),
-  exercises('/exercises', 'Exercises', '12C'),
-  plans('/plans', 'Plans and cardio', '12D'),
-  reports('/reports', 'Reports and errors', '12F'),
-  admins('/admins', 'Admins', '12A');
+  overview('/overview', 'Overview'),
+  users('/users', 'Users'),
+  exercises('/exercises', 'Exercises'),
+  plans('/plans', 'Plans and cardio'),
+  reports('/reports', 'Reports and errors'),
+  admins('/admins', 'Admins');
 
-  const AdminArea(this.path, this.label, this.part);
+  const AdminArea(this.path, this.label);
 
   final String path;
   final String label;
-  final String part;
 }
 
 const _railColor = Color(0xFF0D1416);

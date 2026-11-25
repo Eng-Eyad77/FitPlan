@@ -126,7 +126,9 @@ public class DatabaseUnavailableTests
 
         var handler = new GlobalExceptionHandler(
             NullLogger<GlobalExceptionHandler>.Instance,
-            provider.GetRequiredService<IProblemDetailsService>());
+            provider.GetRequiredService<IProblemDetailsService>(),
+            // no database here: recording the error fails quietly, as it must
+            new FitPlan.Api.Services.Admin.ServerEventLog(provider.GetRequiredService<IServiceScopeFactory>(), TimeProvider.System, NullLogger<FitPlan.Api.Services.Admin.ServerEventLog>.Instance));
 
         Assert.True(await handler.TryHandleAsync(context, exception, CancellationToken.None));
 

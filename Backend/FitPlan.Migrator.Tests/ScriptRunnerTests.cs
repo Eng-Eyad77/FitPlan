@@ -10,7 +10,7 @@ namespace FitPlan.Migrator.Tests;
 // Each test runs the migrator against its own throwaway database on the local test server.
 public sealed class ScriptRunnerTests
 {
-    private static readonly string[] AllMigrations = [Scripts.InitialCreate, Scripts.AddWorkoutSessions, Scripts.AddUserWeeklyGoal, Scripts.AddRefreshTokens, Scripts.AddRecoveryCode, Scripts.AddRestSeconds, Scripts.AddCardioMachineDetails, Scripts.AddVolumeMilestones, Scripts.AddExerciseDetailsAndTranslations, Scripts.AddEmailAccounts, Scripts.AddProblemReports, Scripts.AddExerciseNotes, Scripts.AddReportSuggestions, Scripts.AddAdminAccounts, Scripts.AddUserDisabledAt, Scripts.AddExerciseAdminFields];
+    private static readonly string[] AllMigrations = [Scripts.InitialCreate, Scripts.AddWorkoutSessions, Scripts.AddUserWeeklyGoal, Scripts.AddRefreshTokens, Scripts.AddRecoveryCode, Scripts.AddRestSeconds, Scripts.AddCardioMachineDetails, Scripts.AddVolumeMilestones, Scripts.AddExerciseDetailsAndTranslations, Scripts.AddEmailAccounts, Scripts.AddProblemReports, Scripts.AddExerciseNotes, Scripts.AddReportSuggestions, Scripts.AddAdminAccounts, Scripts.AddUserDisabledAt, Scripts.AddExerciseAdminFields, Scripts.AddReportStatusAndServerEvents];
 
     [Fact]
     public async Task Applies_every_migration_and_builds_the_same_schema_as_EF_Core()

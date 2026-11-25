@@ -90,7 +90,7 @@ public class AdminOverviewController(FitPlanDbContext context, IMemoryCache cach
             volume.GetValueOrDefault(false),
             cardio.Sum(c => c.Count),
             cardio.FirstOrDefault()?.Machine.ToString(),
-            await context.ProblemReports.CountAsync(r => r.CreatedAt >= weekAgo),
+            await context.ProblemReports.CountAsync(r => r.DoneAt == null && !r.IsSuggestion),
             await context.Exercises.CountAsync(e => e.GifStatus != null && AdminExercisesController.Broken.Contains(e.GifStatus.Value)),
             await context.EmailCodes.CountAsync(c => c.CreatedAt >= today),
             EmailsPerDayLimit,

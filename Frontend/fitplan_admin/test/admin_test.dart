@@ -118,6 +118,41 @@ class _FakeApi extends AdminApi {
       ];
 
   bool refreshed = false;
+  bool exported = false;
+
+  @override
+  Future<ReportPage> reports({String filter = 'open', int page = 1}) async {
+    final done = actions.contains('r14:done');
+    final report = (
+      id: 14,
+      username: 'khalid88',
+      message: 'مؤقت الراحة يوقف لما أقفل الشاشة.',
+      isSuggestion: false,
+      platform: 'ios',
+      appVersion: '1.0.3',
+      language: 'ar',
+      sentToTelegram: false,
+      createdAt: DateTime(2026, 11, 25, 9),
+      doneAt: done ? DateTime(2026, 11, 25, 10) : null,
+    );
+    final showIt = (filter == 'open' && !done) || (filter == 'done' && done);
+    return (items: showIt ? [report] : <Report>[], page: 1, totalPages: 1, open: done ? 0 : 1, suggestions: 0, done: done ? 1 : 0);
+  }
+
+  @override
+  Future<void> setReportDone(int id, bool done) async => actions.add('r$id:${done ? 'done' : 'reopen'}');
+
+  @override
+  Future<List<int>> exportReports() async {
+    exported = true;
+    return const [];
+  }
+
+  @override
+  Future<({List<ApiError> apiErrors, List<FailedSignIn> failedSignIns})> errors() async => (
+        apiErrors: [(createdAt: DateTime(2026, 11, 25, 9, 41), endpoint: 'POST /api/sessions', error: 'InvalidOperationException', requestId: '00-abc-01')],
+        failedSignIns: [(account: 'reem_runs', reason: 'Wrong password', attempts: 4, lastAt: DateTime(2026, 11, 25, 9))],
+      );
 
   @override
   Future<Overview> overview({bool refresh = false}) async {
@@ -133,7 +168,7 @@ class _FakeApi extends AdminApi {
       volumeKgBefore: 167000,
       cardioThisMonth: 27,
       topCardio: 'Treadmill',
-      reports: 3,
+      openReports: 3,
       noDemo: 176,
       emailsToday: 12,
       emailLimit: 100,
@@ -303,5 +338,32 @@ void main() {
     await tester.tap(find.text('Refresh'));
     await tester.pumpAndSettle();
     expect(api.refreshed, isTrue);
+  });
+
+  testWidgets('reports: an open report is marked done, errors and failed sign-ins show, and CSV exports', (tester) async {
+    final api = await openApp(tester);
+    await enterPassword(tester);
+    await tester.enterText(find.byType(TextField), '123456');
+    await tester.tap(find.text('Sign in'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Reports and errors').first);
+    await tester.pumpAndSettle();
+    expect(find.text('Open 1'), findsOneWidget);
+    expect(find.text('Telegram failed'), findsOneWidget);
+    expect(find.text('POST /api/sessions'), findsOneWidget);
+    expect(find.text('00-abc-01'), findsOneWidget);
+    expect(find.text('reem_runs'), findsOneWidget);
+    expect(find.text('4 tries'), findsOneWidget);
+
+    await tester.tap(find.text('Mark done'));
+    await tester.pumpAndSettle();
+    expect(api.actions, contains('r14:done'));
+    expect(find.text('Open 0'), findsOneWidget);
+    expect(find.text('No open reports.'), findsOneWidget);
+
+    await tester.tap(find.text('Export CSV'));
+    await tester.pumpAndSettle();
+    expect(api.exported, isTrue);
   });
 }
