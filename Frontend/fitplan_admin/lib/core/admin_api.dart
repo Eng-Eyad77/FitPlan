@@ -119,6 +119,82 @@ class UserDetail {
   final DateTime? lastWorkoutAt;
 }
 
+class ExerciseRow {
+  const ExerciseRow(
+      {required this.id, required this.name, required this.arabicName, required this.bodyPart, required this.hidden, required this.gifStatus});
+
+  factory ExerciseRow.fromJson(Map<String, dynamic> json) => ExerciseRow(
+        id: json['id'] as String,
+        name: json['name'] as String,
+        arabicName: json['arabicName'] as String?,
+        bodyPart: json['bodyPart'] as String,
+        hidden: json['hidden'] as bool,
+        gifStatus: json['gifStatus'] as String?,
+      );
+
+  final String id;
+  final String name;
+  final String? arabicName;
+  final String bodyPart;
+  final bool hidden;
+
+  /// null until checked
+  final String? gifStatus;
+}
+
+class ExercisePage {
+  const ExercisePage({required this.items, required this.page, required this.totalPages, required this.counts});
+
+  final List<ExerciseRow> items;
+  final int page;
+  final int totalPages;
+
+  /// all, noDemo, notChecked, hidden
+  final Map<String, int> counts;
+}
+
+class ExerciseDetail {
+  const ExerciseDetail({
+    required this.id,
+    required this.bodyPart,
+    required this.gifUrl,
+    required this.gifStatus,
+    required this.hidden,
+    required this.englishName,
+    required this.englishSteps,
+    required this.arabicName,
+    required this.arabicSteps,
+    required this.plans,
+    required this.workouts,
+  });
+
+  factory ExerciseDetail.fromJson(Map<String, dynamic> json) => ExerciseDetail(
+        id: json['id'] as String,
+        bodyPart: json['bodyPart'] as String,
+        gifUrl: json['gifUrl'] as String,
+        gifStatus: json['gifStatus'] as String?,
+        hidden: json['hidden'] as bool,
+        englishName: json['englishName'] as String,
+        englishSteps: [for (final s in json['englishInstructions'] as List) s as String],
+        arabicName: json['arabicName'] as String?,
+        arabicSteps: [for (final s in (json['arabicInstructions'] as List?) ?? const []) s as String],
+        plans: json['plans'] as int,
+        workouts: json['workouts'] as int,
+      );
+
+  final String id;
+  final String bodyPart;
+  final String gifUrl;
+  final String? gifStatus;
+  final bool hidden;
+  final String englishName;
+  final List<String> englishSteps;
+  final String? arabicName;
+  final List<String> arabicSteps;
+  final int plans;
+  final int workouts;
+}
+
 DateTime? _date(Object? value) => value == null ? null : DateTime.parse(value as String).toLocal();
 
 /// A failed call, with a sentence to show.
@@ -211,6 +287,50 @@ class AdminApi {
 
   Future<void> deleteUser(String id, String typedUsername) =>
       _send(() => _dio.post<void>('/api/admin/users/$id/delete', data: {'username': typedUsername}));
+
+  // 12C: exercises
+  Future<ExercisePage> exercises({String search = '', String filter = 'all', int page = 1}) async {
+    final json = await _call(() => _dio.get<Map<String, dynamic>>(
+          '/api/admin/exercises',
+          queryParameters: {if (search.isNotEmpty) 'search': search, 'filter': filter, 'page': page},
+        ));
+    final counts = json['counts'] as Map<String, dynamic>;
+    return ExercisePage(
+      items: [for (final item in json['items'] as List) ExerciseRow.fromJson(item as Map<String, dynamic>)],
+      page: json['page'] as int,
+      totalPages: json['totalPages'] as int,
+      counts: {for (final e in counts.entries) e.key: e.value as int},
+    );
+  }
+
+  Future<ExerciseDetail> exercise(String id) async =>
+      ExerciseDetail.fromJson(await _call(() => _dio.get<Map<String, dynamic>>('/api/admin/exercises/${Uri.encodeComponent(id)}')));
+
+  Future<void> saveExerciseText(String id,
+          {required String englishName,
+          required List<String> englishSteps,
+          required String arabicName,
+          required List<String> arabicSteps}) =>
+      _send(() => _dio.put<void>('/api/admin/exercises/${Uri.encodeComponent(id)}/text', data: {
+            'englishName': englishName,
+            'englishInstructions': englishSteps,
+            'arabicName': arabicName,
+            'arabicInstructions': arabicSteps,
+          }));
+
+  Future<void> setExerciseHidden(String id, bool hidden) =>
+      _send(() => _dio.post<void>('/api/admin/exercises/${Uri.encodeComponent(id)}/${hidden ? 'hide' : 'show'}'));
+
+  /// The new status: Works, Missing, NotAGif or Unreachable.
+  Future<String> checkGif(String id) async =>
+      (await _call(() => _dio.post<Map<String, dynamic>>('/api/admin/exercises/${Uri.encodeComponent(id)}/check-gif')))['gifStatus']
+          as String;
+
+  /// Checks one batch of links; call again with nextOffset until it reaches total.
+  Future<({int nextOffset, int total, int broken})> checkGifBatch(int offset) async {
+    final json = await _call(() => _dio.post<Map<String, dynamic>>('/api/admin/exercises/check-gifs', data: {'offset': offset}));
+    return (nextOffset: json['nextOffset'] as int, total: json['total'] as int, broken: json['broken'] as int);
+  }
 
   Future<void> _send(Future<Response<void>> Function() request) async {
     try {

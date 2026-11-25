@@ -35,7 +35,7 @@ public class ExerciseService(ExerciseCatalog catalog, IConfiguration configurati
     )
     {
         var snapshot = await catalog.GetAsync();
-        IEnumerable<ExerciseDto> query = snapshot.All.Where(e => !_hidden.Contains(e.BodyPart));
+        IEnumerable<ExerciseDto> query = snapshot.All.Where(e => !e.Hidden && !_hidden.Contains(e.BodyPart));
 
         var hasSearch = !string.IsNullOrWhiteSpace(search);
         var ranks = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);

@@ -18,8 +18,8 @@ public sealed class ScriptValidatorTests
 
         var result = validator.Validate(Scripts.Bytes(script));
 
-        Assert.Equal([Scripts.InitialCreate, Scripts.AddWorkoutSessions, Scripts.AddUserWeeklyGoal, Scripts.AddRefreshTokens, Scripts.AddRecoveryCode, Scripts.AddRestSeconds, Scripts.AddCardioMachineDetails, Scripts.AddVolumeMilestones, Scripts.AddExerciseDetailsAndTranslations, Scripts.AddEmailAccounts, Scripts.AddProblemReports, Scripts.AddExerciseNotes, Scripts.AddReportSuggestions, Scripts.AddAdminAccounts, Scripts.AddUserDisabledAt], result.MigrationIds);
-        Assert.Equal(16, result.Batches.Count);
+        Assert.Equal([Scripts.InitialCreate, Scripts.AddWorkoutSessions, Scripts.AddUserWeeklyGoal, Scripts.AddRefreshTokens, Scripts.AddRecoveryCode, Scripts.AddRestSeconds, Scripts.AddCardioMachineDetails, Scripts.AddVolumeMilestones, Scripts.AddExerciseDetailsAndTranslations, Scripts.AddEmailAccounts, Scripts.AddProblemReports, Scripts.AddExerciseNotes, Scripts.AddReportSuggestions, Scripts.AddAdminAccounts, Scripts.AddUserDisabledAt, Scripts.AddExerciseAdminFields], result.MigrationIds);
+        Assert.Equal(17, result.Batches.Count);
         Assert.Null(result.Batches[0].MigrationId);
         Assert.Equal(Scripts.Sha256(script), result.Sha256);
     }
@@ -29,7 +29,7 @@ public sealed class ScriptValidatorTests
     {
         var bytes = new byte[] { 0xEF, 0xBB, 0xBF }.Concat(Scripts.Bytes(Scripts.Idempotent())).ToArray();
 
-        Assert.Equal(15, validator.Validate(bytes).MigrationIds.Count);
+        Assert.Equal(16, validator.Validate(bytes).MigrationIds.Count);
     }
 
     [Theory]

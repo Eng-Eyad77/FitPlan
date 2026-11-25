@@ -256,9 +256,19 @@ namespace FitPlan.Api.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasDefaultValueSql("N'[]'");
 
+                    b.Property<DateTime?>("GifCheckedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("GifStatus")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
                     b.Property<string>("GifUrl")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Hidden")
+                        .HasColumnType("bit");
 
                     b.PrimitiveCollection<string>("Instructions")
                         .IsRequired()

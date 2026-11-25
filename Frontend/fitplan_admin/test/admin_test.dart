@@ -63,6 +63,40 @@ class _FakeApi extends AdminApi {
   @override
   Future<void> userAction(String id, String action) async => actions.add('$id:$action');
 
+  Map<String, Object>? savedText;
+
+  @override
+  Future<ExercisePage> exercises({String search = '', String filter = 'all', int page = 1}) async => const ExercisePage(
+        items: [ExerciseRow(id: 'e1', name: 'Barbell pin presses', arabicName: null, bodyPart: 'chest', hidden: false, gifStatus: 'Missing')],
+        page: 1,
+        totalPages: 1,
+        counts: {'all': 1, 'noDemo': 1, 'notChecked': 0, 'hidden': 0},
+      );
+
+  @override
+  Future<ExerciseDetail> exercise(String id) async => ExerciseDetail(
+        id: id,
+        bodyPart: 'chest',
+        gifUrl: 'https://media.example.test/a.gif',
+        gifStatus: 'Missing',
+        hidden: false,
+        englishName: 'Barbell pin presses',
+        englishSteps: const ['Set the pins.', 'Press up.'],
+        arabicName: savedText?['arabicName'] as String?,
+        arabicSteps: const [],
+        plans: 2,
+        workouts: 5,
+      );
+
+  @override
+  Future<void> saveExerciseText(String id,
+      {required String englishName,
+      required List<String> englishSteps,
+      required String arabicName,
+      required List<String> arabicSteps}) async {
+    savedText = {'englishName': englishName, 'englishSteps': englishSteps, 'arabicName': arabicName, 'arabicSteps': arabicSteps};
+  }
+
   @override
   Future<AuditPage> audit({int page = 1}) async => AuditPage(
         items: [AuditEntry(adminName: 'eyad', action: 'Signed in', target: null, createdAt: DateTime(2026, 11, 25, 10, 12))],
@@ -149,5 +183,33 @@ void main() {
 
     expect(api.actions, containsAll(['u1:reveal', 'u1:disable']));
     expect(find.text('Enable account'), findsOneWidget);
+  });
+
+  testWidgets('exercises: saving needs Arabic too, then sends both languages', (tester) async {
+    final api = await openApp(tester);
+    await enterPassword(tester);
+    await tester.enterText(find.byType(TextField), '123456');
+    await tester.tap(find.text('Sign in'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Exercises').first);
+    await tester.pumpAndSettle();
+    expect(find.text('No demo 1'), findsOneWidget);
+    await tester.tap(find.text('Barbell pin presses'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Save changes'));
+    await tester.pumpAndSettle();
+    expect(api.savedText, isNull);
+    expect(find.textContaining('both English and Arabic'), findsWidgets);
+
+    await tester.enterText(find.widgetWithText(TextField, 'الاسم بالعربي'), 'ضغط البار من المساند');
+    await tester.enterText(find.widgetWithText(TextField, 'الخطوات بالعربي، كل خطوة في سطر'), 'اضبط المساند.\n\nادفع للأعلى.');
+    await tester.tap(find.text('Save changes'));
+    await tester.pumpAndSettle();
+
+    expect(api.savedText!['arabicName'], 'ضغط البار من المساند');
+    expect(api.savedText!['arabicSteps'], ['اضبط المساند.', 'ادفع للأعلى.']);
+    expect(api.savedText!['englishSteps'], ['Set the pins.', 'Press up.']);
   });
 }

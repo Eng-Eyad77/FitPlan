@@ -1,3 +1,5 @@
+using FitPlan.Api.Services.Exercises;
+
 namespace FitPlan.Api.Models;
 
 public class Exercise
@@ -18,4 +20,12 @@ public class Exercise
     public List<string> TargetMuscles { get; set; } = [];
 
     public List<string> SecondaryMuscles { get; set; } = [];
+
+    // Phase 12C: hidden by an admin. Left out of the library and search, but plans and past workouts keep it.
+    public bool Hidden { get; set; }
+
+    // The last link check: Works, Missing, NotAGif or Unreachable. null = never checked.
+    public GifStatus? GifStatus { get; set; }
+
+    public DateTime? GifCheckedAt { get; set; }
 }

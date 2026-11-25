@@ -71,6 +71,10 @@ public static class Errors
     public static readonly Error ExerciseNotFound =
         new("ExerciseNotFound", "Exercise not found.", ErrorType.NotFound);
 
+    // 12C: both languages need a name and at least one step before an exercise is saved.
+    public static readonly Error ExerciseTextIncomplete =
+        new("ExerciseTextIncomplete", "Fill in the name and at least one step in both English and Arabic.", ErrorType.Validation);
+
     // Workout Plans
     public static readonly Error WorkoutPlanNotFound =
         new("WorkoutPlanNotFound", "Workout plan not found.", ErrorType.NotFound);
