@@ -14,17 +14,19 @@ class _FakeRepository extends ReportRepository {
   _FakeRepository() : super(Dio());
 
   final sent = <String>[];
+  final suggestions = <bool>[];
   Object? error;
 
   @override
-  Future<void> send(String message) async {
+  Future<void> send(String message, {bool suggestion = false}) async {
     if (error != null) throw error!;
     sent.add(message);
+    suggestions.add(suggestion);
   }
 }
 
 /// Opens the report screen from a home page, so closing it after sending can be seen.
-Future<_FakeRepository> _pump(WidgetTester tester) async {
+Future<_FakeRepository> _pump(WidgetTester tester, {bool suggestion = false}) async {
   final repository = _FakeRepository();
   await tester.pumpWidget(ProviderScope(
     overrides: [reportRepositoryProvider.overrideWithValue(repository)],
@@ -32,7 +34,7 @@ Future<_FakeRepository> _pump(WidgetTester tester) async {
       home: Builder(
         builder: (context) => Scaffold(
           body: TextButton(
-            onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const ReportScreen())),
+            onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => ReportScreen(suggestion: suggestion))),
             child: const Text('open'),
           ),
         ),
@@ -93,5 +95,15 @@ void main() {
 
     expect(find.text(l10n.reportTooMany), findsOneWidget);
     expect(repository.sent, isEmpty);
+  });
+
+  testWidgets('a suggestion is sent as one, with its own title and thanks', (tester) async {
+    final repository = await _pump(tester, suggestion: true);
+    expect(find.text(l10n.suggestIdea), findsOneWidget);
+
+    await _send(tester, 'A rest timer sound choice would be nice.');
+
+    expect(repository.suggestions, [true]);
+    expect(find.text(l10n.suggestSent), findsOneWidget);
   });
 }

@@ -20,6 +20,9 @@ public class ProblemReport
 
     public required DateTime CreatedAt { get; set; }
 
+    // an idea for the app rather than a problem
+    public bool IsSuggestion { get; set; }
+
     // false when Telegram couldn't be reached; the report is still here
     public bool SentToTelegram { get; set; }
 }

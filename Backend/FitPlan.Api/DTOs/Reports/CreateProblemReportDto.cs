@@ -15,6 +15,9 @@ public class CreateProblemReportDto
     // "ios" or "android"
     [StringLength(20)]
     public string? Platform { get; set; }
+
+    // an idea for the app instead of a problem (same screen, same Telegram chat)
+    public bool IsSuggestion { get; set; }
 }
 
 public record ProblemReportCreatedDto(int Id);

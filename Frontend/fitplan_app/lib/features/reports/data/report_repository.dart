@@ -16,8 +16,10 @@ class ReportRepository {
 
   final Dio _dio;
 
-  Future<void> send(String message) => apiCall(() => _dio.post<void>('/api/reports', data: {
+  /// [suggestion]: an idea for the app instead of a problem; same endpoint, titled differently on Telegram.
+  Future<void> send(String message, {bool suggestion = false}) => apiCall(() => _dio.post<void>('/api/reports', data: {
         'message': message.trim(),
+        'isSuggestion': suggestion,
         'appVersion': Env.appVersion,
         'platform': kIsWeb ? 'web' : defaultTargetPlatform.name,
       }));

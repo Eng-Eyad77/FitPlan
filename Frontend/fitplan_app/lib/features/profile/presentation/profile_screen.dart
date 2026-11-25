@@ -66,14 +66,12 @@ class _ProfileBody extends ConsumerWidget {
         const _LanguageCard(),
         const SizedBox(height: AppSpacing.lg),
         _Card(
-          child: InkWell(
-            onTap: () => context.push(Routes.report),
-            child: Row(
-              children: [
-                Expanded(child: Text(l10n.reportProblem, style: AppText.body)),
-                const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
-              ],
-            ),
+          child: Column(
+            children: [
+              _LinkRow(label: l10n.reportProblem, onTap: () => context.push(Routes.report)),
+              const Divider(height: AppSpacing.xxl),
+              _LinkRow(label: l10n.suggestIdea, onTap: () => context.push(Routes.suggest)),
+            ],
           ),
         ),
         const SizedBox(height: AppSpacing.xxxl),
@@ -881,6 +879,27 @@ class _LanguageCard extends ConsumerWidget {
               onSelectionChanged: (choice) => ref.read(languageProvider.notifier).choose(choice.first),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A row of a card that opens another screen.
+class _LinkRow extends StatelessWidget {
+  const _LinkRow({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Expanded(child: Text(label, style: AppText.body)),
+          const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
         ],
       ),
     );

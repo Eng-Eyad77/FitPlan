@@ -139,6 +139,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
           autofillHints: const [AutofillHints.newPassword],
           validator: (value) =>
               (value == null || value.length < 8 || value.length > 100) ? l10n.passwordLengthRange : null,
+          live: true,
         ),
         const SizedBox(height: AppSpacing.md),
         PasswordField(
@@ -147,6 +148,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
           autofillHints: const [AutofillHints.newPassword],
           onSubmitted: (_) => _submit(),
           validator: (value) => value != _password.text ? l10n.thePasswordsDontMatch : null,
+          live: true,
         ),
         const SizedBox(height: AppSpacing.xl),
         if (_error != null) ...[
@@ -163,7 +165,6 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
       subtitle: l10n.resetSubtitle,
       form: Form(
         key: _formKey,
-        autovalidateMode: AutovalidateMode.onUserInteraction,
         child: AutofillGroup(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,

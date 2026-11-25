@@ -19,6 +19,7 @@ class EmailField extends StatelessWidget {
     this.label,
     this.newEmail = false,
     this.onSubmitted,
+    this.live = false,
   });
 
   final TextEditingController controller;
@@ -26,10 +27,14 @@ class EmailField extends StatelessWidget {
   final bool newEmail;
   final ValueChanged<String>? onSubmitted;
 
+  /// Checks this field as soon as it's typed in, without marking the other fields.
+  final bool live;
+
   @override
   Widget build(BuildContext context) {
     return TextFormField(
       controller: controller,
+      autovalidateMode: live ? AutovalidateMode.onUserInteraction : null,
       keyboardType: TextInputType.emailAddress,
       textInputAction: onSubmitted == null ? TextInputAction.next : TextInputAction.done,
       autofillHints: [newEmail ? AutofillHints.newUsername : AutofillHints.email],

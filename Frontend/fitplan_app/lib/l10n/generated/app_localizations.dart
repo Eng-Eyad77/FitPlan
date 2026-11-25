@@ -2393,7 +2393,7 @@ abstract class AppLocalizations {
   /// No description provided for @keepGoingButton.
   ///
   /// In en, this message translates to:
-  /// **'Keep going'**
+  /// **'Continue workout'**
   String get keepGoingButton;
 
   /// No description provided for @discard.
@@ -3161,8 +3161,32 @@ abstract class AppLocalizations {
   /// No description provided for @reportTooMany.
   ///
   /// In en, this message translates to:
-  /// **'You sent many reports. Try again a little later.'**
+  /// **'You\'ve sent a lot in a short time. Try again a little later.'**
   String get reportTooMany;
+
+  /// No description provided for @suggestIdea.
+  ///
+  /// In en, this message translates to:
+  /// **'Share a suggestion'**
+  String get suggestIdea;
+
+  /// No description provided for @suggestIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Have an idea that would make FitPlan better? We read every suggestion.'**
+  String get suggestIntro;
+
+  /// No description provided for @suggestHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write your idea and how it would help you.'**
+  String get suggestHint;
+
+  /// No description provided for @suggestSent.
+  ///
+  /// In en, this message translates to:
+  /// **'We got your suggestion. Thank you 🙏'**
+  String get suggestSent;
 
   /// No description provided for @rangeAll.
   ///
