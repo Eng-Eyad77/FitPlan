@@ -41,12 +41,16 @@ class SessionsRepository {
     return WorkoutSession.fromJson(response.data!);
   }
 
-  /// Completed sessions, newest first.
-  Future<HistoryPage> getHistory({int page = 1, int pageSize = 20}) async {
+  /// Completed sessions, newest first; with [since], only the ones finished from then on.
+  Future<HistoryPage> getHistory({int page = 1, int pageSize = 20, DateTime? since}) async {
     final response = await apiCall(
       () => _dio.get<Map<String, dynamic>>(
         _base,
-        queryParameters: {'page': page, 'pageSize': pageSize},
+        queryParameters: {
+          'page': page,
+          'pageSize': pageSize,
+          if (since != null) 'since': since.toUtc().toIso8601String(),
+        },
       ),
     );
     final data = response.data!;
@@ -89,6 +93,11 @@ class SessionsRepository {
   }
 
   /// Changes the rest for this session only; the plan keeps its own.
+  /// The exercise's note for this workout; it goes back to the plan when the workout is finished.
+  Future<void> updateNote(String sessionId, String sessionExerciseId, String? note) async {
+    await apiCall(() => _dio.put<void>('$_base/$sessionId/exercises/$sessionExerciseId/note', data: {'note': note}));
+  }
+
   Future<void> updateRest(String sessionId, String sessionExerciseId, int? restSeconds) async {
     await apiCall(() => _dio.patch<void>(
           '$_base/$sessionId/exercises/$sessionExerciseId',

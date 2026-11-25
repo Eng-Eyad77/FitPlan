@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_text.dart';
 import '../../../shared/widgets/loading_button.dart';
@@ -163,7 +164,21 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           validator: (value) => value != _password.text ? l10n.passwordsDontMatch : null,
         ),
         const SizedBox(height: AppSpacing.sm),
-        Text(l10n.passwordHint(_minPassword), style: AppText.caption),
+        // turns green once the password is long enough
+        ListenableBuilder(
+          listenable: _password,
+          builder: (context, _) {
+            final ok = _password.text.length >= _minPassword && _password.text.length <= _maxPassword;
+            final color = ok ? AppColors.accent : AppColors.textTertiary;
+            return Row(
+              children: [
+                Icon(ok ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded, size: 16, color: color),
+                const SizedBox(width: AppSpacing.xs),
+                Expanded(child: Text(l10n.passwordHint(_minPassword), style: AppText.caption.copyWith(color: color))),
+              ],
+            );
+          },
+        ),
         const SizedBox(height: AppSpacing.xl),
         if (_error != null) ...[
           AuthErrorBanner(message: _error!),
@@ -195,6 +210,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       subtitle: l10n.registerSubtitle,
       form: Form(
         key: _formKey,
+        // each field says what's wrong as soon as it's been touched, not only after tapping the button
+        autovalidateMode: AutovalidateMode.onUserInteraction,
         child: AutofillGroup(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,

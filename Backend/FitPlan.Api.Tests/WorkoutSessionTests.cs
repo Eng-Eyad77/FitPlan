@@ -232,6 +232,22 @@ public class WorkoutSessionTests(ApiFixture api)
     }
 
     [Fact]
+    public async Task History_since_keeps_only_the_sessions_finished_from_then_on()
+    {
+        var user = await api.RegisterUserAsync();
+        var (older, _) = await CompleteOneSetSessionAsync(user);
+        var (newer, _) = await CompleteOneSetSessionAsync(user);
+        // the older one finished 40 days ago
+        await api.WithDbContextAsync(c => c.WorkoutSessions.Where(s => s.Id == older.Id)
+            .ExecuteUpdateAsync(s => s.SetProperty(x => x.CompletedAt, x => x.CompletedAt!.Value.AddDays(-40))));
+        var since = Uri.EscapeDataString(DateTime.UtcNow.AddDays(-30).ToString("O"));
+
+        var history = await user.Client.GetFromJsonAsync<PagedResponseDto<WorkoutSessionSummaryDto>>($"{Sessions}?since={since}", Json);
+
+        Assert.Equal([newer.Id], history!.Items.Select(s => s.Id));
+    }
+
+    [Fact]
     public async Task The_next_session_shows_what_was_done_last_time()
     {
         var user = await api.RegisterUserAsync();

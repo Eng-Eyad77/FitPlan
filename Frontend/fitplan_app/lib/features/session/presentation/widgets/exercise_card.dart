@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../shared/widgets/adaptive.dart';
+import '../../../../shared/widgets/exercise_note.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_text.dart';
@@ -148,25 +150,27 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard> {
   Future<void> _remove() async {
     final hasSets = _exercise.sets.isNotEmpty;
     if (hasSets) {
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text(l10n.removeExerciseTitle),
-          content: Text(l10n.removeExerciseBody(_exercise.sets.length)),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.keep)),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              style: TextButton.styleFrom(foregroundColor: AppColors.danger),
-              child: Text(l10n.remove),
-            ),
-          ],
-        ),
+      final confirmed = await confirmAction(
+        context,
+        title: l10n.removeExerciseTitle,
+        body: l10n.removeExerciseBody(_exercise.sets.length),
+        confirmLabel: l10n.remove,
+        cancelLabel: l10n.keep,
       );
-      if (confirmed != true) return;
+      if (!confirmed) return;
     }
     try {
       await _controller.removeExercise(_exercise.id);
+    } catch (error) {
+      if (mounted) showError(context, error);
+    }
+  }
+
+  Future<void> _editNote() async {
+    final note = await showNoteSheet(context, initial: _exercise.note);
+    if (note == null || !mounted) return;
+    try {
+      await _controller.setNote(_exercise.id, note);
     } catch (error) {
       if (mounted) showError(context, error);
     }
@@ -232,16 +236,24 @@ class _ExerciseCardState extends ConsumerState<ExerciseCard> {
                   onPressed: widget.onCollapse,
                   icon: const Icon(Icons.expand_less_rounded, color: AppColors.textTertiary),
                 ),
-              PopupMenuButton<void>(
+              ActionsButton(
                 tooltip: l10n.exerciseOptions,
-                icon: const Icon(Icons.more_vert_rounded, color: AppColors.textTertiary),
-                itemBuilder: (_) => [
-                  PopupMenuItem(onTap: _remove, child: Text(l10n.removeFromWorkout)),
+                color: AppColors.textTertiary,
+                actions: () => [
+                  MenuAction(
+                    label: l10n.removeFromWorkout,
+                    icon: Icons.remove_circle_outline_rounded,
+                    destructive: true,
+                    onTap: _remove,
+                  ),
                 ],
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.lg),
+          // where the seat goes, read before the first set; changing it here updates the plan at the end
+          const SizedBox(height: AppSpacing.md),
+          ExerciseNoteLine(note: _exercise.note, onEdit: _editNote),
+          const SizedBox(height: AppSpacing.md),
           _LastTime(last: _exercise.lastPerformance),
           if (_exercise.suggestion case final suggestion?) ...[
             const SizedBox(height: AppSpacing.md),

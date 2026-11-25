@@ -29,6 +29,7 @@ class ApiException implements Exception {
         'InvalidRefreshToken' || 'Unauthorized' => l10n.errInvalidRefreshToken,
         'InvalidEmailCode' => l10n.errInvalidEmailCode,
         'EmailAlreadyExists' => l10n.errEmailAlreadyExists,
+        'EmailNotRegistered' => l10n.errEmailNotRegistered,
         'TooManyEmails' => l10n.errTooManyEmails,
         'EmailNotSent' => l10n.errEmailNotSent,
         'WrongPassword' => l10n.errWrongPassword,

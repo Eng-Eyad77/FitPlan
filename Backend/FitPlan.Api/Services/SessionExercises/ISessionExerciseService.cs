@@ -17,4 +17,6 @@ public interface ISessionExerciseService
     Task<Result<SessionSetResponseDto>> UpdateSetAsync(Guid userId, Guid sessionId, Guid sessionExerciseId, Guid setId, SessionSetRequestDto dto);
 
     Task<Result<bool>> DeleteSetAsync(Guid userId, Guid sessionId, Guid sessionExerciseId, Guid setId);
+
+    Task<Result<bool>> UpdateNoteAsync(Guid userId, Guid sessionId, Guid sessionExerciseId, string? note);
 }

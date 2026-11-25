@@ -45,7 +45,7 @@ void main() {
       expect(Milestone.compare(1020), 'About a small car');
       expect(Milestone.compare(500), 'About a grand piano');
       expect(Milestone.compare(130000), 'About 3.3 loaded trucks');
-      expect(Milestone.compare(25 * 450000), 'About 25 jumbo jets');
+      expect(Milestone.compare(25 * 450000), 'About 25 airplanes');
     });
 
     test('is empty under the smallest object', () {
@@ -56,9 +56,10 @@ void main() {
 
   test('kg under 1,000, tonnes above', () {
     expect(formatVolumeAmount(840), '840 kg');
-    expect(formatVolumeAmount(8420), '8.4 t');
-    expect(formatVolumeAmount(12400), '12.4 t');
-    expect(formatVolumeAmount(2100000), '2,100 t');
+    expect(formatVolumeAmount(8420), '8.4 tons');
+    expect(formatVolumeAmount(12400), '12.4 tons');
+    expect(formatVolumeAmount(2100000), '2,100 tons');
+    expect(formatVolumeAmount(1000), '1 ton');
   });
 
   test('reads the milestones and skips keys this app does not know', () {
@@ -109,7 +110,7 @@ void main() {
       expect(find.textContaining('8.4'), findsOneWidget);
       expect(find.text('About 1.4 elephants'), findsOneWidget);
       expect(find.text('Next: a city bus'), findsOneWidget);
-      expect(find.text('3.6 t to go'), findsOneWidget);
+      expect(find.text('3.6 tons to go'), findsOneWidget);
     });
 
     testWidgets('tapping the card lists every milestone', (tester) async {
@@ -127,8 +128,8 @@ void main() {
       expect(find.text('Milestones'), findsOneWidget);
       expect(find.text('A grand piano'), findsOneWidget);
       expect(find.textContaining('Reached'), findsNWidgets(2));
-      await tester.scrollUntilVisible(find.text('A jumbo jet at takeoff'), 200, scrollable: find.byType(Scrollable).last);
-      expect(find.text('A jumbo jet at takeoff'), findsOneWidget);
+      await tester.scrollUntilVisible(find.text('An airplane'), 200, scrollable: find.byType(Scrollable).last);
+      expect(find.text('An airplane'), findsOneWidget);
     });
 
     testWidgets('a new user is told how to start', (tester) async {

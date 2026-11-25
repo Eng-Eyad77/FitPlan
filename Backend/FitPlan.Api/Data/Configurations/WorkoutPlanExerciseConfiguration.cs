@@ -1,3 +1,4 @@
+using FitPlan.Api.DTOs.Common;
 using System;
 using FitPlan.Api.Models;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,7 @@ public class WorkoutPlanExerciseConfiguration :IEntityTypeConfiguration<WorkoutP
     public void Configure(EntityTypeBuilder<WorkoutPlanExercise> builder)
     {
         //to link it to the table and put the condition to the tables
+        builder.Property(e => e.Note).HasMaxLength(ExerciseNoteDto.MaxLength);
         builder.ToTable("WorkoutPlanExercises", table =>
         {
                 table.HasCheckConstraint(

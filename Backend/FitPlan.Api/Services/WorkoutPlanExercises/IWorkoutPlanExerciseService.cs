@@ -24,4 +24,6 @@ public interface IWorkoutPlanExerciseService
         Guid userId,
         Guid planId,
         Guid id);
+
+    Task<Result<bool>> UpdateNoteAsync(Guid userId, Guid planId, Guid id, string? note);
 }

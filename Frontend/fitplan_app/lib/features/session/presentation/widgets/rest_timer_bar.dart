@@ -39,6 +39,9 @@ class _Countdown extends ConsumerStatefulWidget {
 }
 
 class _CountdownState extends ConsumerState<_Countdown> {
+  // three buttons and the clock must fit a small iPhone
+  static const _compact = EdgeInsets.symmetric(horizontal: 12);
+
   late final Timer _ticker;
   bool _finished = false;
 
@@ -120,15 +123,23 @@ class _CountdownState extends ConsumerState<_Countdown> {
                     ],
                   ),
                   const Spacer(),
+                  if (left > 0) ...[
+                    OutlinedButton(
+                      onPressed: () => controller.removeTime(const Duration(seconds: 15)),
+                      style: OutlinedButton.styleFrom(minimumSize: const Size(56, 48), padding: _compact),
+                      child: Text(l10n.restAdd15(signed('-15'))),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                  ],
                   OutlinedButton(
                     onPressed: () => controller.addTime(const Duration(seconds: 15)),
-                    style: OutlinedButton.styleFrom(minimumSize: const Size(72, 48)),
+                    style: OutlinedButton.styleFrom(minimumSize: const Size(56, 48), padding: _compact),
                     child: Text(l10n.restAdd15(signed('+15'))),
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   TextButton(
                     onPressed: controller.skip,
-                    style: TextButton.styleFrom(minimumSize: const Size(64, 48)),
+                    style: TextButton.styleFrom(minimumSize: const Size(56, 48), padding: _compact),
                     child: Text(left == 0 ? l10n.close : l10n.skip),
                   ),
                 ],

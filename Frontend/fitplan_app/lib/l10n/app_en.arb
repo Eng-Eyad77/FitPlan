@@ -492,7 +492,8 @@
   "languageSystem": "Auto",
   "languageEnglish": "English",
   "languageArabic": "العربية",
-  "tonnes": "t",
+  "tonnes": "{count, plural, =1{ton} other{tons}}",
+  "@tonnes": {"description": "Unit after a weight in tonnes, e.g. 12.4 tons. Not t, which reads like a cross.", "placeholders": {"count": {"type": "num"}}},
   "msPiano": "a grand piano",
   "msPianoPlural": "grand pianos",
   "msCar": "a small car",
@@ -505,8 +506,8 @@
   "msTruckPlural": "loaded trucks",
   "msWhale": "a blue whale",
   "msWhalePlural": "blue whales",
-  "msJet": "a jumbo jet at takeoff",
-  "msJetPlural": "jumbo jets",
+  "msJet": "an airplane",
+  "msJetPlural": "airplanes",
   "aboutOne": "About {name}",
   "@aboutOne": {
     "placeholders": {
@@ -1332,6 +1333,7 @@
   },
   "errInvalidEmailCode": "The code is wrong or has expired. Ask for a new one.",
   "errEmailAlreadyExists": "This email already has an account.",
+  "errEmailNotRegistered": "There's no account with this email.",
   "errTooManyEmails": "Too many codes for this email. Wait a little and try again.",
   "errEmailNotSent": "We couldn't send the email. Try again later.",
   "email": "Email",
@@ -1365,5 +1367,16 @@
   "reportHint": "Describe what happened and what you were doing.",
   "send": "Send",
   "reportSent": "We got your report. Thank you 🙏",
-  "reportTooMany": "You sent many reports. Try again a little later."
+  "reportTooMany": "You sent many reports. Try again a little later.",
+  "rangeAll": "All",
+  "rangeWeek": "This week",
+  "rangeMonth": "This month",
+  "rangeYear": "This year",
+  "noWorkoutsInRange": "No workouts in this period",
+  "noWorkoutsInRangeBody": "Pick a longer period, or All.",
+  "addNote": "Add a note",
+  "exerciseNote": "Exercise note",
+  "exerciseNoteBody": "Just for you, like where you set the seat. It shows every time you do this exercise.",
+  "exerciseNoteHint": "e.g. Seat on 4",
+  "removeNote": "Remove note"
 }

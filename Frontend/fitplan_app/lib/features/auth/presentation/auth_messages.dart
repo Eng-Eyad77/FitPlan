@@ -8,6 +8,7 @@ String authErrorMessage(ApiException error) => switch (error.code) {
       'TooManyRequests' => l10n.errTooManyRequests,
       'InvalidEmailCode' => l10n.errInvalidEmailCode,
       'EmailAlreadyExists' => l10n.errEmailAlreadyExists,
+      'EmailNotRegistered' => l10n.errEmailNotRegistered,
       'TooManyEmails' => l10n.errTooManyEmails,
       'EmailNotSent' => l10n.errEmailNotSent,
       'ValidationFailed' when isArabic => l10n.errValidation,

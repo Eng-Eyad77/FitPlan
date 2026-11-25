@@ -15,9 +15,13 @@ public static class Errors
     public static readonly Error InvalidEmailCode =
         new("InvalidEmailCode", "The code is wrong or has expired. Ask for a new one.", ErrorType.Validation);
 
-    // Only after the code proved the address, or on a race between two sign-ups.
+    // Before a sign-up or email-change code is sent, and on a race between two sign-ups.
     public static readonly Error EmailAlreadyExists =
         new("EmailAlreadyExists", "This email already has an account.", ErrorType.Conflict);
+
+    // A forgotten password for an address with no account.
+    public static readonly Error EmailNotRegistered =
+        new("EmailNotRegistered", "There's no account with this email.", ErrorType.NotFound);
 
     // Per address, on top of the per-IP limit, so nobody can use up the daily email allowance.
     public static readonly Error TooManyEmails =

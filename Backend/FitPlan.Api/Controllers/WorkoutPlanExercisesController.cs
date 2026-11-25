@@ -1,3 +1,4 @@
+using FitPlan.Api.DTOs.Common;
 
 using FitPlan.Api.DTOs.WorkoutPlanExercises;
 using FitPlan.Api.Services.WorkoutPlanExercises;
@@ -59,6 +60,20 @@ public class WorkoutPlanExercisesController(IWorkoutPlanExerciseService workoutP
         var result = await workoutPlanExerciseService.UpdatePlanExerciseAsync(userId, planId, id, updateWorkoutPlanExercise);
 
         return result.IsSuccess ? Ok(result.Data) : Problem(result.Error);
+    }
+
+    // Its own endpoint, so changing sets, reps or order never touches the note.
+    [HttpPut("{id:guid}/note")]
+    public async Task<IActionResult> UpdateNote(Guid planId, Guid id, [FromBody] ExerciseNoteDto dto)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await workoutPlanExerciseService.UpdateNoteAsync(userId, planId, id, dto.Cleaned());
+
+        return result.IsSuccess ? NoContent() : Problem(result.Error);
     }
 
 

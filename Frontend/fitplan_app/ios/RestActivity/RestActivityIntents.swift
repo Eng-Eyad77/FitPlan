@@ -3,7 +3,7 @@ import AppIntents
 import Foundation
 import UserNotifications
 
-// The "+15s" and "Skip" buttons on the Lock Screen countdown (iOS 17+).
+// The "-15s", "+15s" and "Skip" buttons on the Lock Screen countdown (iOS 17+).
 // Compiled into the app and the widget extension; iOS runs them in the app's process, in the
 // background, without opening the app. They change the countdown and the "Rest is over"
 // notification right away, and leave a note the app reads when it runs again
@@ -18,6 +18,19 @@ struct AddRestTimeIntent: LiveActivityIntent {
 
   func perform() async throws -> some IntentResult {
     await RestActivityControl.addTime(RestActivityControl.addedSeconds)
+    return .result()
+  }
+}
+
+@available(iOS 17.0, *)
+struct RemoveRestTimeIntent: LiveActivityIntent {
+  static var title: LocalizedStringResource = "Take 15 seconds off the rest"
+  static var isDiscoverable: Bool = false
+
+  init() {}
+
+  func perform() async throws -> some IntentResult {
+    await RestActivityControl.addTime(-RestActivityControl.addedSeconds)
     return .result()
   }
 }
@@ -39,7 +52,7 @@ struct SkipRestIntent: LiveActivityIntent {
 enum RestActivityControl {
   static let addedSeconds: TimeInterval = 15
 
-  /// The note for the app: {"endsAtMs": …} after +15s, {"skip": true} after Skip.
+  /// The note for the app: {"endsAtMs": …} after -15s or +15s, {"skip": true} after Skip.
   static let changeKey = "fitplan.restActivity.change"
 
   /// The id flutter_local_notifications gives "Rest is over" (9001 in rest_notifications.dart).
@@ -48,8 +61,13 @@ enum RestActivityControl {
   static func addTime(_ seconds: TimeInterval) async {
     guard let activity = Activity<RestActivityAttributes>.activities.first else { return }
     var state = activity.content.state
-    // after the end, the new rest counts from now
-    state.endsAt = max(state.endsAt, Date()).addingTimeInterval(seconds)
+    if seconds >= 0 {
+      // after the end, the new rest counts from now
+      state.endsAt = max(state.endsAt, Date()).addingTimeInterval(seconds)
+    } else {
+      // never before now: taking more than is left ends the rest
+      state.endsAt = max(Date(), state.endsAt.addingTimeInterval(seconds))
+    }
     await activity.update(ActivityContent(state: state, staleDate: nil))
     UserDefaults.standard.set(["endsAtMs": state.endsAt.timeIntervalSince1970 * 1000], forKey: changeKey)
     await moveAlert(to: state.endsAt)

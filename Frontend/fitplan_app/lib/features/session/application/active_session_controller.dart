@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/api_exception.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../history/application/history_controller.dart';
+import '../../plans/application/plans_controller.dart';
 import '../../progress/application/progress_providers.dart';
 import '../data/sessions_repository.dart';
 import '../domain/workout_session.dart';
@@ -107,6 +108,8 @@ class ActiveSessionController extends AsyncNotifier<WorkoutSession?> {
     state = const AsyncData(null);
     // the new workout shows up in History, Home and Progress
     ref.invalidate(historyControllerProvider);
+    // notes changed in the workout were saved to the plan
+    ref.invalidate(planExercisesProvider);
     invalidateWorkoutStats(ref.invalidate);
     return summary;
   }
@@ -128,6 +131,13 @@ class ActiveSessionController extends AsyncNotifier<WorkoutSession?> {
     state = AsyncData(_session.copyWith(
       exercises: [..._session.exercises.where((e) => e.id != sessionExerciseId)],
     ));
+  }
+
+  /// [note] empty or null removes it.
+  Future<void> setNote(String sessionExerciseId, String? note) async {
+    final cleaned = (note == null || note.trim().isEmpty) ? null : note.trim();
+    await _repository.updateNote(_session.id, sessionExerciseId, cleaned);
+    _updateExercise(sessionExerciseId, (e) => e.copyWith(note: cleaned));
   }
 
   Future<void> setRest(String sessionExerciseId, int restSeconds) async {

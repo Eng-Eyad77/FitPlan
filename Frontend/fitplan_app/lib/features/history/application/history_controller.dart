@@ -14,20 +14,42 @@ class HistoryState {
   final bool hasMore;
 }
 
-final historyControllerProvider =
-    AsyncNotifierProvider<HistoryController, HistoryState>(HistoryController.new);
+/// The History filter. Home always reads [all].
+enum HistoryRange {
+  all,
+  week,
+  month,
+  year;
 
-/// Completed workouts, newest first. Reloaded when a workout is finished
+  /// The start of this week (from Sunday), month or year, in the user's own time.
+  DateTime? since(DateTime now) => switch (this) {
+        all => null,
+        week => DateTime(now.year, now.month, now.day - now.weekday % 7),
+        month => DateTime(now.year, now.month),
+        year => DateTime(now.year),
+      };
+}
+
+final historyControllerProvider =
+    AsyncNotifierProvider.family<HistoryController, HistoryState, HistoryRange>(HistoryController.new);
+
+/// Completed workouts, newest first, a page at a time. Reloaded when a workout is finished
 /// (see ActiveSessionController.finish).
 class HistoryController extends AsyncNotifier<HistoryState> {
+  HistoryController(this.range);
+
+  final HistoryRange range;
+
   SessionsRepository get _repository => ref.read(sessionsRepositoryProvider);
 
   bool _loadingMore = false;
+  DateTime? _since;
 
   @override
   Future<HistoryState> build() async {
     ref.watch(authControllerProvider.select((auth) => auth.value?.id));
-    final first = await _repository.getHistory();
+    _since = range.since(DateTime.now());
+    final first = await _repository.getHistory(since: _since);
     return HistoryState(items: first.items, page: first.page, hasMore: first.hasMore);
   }
 
@@ -36,7 +58,7 @@ class HistoryController extends AsyncNotifier<HistoryState> {
     if (current == null || !current.hasMore || _loadingMore) return;
     _loadingMore = true;
     try {
-      final next = await _repository.getHistory(page: current.page + 1);
+      final next = await _repository.getHistory(page: current.page + 1, since: _since);
       state = AsyncData(HistoryState(
         items: [...current.items, ...next.items],
         page: next.page,
@@ -51,12 +73,17 @@ class HistoryController extends AsyncNotifier<HistoryState> {
     await _repository.delete(id);
     invalidateWorkoutStats(ref.invalidate);
     final current = state.value;
-    if (current == null) return;
-    state = AsyncData(HistoryState(
-      items: [...current.items.where((s) => s.id != id)],
-      page: current.page,
-      hasMore: current.hasMore,
-    ));
+    if (current != null) {
+      state = AsyncData(HistoryState(
+        items: [...current.items.where((s) => s.id != id)],
+        page: current.page,
+        hasMore: current.hasMore,
+      ));
+    }
+    // the other ranges (and Home) still list it
+    for (final other in HistoryRange.values.where((r) => r != range)) {
+      ref.invalidate(historyControllerProvider(other));
+    }
   }
 }
 

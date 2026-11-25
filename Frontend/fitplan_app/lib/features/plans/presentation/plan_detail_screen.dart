@@ -7,11 +7,13 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_text.dart';
 import '../../../shared/format.dart';
+import '../../../shared/widgets/adaptive.dart';
+import '../../../shared/widgets/exercise_note.dart';
 import '../../../shared/widgets/feedback.dart';
 import '../../exercises/domain/exercise.dart';
 import '../../exercises/presentation/exercise_details_sheet.dart';
 import '../../exercises/presentation/widgets/exercise_thumb.dart';
-import '../../session/domain/workout_session.dart' show formatRest;
+import '../../session/domain/workout_session.dart' show RestLimits, formatRest;
 import '../../session/presentation/start_workout.dart';
 import '../application/plans_controller.dart';
 import '../domain/workout_plan.dart';
@@ -45,22 +47,14 @@ class PlanDetailScreen extends ConsumerWidget {
   }
 
   Future<void> _delete(BuildContext context, WidgetRef ref, WorkoutPlan plan) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.deletePlanTitle),
-        content: Text(l10n.deletePlanBody(plan.name)),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.keep)),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
-            child: Text(l10n.delete),
-          ),
-        ],
-      ),
+    final confirmed = await confirmAction(
+      context,
+      title: l10n.deletePlanTitle,
+      body: l10n.deletePlanBody(plan.name),
+      confirmLabel: l10n.delete,
+      cancelLabel: l10n.keep,
     );
-    if (confirmed != true || !context.mounted) return;
+    if (!confirmed || !context.mounted) return;
 
     try {
       await ref.read(plansControllerProvider.notifier).delete(plan.id);
@@ -85,15 +79,16 @@ class PlanDetailScreen extends ConsumerWidget {
         title: Text(plan?.name ?? l10n.plan, style: AppText.heading),
         actions: [
           if (plan != null)
-            PopupMenuButton<String>(
+            ActionsButton(
               tooltip: l10n.planOptions,
-              onSelected: (value) => switch (value) {
-                'edit' => showPlanFormSheet(context, plan: plan),
-                _ => _delete(context, ref, plan),
-              },
-              itemBuilder: (_) => [
-                PopupMenuItem(value: 'edit', child: Text(l10n.editName)),
-                PopupMenuItem(value: 'delete', child: Text(l10n.deletePlan)),
+              actions: () => [
+                MenuAction(label: l10n.editName, icon: Icons.edit_outlined, onTap: () => showPlanFormSheet(context, plan: plan)),
+                MenuAction(
+                  label: l10n.deletePlan,
+                  icon: Icons.delete_outline_rounded,
+                  destructive: true,
+                  onTap: () => _delete(context, ref, plan),
+                ),
               ],
             ),
         ],
@@ -202,6 +197,16 @@ class _PlanExerciseTile extends ConsumerWidget {
     }
   }
 
+  Future<void> _editNote(BuildContext context, WidgetRef ref) async {
+    final note = await showNoteSheet(context, initial: exercise.note);
+    if (note == null || !context.mounted) return;
+    try {
+      await ref.read(planExercisesProvider(planId).notifier).setNote(exercise, note);
+    } catch (error) {
+      if (context.mounted) showError(context, error);
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Material(
@@ -215,51 +220,57 @@ class _PlanExerciseTile extends ConsumerWidget {
         onTap: () => _edit(context, ref),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.md),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              ExerciseThumb(
-                url: exercise.gifUrl,
-                size: 64,
-                onTap: () => showExerciseDetails(
-                  context,
-                  exerciseId: exercise.exerciseId,
-                  name: exercise.name,
-                  gifUrl: exercise.gifUrl,
-                  bodyPart: exercise.bodyPart,
-                ),
+              Row(
+                children: [
+                  ExerciseThumb(
+                    url: exercise.gifUrl,
+                    size: 64,
+                    onTap: () => showExerciseDetails(
+                      context,
+                      exerciseId: exercise.exerciseId,
+                      name: exercise.name,
+                      gifUrl: exercise.gifUrl,
+                      bodyPart: exercise.bodyPart,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ExerciseName(name: exercise.name, englishName: exercise.englishName),
+                        const SizedBox(height: 2),
+                        Text(bodyPartName(exercise.bodyPart), style: AppText.caption),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.accentTint(0.1),
+                      borderRadius: BorderRadius.circular(AppRadius.pill),
+                    ),
+                    child: Text(
+                      // the default rest shows too, so every exercise reads the same way
+                      '${exercise.sets} × ${exercise.reps} · ${formatRest(exercise.restSeconds ?? RestLimits.defaultSeconds)}',
+                      style: AppText.bodyStrong.copyWith(color: AppColors.accent, fontSize: 14),
+                    ),
+                  ),
+                  ReorderableDragStartListener(
+                    index: index,
+                    child: const Padding(
+                      padding: EdgeInsetsDirectional.only(start: AppSpacing.sm),
+                      child: Icon(Icons.drag_indicator_rounded, color: AppColors.textTertiary),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ExerciseName(name: exercise.name, englishName: exercise.englishName),
-                    const SizedBox(height: 2),
-                    Text(bodyPartName(exercise.bodyPart), style: AppText.caption),
-                  ],
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.accentTint(0.1),
-                  borderRadius: BorderRadius.circular(AppRadius.pill),
-                ),
-                child: Text(
-                  exercise.restSeconds == null
-                      ? '${exercise.sets} × ${exercise.reps}'
-                      : '${exercise.sets} × ${exercise.reps} · ${formatRest(exercise.restSeconds!)}',
-                  style: AppText.bodyStrong.copyWith(color: AppColors.accent, fontSize: 14),
-                ),
-              ),
-              ReorderableDragStartListener(
-                index: index,
-                child: const Padding(
-                  padding: EdgeInsetsDirectional.only(start: AppSpacing.sm),
-                  child: Icon(Icons.drag_indicator_rounded, color: AppColors.textTertiary),
-                ),
-              ),
+              const SizedBox(height: AppSpacing.sm),
+              ExerciseNoteLine(note: exercise.note, onEdit: () => _editNote(context, ref)),
             ],
           ),
         ),

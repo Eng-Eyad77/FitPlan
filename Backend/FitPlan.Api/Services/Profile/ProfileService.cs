@@ -170,10 +170,12 @@ public class ProfileService(
         }
 
         var email = EmailCodeService.Normalize(request.NewEmail);
-        var taken = await context.Users.AnyAsync(u => u.Email == email);
+        if (await context.Users.AnyAsync(u => u.Email == email))
+        {
+            return Result<bool>.Failure(Errors.EmailAlreadyExists);
+        }
 
-        return await emailCodes.SendAsync(email, EmailCodePurpose.ChangeEmail, userId,
-            taken ? EmailDelivery.Nothing : EmailDelivery.Code, language);
+        return await emailCodes.SendAsync(email, EmailCodePurpose.ChangeEmail, userId, language);
     }
 
     // The code proves the new address. The old address is told, so the owner notices a change they didn't make.

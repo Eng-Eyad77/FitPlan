@@ -95,6 +95,11 @@ class PlansRepository {
     return PlanExercise.fromJson(response.data!);
   }
 
+  /// Its own call, so the PUT above never touches the note. Empty removes it.
+  Future<void> updateNote(String planId, String id, String? note) async {
+    await apiCall(() => _dio.put<void>('/api/workout-plans/$planId/exercises/$id/note', data: {'note': note}));
+  }
+
   Future<void> removeExercise(String planId, String id) async {
     await apiCall(() => _dio.delete<void>('/api/workout-plans/$planId/exercises/$id'));
   }

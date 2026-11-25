@@ -1,3 +1,4 @@
+using FitPlan.Api.DTOs.Common;
 
 using FitPlan.Api.DTOs.WorkoutSessions;
 using FitPlan.Api.Services.SessionExercises;
@@ -56,6 +57,20 @@ public class SessionExercisesController(ISessionExerciseService sessionExerciseS
         return result.IsSuccess ? NoContent() : Problem(result.Error);
     }
 
+
+    // The exercise's note for this workout. Saved to the plan when the workout is completed.
+    [HttpPut("{sessionExerciseId:guid}/note")]
+    public async Task<IActionResult> UpdateNote(Guid sessionId, Guid sessionExerciseId, [FromBody] ExerciseNoteDto dto)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await sessionExerciseService.UpdateNoteAsync(userId, sessionId, sessionExerciseId, dto.Cleaned());
+
+        return result.IsSuccess ? NoContent() : Problem(result.Error);
+    }
 
     [HttpPost("{sessionExerciseId:guid}/sets")]
     public async Task<IActionResult> AddSet(Guid sessionId, Guid sessionExerciseId, [FromBody] SessionSetRequestDto sessionSetRequestDto)

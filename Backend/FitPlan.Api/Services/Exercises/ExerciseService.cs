@@ -123,12 +123,14 @@ public class ExerciseService(ExerciseCatalog catalog, IConfiguration configurati
             : Result<ExerciseDto>.Failure(Errors.ExerciseNotFound);
     }
 
-    private const int NoMatch = 3;
+    private const int NoMatch = 4;
 
-    // 0 the same name, 1 starts with the search, 2 has it somewhere, NoMatch not at all
+    // 0 the same name, 1 starts with the search, 2 has it somewhere, 3 has every word of it in any
+    // order ("chest incline" finds "incline chest press"), NoMatch not at all
     private static int Rank(string name, string search) =>
         name.Equals(search, StringComparison.Ordinal) ? 0
         : name.StartsWith(search, StringComparison.Ordinal) ? 1
         : name.Contains(search, StringComparison.Ordinal) ? 2
+        : search.Split(' ', StringSplitOptions.RemoveEmptyEntries).All(word => name.Contains(word, StringComparison.Ordinal)) ? 3
         : NoMatch;
 }

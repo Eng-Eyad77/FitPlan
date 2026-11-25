@@ -1532,11 +1532,11 @@ abstract class AppLocalizations {
   /// **'العربية'**
   String get languageArabic;
 
-  /// No description provided for @tonnes.
+  /// Unit after a weight in tonnes, e.g. 12.4 tons. Not t, which reads like a cross.
   ///
   /// In en, this message translates to:
-  /// **'t'**
-  String get tonnes;
+  /// **'{count, plural, =1{ton} other{tons}}'**
+  String tonnes(num count);
 
   /// No description provided for @msPiano.
   ///
@@ -1613,13 +1613,13 @@ abstract class AppLocalizations {
   /// No description provided for @msJet.
   ///
   /// In en, this message translates to:
-  /// **'a jumbo jet at takeoff'**
+  /// **'an airplane'**
   String get msJet;
 
   /// No description provided for @msJetPlural.
   ///
   /// In en, this message translates to:
-  /// **'jumbo jets'**
+  /// **'airplanes'**
   String get msJetPlural;
 
   /// No description provided for @aboutOne.
@@ -2996,6 +2996,12 @@ abstract class AppLocalizations {
   /// **'This email already has an account.'**
   String get errEmailAlreadyExists;
 
+  /// No description provided for @errEmailNotRegistered.
+  ///
+  /// In en, this message translates to:
+  /// **'There\'s no account with this email.'**
+  String get errEmailNotRegistered;
+
   /// No description provided for @errTooManyEmails.
   ///
   /// In en, this message translates to:
@@ -3157,6 +3163,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You sent many reports. Try again a little later.'**
   String get reportTooMany;
+
+  /// No description provided for @rangeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get rangeAll;
+
+  /// No description provided for @rangeWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This week'**
+  String get rangeWeek;
+
+  /// No description provided for @rangeMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get rangeMonth;
+
+  /// No description provided for @rangeYear.
+  ///
+  /// In en, this message translates to:
+  /// **'This year'**
+  String get rangeYear;
+
+  /// No description provided for @noWorkoutsInRange.
+  ///
+  /// In en, this message translates to:
+  /// **'No workouts in this period'**
+  String get noWorkoutsInRange;
+
+  /// No description provided for @noWorkoutsInRangeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a longer period, or All.'**
+  String get noWorkoutsInRangeBody;
+
+  /// No description provided for @addNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a note'**
+  String get addNote;
+
+  /// No description provided for @exerciseNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise note'**
+  String get exerciseNote;
+
+  /// No description provided for @exerciseNoteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Just for you, like where you set the seat. It shows every time you do this exercise.'**
+  String get exerciseNoteBody;
+
+  /// No description provided for @exerciseNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Seat on 4'**
+  String get exerciseNoteHint;
+
+  /// No description provided for @removeNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove note'**
+  String get removeNote;
 }
 
 class _AppLocalizationsDelegate

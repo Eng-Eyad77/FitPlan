@@ -245,6 +245,19 @@ public class ExerciseCatalogTests(ApiFixture api)
     }
 
     [Fact]
+    public async Task Search_words_match_in_any_order_after_the_closer_matches()
+    {
+        var tag = Guid.NewGuid().ToString("N")[..10];
+        await api.AddExerciseAsync($"Incline {tag} Press");
+        await api.AddExerciseAsync($"{tag} Incline");
+        var service = new ExerciseService(NewCatalog().Catalog, new ConfigurationBuilder().Build());
+
+        var result = await service.GetAllExercisesAsync(1, 10, bodyPart: null, search: $"{tag} incline");
+
+        Assert.Equal([$"{tag} Incline", $"Incline {tag} Press"], result.Items.Select(e => e.Name));
+    }
+
+    [Fact]
     public async Task Pages_split_the_matches()
     {
         var tag = Guid.NewGuid().ToString("N")[..10];
