@@ -50,7 +50,6 @@ public static class ServicesExtensions
         }
 
         // Exercises
-        services.AddScoped<IExerciseImportService, ExerciseImportService>();
         services.AddScoped<IExerciseService, ExerciseService>();
         services.AddSingleton<ExerciseCatalog>();
         services.AddMemoryCache();
@@ -86,12 +85,6 @@ public static class ServicesExtensions
         // 12C: the admin's GIF link check
         services.AddHttpClient(FitPlan.Api.Controllers.AdminExercisesController.GifCheckClient, client =>
             client.Timeout = TimeSpan.FromSeconds(10));
-
-        services.AddHttpClient("ExerciseDB", client =>
-        {
-            client.BaseAddress = new Uri("https://oss.exercisedb.dev/");
-            client.Timeout = TimeSpan.FromSeconds(30);
-        });
 
         return services;
     }

@@ -1442,6 +1442,12 @@ abstract class AppLocalizations {
   /// **'Delete account'**
   String get deleteAccount;
 
+  /// No description provided for @exerciseDataCredit.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise data: AscendAPI'**
+  String get exerciseDataCredit;
+
   /// No description provided for @bodyWeight.
   ///
   /// In en, this message translates to:

@@ -455,14 +455,14 @@ This covers iOS and Android app builds only. API builds in CI and Admin Web buil
 From `Frontend/fitplan_app`:
 
 ```bash
-flutter build apk --release --dart-define=API_BASE_URL=https://fitplan-api-eyad.azurewebsites.net
+flutter build apk --release --dart-define=API_BASE_URL=https://fitplan-api-dev.azurewebsites.net
 ```
 
 The APK is saved to `build/app/outputs/flutter-apk/app-release.apk`. Git ignores it, so never add it to a commit.
 
 ### Which API a build uses
 
-`API_BASE_URL` in `codemagic.yaml` and in the Android command above points to the Production API, so these test builds use real data. Dev exists, but no build points to it yet. A build for Dev needs its own manual build with `API_BASE_URL` set to `https://fitplan-api-dev.azurewebsites.net`.
+`API_BASE_URL` in `codemagic.yaml` and in the Android command above points to the Dev API, so test builds never touch Production data. A store build sets it to `https://fitplan-api-eyad.azurewebsites.net`. A phone release build without `API_BASE_URL` stops at the first API call with a clear error instead of calling `localhost`.
 
 ## Never commit
 

@@ -80,6 +80,8 @@ class _ProfileBody extends ConsumerWidget {
         ),
         const SizedBox(height: AppSpacing.md),
         const _DeleteAccountButton(),
+        // Required by the ExerciseDB terms (D21)
+        Text(l10n.exerciseDataCredit, textAlign: TextAlign.center, style: AppText.caption),
       ].animate(interval: 50.ms).fadeIn(duration: 260.ms).slideY(begin: 0.05, end: 0),
     );
   }
