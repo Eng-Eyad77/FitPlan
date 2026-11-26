@@ -51,7 +51,7 @@ class ReachedMilestone {
 enum MilestoneArt { piano, car, elephant, bus, truck, whale, jet }
 
 /// The objects the volume is compared with. The weights are approximate and sourced
-/// (docs/PHASE-10-PROPOSAL.md); the server has the same keys and thresholds.
+/// (docs/archive/PHASE-10-PROPOSAL.md); the server has the same keys and thresholds.
 class Milestone {
   const Milestone(this.key, this.weightKg, this.art);
 

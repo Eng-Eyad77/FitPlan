@@ -18,6 +18,8 @@
 		<string>en</string>
 		<string>ar</string>
 	</array>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>CFBundleDisplayName</key>
 	<string>FitPlan</string>
 	<key>CFBundleExecutable</key>

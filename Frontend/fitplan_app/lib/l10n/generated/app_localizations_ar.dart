@@ -806,6 +806,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get deleteAccount => 'حذف الحساب';
 
   @override
+  String get exerciseDataCredit => 'بيانات التمارين: AscendAPI';
+
+  @override
   String get bodyWeight => 'وزن جسمك';
 
   @override

@@ -224,6 +224,7 @@
   "deleteAccountBody": "بنحذف جداولك وحصصك وأوزانك وصورتك نهائيًا، وما تقدر ترجعها. اكتب كلمة المرور عشان تأكد.",
   "accountDeleted": "انحذف حسابك.",
   "deleteAccount": "حذف الحساب",
+  "exerciseDataCredit": "بيانات التمارين: AscendAPI",
   "bodyWeight": "وزن جسمك",
   "addWeightHint": "حط وزنك عشان نحسب لك السعرات اللي تحرقها.",
   "update": "حدّث",

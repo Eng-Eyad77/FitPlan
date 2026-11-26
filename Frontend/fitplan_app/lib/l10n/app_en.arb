@@ -467,6 +467,7 @@
   "deleteAccountBody": "This deletes your plans, workouts, weights and photo for good. It can't be undone. Enter your password to confirm.",
   "accountDeleted": "Your account was deleted.",
   "deleteAccount": "Delete account",
+  "exerciseDataCredit": "Exercise data: AscendAPI",
   "bodyWeight": "Body weight",
   "addWeightHint": "Add your weight so we can estimate the calories you burn.",
   "update": "Update",

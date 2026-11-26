@@ -64,12 +64,12 @@ end
 ext.build_configurations.each do |config|
   s = config.build_settings
   s['PRODUCT_NAME'] = name
-  s['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.fitplan.fitplanApp.RestActivity'
+  s['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.fitplanapp.fitplan.RestActivity'
   s['INFOPLIST_FILE'] = 'RestActivity/Info.plist'
   s['GENERATE_INFOPLIST_FILE'] = 'NO'
   s['SWIFT_VERSION'] = '5.0'
   s['IPHONEOS_DEPLOYMENT_TARGET'] = '16.1'
-  s['TARGETED_DEVICE_FAMILY'] = '1,2'
+  s['TARGETED_DEVICE_FAMILY'] = '1'
   s['SKIP_INSTALL'] = 'YES'
   s['APPLICATION_EXTENSION_API_ONLY'] = 'YES'
   s['LD_RUNPATH_SEARCH_PATHS'] = ['$(inherited)', '@executable_path/Frameworks', '@executable_path/../../Frameworks']
