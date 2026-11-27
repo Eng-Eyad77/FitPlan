@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using FitPlan.Api.DTOs.Auth;
 using FitPlan.Api.DTOs.Profile;
+using FitPlan.Api.Extensions;
 using FitPlan.Api.Models;
 using FitPlan.Api.Tests.Infrastructure;
 using Microsoft.EntityFrameworkCore;
@@ -188,6 +189,20 @@ public class AccountTests(ApiFixture api)
 
         await response.AssertProblemAsync(HttpStatusCode.BadRequest, "WrongPassword");
         Assert.Equal(before, await RowsOwnedByAsync(user.Id));
+    }
+
+    [Fact]
+    public async Task Delete_password_guesses_share_the_sign_in_limit()
+    {
+        var user = await api.RegisterUserAsync();
+
+        HttpResponseMessage response = null!;
+        for (var i = 0; i <= RateLimitingExtensions.SignInPermitPerMinute; i++)
+        {
+            response = await user.Client.PostAsJsonAsync("/api/profile/me/delete", new { password = "not-my-password" });
+        }
+
+        await response.AssertProblemAsync(HttpStatusCode.TooManyRequests, "TooManyRequests");
     }
 
     [Fact]

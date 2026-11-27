@@ -426,7 +426,7 @@ class AdminApi {
 
   /// Read only. The server writes "Viewed plans" to the audit log.
   Future<({String username, List<UserPlan> plans})> viewPlans(String userId) async {
-    final json = await _call(() => _dio.post<Map<String, dynamic>>('/api/admin/users/$userId/view-plans'));
+    final json = await _call(() => _dio.post<Map<String, dynamic>>('/api/admin/users/${Uri.encodeComponent(userId)}/view-plans'));
     return (
       username: json['username'] as String,
       plans: [

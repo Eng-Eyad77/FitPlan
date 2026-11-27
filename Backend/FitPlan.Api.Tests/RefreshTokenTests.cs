@@ -154,10 +154,17 @@ public class RefreshTokenTests(ApiFixture api)
             Assert.Equal(HttpStatusCode.Unauthorized, (await client.PostAsJsonAsync("/api/auth/login", body)).StatusCode);
         }
 
+        var events = () => api.WithDbContextAsync(context => context.ServerEvents.CountAsync(e => e.Detail == "Rate limited"));
+        var before = await events();
+
         var limited = await client.PostAsJsonAsync("/api/auth/login", body);
+        await client.PostAsJsonAsync("/api/auth/login", body);
+        await client.PostAsJsonAsync("/api/auth/login", body);
 
         await limited.AssertProblemAsync(HttpStatusCode.TooManyRequests, "TooManyRequests");
         Assert.True(limited.Headers.RetryAfter is not null);
+        // three 429s, one logged row
+        Assert.Equal(before + 1, await events());
 
         // another caller isn't affected
         Assert.Equal(HttpStatusCode.Unauthorized, (await api.CreateClient().PostAsJsonAsync("/api/auth/login", body)).StatusCode);
