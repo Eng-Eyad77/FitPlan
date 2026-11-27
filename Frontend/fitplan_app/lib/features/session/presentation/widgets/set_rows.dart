@@ -1,19 +1,18 @@
+import 'package:fitplan_shared/fitplan_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_text.dart';
 import '../../../../shared/format.dart';
 import '../../domain/workout_session.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Same limits as the API, checked before sending. Null when valid.
 String? validateSet({required int? reps, required String kgText, required double? kg}) {
   if (reps == null || reps < 1 || reps > SessionLimits.maxReps) {
-    return 'Reps: 1 to ${SessionLimits.maxReps}';
+    return l10n.repsRange(SessionLimits.maxReps);
   }
   if (kgText.isNotEmpty && (kg == null || kg < 0 || kg > SessionLimits.maxWeightKg)) {
-    return 'Weight: 0 to ${formatKg(SessionLimits.maxWeightKg)} kg';
+    return l10n.weightRangeSet(formatKg(SessionLimits.maxWeightKg));
   }
   return null;
 }
@@ -34,9 +33,9 @@ class SetTableHeader extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
       child: Row(
         children: [
-          SizedBox(width: SetColumns.set, child: Text('SET', style: style)),
-          Expanded(child: Text('KG', style: style, textAlign: TextAlign.center)),
-          Expanded(child: Text('REPS', style: style, textAlign: TextAlign.center)),
+          SizedBox(width: SetColumns.set, child: Text(l10n.colSet, style: style)),
+          Expanded(child: Text(l10n.colKg, style: style, textAlign: TextAlign.center)),
+          Expanded(child: Text(l10n.colReps, style: style, textAlign: TextAlign.center)),
           const SizedBox(width: SetColumns.done),
         ],
       ),
@@ -60,14 +59,14 @@ class LoggedSetRow extends StatelessWidget {
     final before = previous;
     if (before == null) return null;
     final kgDiff = (set.weightKg ?? 0) - (before.weightKg ?? 0);
-    return kgDiff > 0 ? '+${formatKg(kgDiff)} kg' : null;
+    return kgDiff > 0 ? l10n.amountKg(signed('+${formatKg(kgDiff)}')) : null;
   }
 
   /// Same weight, more reps: "+2 reps" under the reps.
   String? get _repsGain {
     final before = previous;
     if (before == null || (set.weightKg ?? 0) != (before.weightKg ?? 0)) return null;
-    return set.reps > before.reps ? '+${set.reps - before.reps}' : null;
+    return set.reps > before.reps ? signed('+${set.reps - before.reps}') : null;
   }
 
   Widget _value(String value, String? gain) => Column(
@@ -83,8 +82,11 @@ class LoggedSetRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: 'Set ${set.setNumber}: ${set.weightKg == null ? 'bodyweight' : '${formatKg(set.weightKg!)} kilograms'}, '
-          '${set.reps} reps, done. Tap to edit.',
+      label: l10n.setDoneSemantics(
+        set.setNumber,
+        set.weightKg == null ? l10n.semBodyweight : l10n.semKilograms(formatKg(set.weightKg!)),
+        set.reps,
+      ),
       excludeSemantics: true,
       child: Material(
         color: AppColors.accentTint(0.08),
@@ -102,7 +104,7 @@ class LoggedSetRow extends StatelessWidget {
                     width: SetColumns.set,
                     child: Text('${set.setNumber}', style: AppText.bodyStrong.copyWith(color: AppColors.textSecondary)),
                   ),
-                  Expanded(child: _value(set.weightKg == null ? 'BW' : formatKg(set.weightKg!), _kgGain)),
+                  Expanded(child: _value(set.weightKg == null ? l10n.bodyweightShort : formatKg(set.weightKg!), _kgGain)),
                   Expanded(child: _value('${set.reps}', _repsGain)),
                   const SizedBox(
                     width: SetColumns.done,
@@ -127,12 +129,20 @@ class DraftSetRow extends StatefulWidget {
     required this.onDone,
     this.initialKg,
     this.initialReps,
+    this.typed,
+    this.onTyped,
     this.highlighted = false,
   });
 
   final int setNumber;
   final double? initialKg;
   final int? initialReps;
+
+  /// What the user typed before (the card was closed in between). Wins over the pre-fill.
+  final ({String kg, String reps})? typed;
+
+  /// Called on every edit by the user, so the values outlive this row.
+  final void Function(String kg, String reps)? onTyped;
 
   /// The next set to do gets the accent border.
   final bool highlighted;
@@ -146,9 +156,11 @@ class DraftSetRow extends StatefulWidget {
 
 class _DraftSetRowState extends State<DraftSetRow> {
   late final _kg = TextEditingController(
-    text: widget.initialKg == null ? '' : formatKg(widget.initialKg!),
+    text: widget.typed?.kg ?? (widget.initialKg == null ? '' : formatKg(widget.initialKg!)),
   );
-  late final _reps = TextEditingController(text: widget.initialReps?.toString() ?? '');
+  late final _reps = TextEditingController(text: widget.typed?.reps ?? widget.initialReps?.toString() ?? '');
+
+  void _typed(String _) => widget.onTyped?.call(_kg.text, _reps.text);
   bool _saving = false;
   String? _error;
 
@@ -204,9 +216,10 @@ class _DraftSetRowState extends State<DraftSetRow> {
               Expanded(
                 child: _CellField(
                   controller: _kg,
-                  hint: 'BW',
-                  label: 'Set ${widget.setNumber} weight in kilograms',
+                  hint: l10n.weightHint,
+                  label: l10n.setWeightSemantics(widget.setNumber),
                   decimal: true,
+                  onChanged: _typed,
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
@@ -214,7 +227,8 @@ class _DraftSetRowState extends State<DraftSetRow> {
                 child: _CellField(
                   controller: _reps,
                   hint: '0',
-                  label: 'Set ${widget.setNumber} reps',
+                  label: l10n.setRepsSemantics(widget.setNumber),
+                  onChanged: _typed,
                   onSubmitted: _done,
                 ),
               ),
@@ -225,7 +239,7 @@ class _DraftSetRowState extends State<DraftSetRow> {
                         child: SizedBox.square(dimension: 24, child: CircularProgressIndicator(strokeWidth: 2.4)),
                       )
                     : IconButton(
-                        tooltip: 'Log set ${widget.setNumber}',
+                        tooltip: l10n.logSetNumber(widget.setNumber),
                         onPressed: _done,
                         iconSize: 30,
                         color: widget.highlighted ? AppColors.accent : AppColors.textTertiary,
@@ -237,7 +251,7 @@ class _DraftSetRowState extends State<DraftSetRow> {
         ),
         if (_error != null)
           Padding(
-            padding: const EdgeInsets.only(left: AppSpacing.sm, top: AppSpacing.xs),
+            padding: const EdgeInsetsDirectional.only(start: AppSpacing.sm, top: AppSpacing.xs),
             child: Text(_error!, style: AppText.caption.copyWith(color: AppColors.danger)),
           ),
       ],
@@ -251,6 +265,7 @@ class _CellField extends StatelessWidget {
     required this.hint,
     required this.label,
     this.decimal = false,
+    this.onChanged,
     this.onSubmitted,
   });
 
@@ -258,6 +273,7 @@ class _CellField extends StatelessWidget {
   final String hint;
   final String label;
   final bool decimal;
+  final ValueChanged<String>? onChanged;
   final VoidCallback? onSubmitted;
 
   @override
@@ -273,6 +289,7 @@ class _CellField extends StatelessWidget {
           FilteringTextInputFormatter.allow(decimal ? RegExp(r'[0-9.,]') : RegExp(r'[0-9]')),
           LengthLimitingTextInputFormatter(decimal ? 6 : 3),
         ],
+        onChanged: onChanged,
         textInputAction: onSubmitted == null ? TextInputAction.next : TextInputAction.done,
         onSubmitted: onSubmitted == null ? null : (_) => onSubmitted!(),
         onTap: () => controller.selection = TextSelection(baseOffset: 0, extentOffset: controller.text.length),

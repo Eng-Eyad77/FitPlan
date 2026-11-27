@@ -1,10 +1,11 @@
 
+using FitPlan.Api.DTOs.Exercises;
 using FitPlan.Api.Models;
 
 namespace FitPlan.Api.DTOs.WorkoutSessions;
 
 // The full session, used by the session screen.
-public class WorkoutSessionResponseDto
+public class WorkoutSessionResponseDto : IHasLocalizedExercises
 {
     public Guid Id { get; set; }
 
@@ -21,16 +22,21 @@ public class WorkoutSessionResponseDto
     public SessionExerciseResponseDto[] Exercises { get; set; } = [];
 
     public CardioEntryResponseDto[] Cardio { get; set; } = [];
+
+    IEnumerable<ILocalizedExercise> IHasLocalizedExercises.LocalizedExercises => Exercises;
 }
 
 
-public class SessionExerciseResponseDto
+public class SessionExerciseResponseDto : ILocalizedExercise
 {
     public Guid Id { get; set; }
 
     public required string ExerciseId { get; set; }
 
     public required string Name { get; set; }
+
+    // the English name when Name is in another language, so the app can show both
+    public string? EnglishName { get; set; }
 
     public required string GifUrl { get; set; }
 
@@ -41,6 +47,11 @@ public class SessionExerciseResponseDto
     public int? TargetSets { get; set; }
 
     public int? TargetReps { get; set; }
+
+    // null = the app's default (90 s)
+    public int? RestSeconds { get; set; }
+
+    public string? Note { get; set; }
 
     public SessionSetResponseDto[] Sets { get; set; } = [];
 
@@ -107,6 +118,20 @@ public class CardioEntryResponseDto
 
     public decimal? DistanceKm { get; set; }
 
+    public int? Level { get; set; }
+
+    public int? Floors { get; set; }
+
+    public int? CadenceRpm { get; set; }
+
+    public int? StrokeRate { get; set; }
+
+    public int? DistanceMeters { get; set; }
+
+    public int? PoolLengthMeters { get; set; }
+
+    public int? Laps { get; set; }
+
     // an estimate, null if the user has no body weight recorded
     public int? EstimatedCalories { get; set; }
 }
@@ -135,4 +160,8 @@ public class WorkoutSessionSummaryDto
     public int CardioDurationSeconds { get; set; }
 
     public int EstimatedCalories { get; set; }
+
+    // Only in the answer to finishing a workout: the lifetime-volume milestones this workout
+    // crossed (keys, smallest first), so the app celebrates each one once. Empty elsewhere.
+    public string[] NewMilestones { get; set; } = [];
 }

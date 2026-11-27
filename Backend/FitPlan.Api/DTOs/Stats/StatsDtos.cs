@@ -1,3 +1,5 @@
+using FitPlan.Api.DTOs.Exercises;
+
 namespace FitPlan.Api.DTOs.Stats;
 
 // ---------- overview (Progress tab header + weekly chart) ----------
@@ -39,11 +41,14 @@ public class WeekStatsDto
 
 // ---------- personal records ----------
 
-public class ExerciseRecordsDto
+public class ExerciseRecordsDto : ILocalizedExercise
 {
     public required string ExerciseId { get; set; }
 
     public required string Name { get; set; }
+
+    // the English name when Name is in another language, so the app can show both
+    public string? EnglishName { get; set; }
 
     public required string GifUrl { get; set; }
 
@@ -83,12 +88,14 @@ public class RecordSetDto
 
 // ---------- one exercise over time (chart) ----------
 
-public class ExerciseProgressDto
+public class ExerciseProgressDto : IHasLocalizedExercises
 {
     public required ExerciseRecordsDto Records { get; set; }
 
     // oldest first
     public ExerciseSessionPointDto[] Sessions { get; set; } = [];
+
+    IEnumerable<ILocalizedExercise> IHasLocalizedExercises.LocalizedExercises => [Records];
 }
 
 public class ExerciseSessionPointDto
@@ -112,7 +119,7 @@ public class ExerciseSessionPointDto
 
 // ---------- this workout vs the previous one ----------
 
-public class SessionComparisonDto
+public class SessionComparisonDto : IHasLocalizedExercises
 {
     public Guid SessionId { get; set; }
 
@@ -131,6 +138,8 @@ public class SessionComparisonDto
 
     // records beaten in this workout (an exercise done for the first time sets no record)
     public NewRecordDto[] NewRecords { get; set; } = [];
+
+    IEnumerable<ILocalizedExercise> IHasLocalizedExercises.LocalizedExercises => [.. Exercises, .. NewRecords];
 }
 
 public class ComparedValueDto
@@ -140,11 +149,14 @@ public class ComparedValueDto
     public decimal? Previous { get; set; }
 }
 
-public class ExerciseComparisonDto
+public class ExerciseComparisonDto : ILocalizedExercise
 {
     public required string ExerciseId { get; set; }
 
     public required string Name { get; set; }
+
+    // the English name when Name is in another language, so the app can show both
+    public string? EnglishName { get; set; }
 
     public decimal? TopSetWeightKg { get; set; }
 
@@ -168,15 +180,40 @@ public enum RecordType
     BestSetVolume = 4
 }
 
-public class NewRecordDto
+public class NewRecordDto : ILocalizedExercise
 {
     public required string ExerciseId { get; set; }
 
     public required string Name { get; set; }
+
+    // the English name when Name is in another language, so the app can show both
+    public string? EnglishName { get; set; }
 
     public RecordType Type { get; set; }
 
     public decimal Value { get; set; }
 
     public decimal PreviousBest { get; set; }
+}
+
+
+// ---------- lifetime volume (Phase 10) ----------
+
+public class VolumeStatsDto
+{
+    // sum of (reps × weight) of every set in every finished workout; bodyweight sets count as 0
+    public decimal TotalVolumeKg { get; set; }
+
+    // all of them, smallest first
+    public VolumeMilestoneDto[] Milestones { get; set; } = [];
+}
+
+public class VolumeMilestoneDto
+{
+    public required string Key { get; set; }
+
+    public decimal ThresholdKg { get; set; }
+
+    // null = not reached yet. Once reached it stays, even if the total drops after a delete.
+    public DateTime? ReachedAt { get; set; }
 }

@@ -38,6 +38,13 @@ public class ExerciseConfiguration : IEntityTypeConfiguration<Exercise>
             //     instructions => JsonSerializer.Serialize(instructions, (JsonSerializerOptions?)null),
             //     json => JsonSerializer.Deserialize<List<string>>(json, (JsonSerializerOptions?) null)
             //     ?? new List<string>()
-            //    );             
+            //    );
+
+        // JSON lists like Instructions; rows from before Phase 11C get an empty list
+        builder.Property(p => p.GifStatus).HasConversion<string>().HasMaxLength(20);
+
+        builder.Property(p => p.Equipments).IsRequired().HasDefaultValueSql("N'[]'");
+        builder.Property(p => p.TargetMuscles).IsRequired().HasDefaultValueSql("N'[]'");
+        builder.Property(p => p.SecondaryMuscles).IsRequired().HasDefaultValueSql("N'[]'");
     }
 }

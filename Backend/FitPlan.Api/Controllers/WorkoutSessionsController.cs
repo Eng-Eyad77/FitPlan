@@ -64,12 +64,14 @@ public class WorkoutSessionsController(IWorkoutSessionService workoutSessionServ
     }
 
 
-    // history: completed sessions, newest first
+    // history: completed sessions, newest first. [since] (UTC) keeps the ones finished from then on:
+    // the app sends the start of this week, month or year in the user's own time zone.
     [HttpGet]
     public async Task<IActionResult> GetHistory
     (
         [Range(1, int.MaxValue)] int page = 1,
-        [Range(1, 100)] int pageSize = 20
+        [Range(1, 100)] int pageSize = 20,
+        DateTime? since = null
     )
     {
         if (!TryGetUserId(out var userId))
@@ -77,7 +79,7 @@ public class WorkoutSessionsController(IWorkoutSessionService workoutSessionServ
             return Unauthorized();
         }
 
-        return Ok(await workoutSessionService.GetHistoryAsync(userId, page, pageSize));
+        return Ok(await workoutSessionService.GetHistoryAsync(userId, page, pageSize, since));
     }
 
 

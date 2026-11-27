@@ -14,6 +14,7 @@ import '../features/plans/presentation/plan_detail_screen.dart';
 import '../features/plans/presentation/plans_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/progress/presentation/progress_screen.dart';
+import '../features/reports/presentation/report_screen.dart';
 import '../features/session/domain/workout_session.dart';
 import '../features/session/presentation/session_screen.dart';
 import '../features/session/presentation/summary_screen.dart';
@@ -30,11 +31,16 @@ abstract final class Routes {
   static const history = '/history';
   static const progress = '/progress';
   static const profile = '/profile';
+  static const report = '/report';
+  static const suggest = '/suggest';
   static String planDetail(String id) => '/plans/$id';
   static String historyDetail(String id) => '/history/$id';
 
   /// Pops with the chosen Exercise. extra: `Set<String>` of exercise ids already added.
   static const exercisePicker = '/exercises/pick';
+
+  /// The whole library, to look through without a plan. Adding asks which plan.
+  static const exerciseLibrary = '/exercises';
   static const session = '/session';
 
   /// extra: the SessionSummary returned when finishing.
@@ -73,6 +79,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: Routes.resetPassword, builder: (_, _) => const ResetPasswordScreen()),
       // outside the tab shell: covers the tab bar, with a back button
       GoRoute(path: Routes.profile, builder: (_, _) => const ProfileScreen()),
+      GoRoute(path: Routes.report, builder: (_, _) => const ReportScreen()),
+      GoRoute(path: Routes.suggest, builder: (_, _) => const ReportScreen(suggestion: true)),
+      GoRoute(
+        path: Routes.exerciseLibrary,
+        builder: (_, _) => const ExercisePickerScreen(browse: true),
+      ),
       GoRoute(
         path: Routes.exercisePicker,
         builder: (_, state) =>

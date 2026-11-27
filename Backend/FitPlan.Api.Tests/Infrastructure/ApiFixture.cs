@@ -4,8 +4,11 @@ using System.Security.Cryptography;
 using FitPlan.Api.Data;
 using FitPlan.Api.DTOs.Auth;
 using FitPlan.Api.Models;
+using FitPlan.Api.Services.Email;
+using FitPlan.Api.Services.Reports;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -39,8 +42,7 @@ public sealed class ApiFixture : IAsyncLifetime
         Environment.SetEnvironmentVariable(JwtKeyVariable, JwtKey);
         Environment.SetEnvironmentVariable(UploadsVariable, uploadsRoot);
 
-        factory = new WebApplicationFactory<Program>()
-            .WithWebHostBuilder(builder => builder.UseEnvironment(TestEnvironment));
+        factory = NewHost();
 
         using var scope = factory.Services.CreateScope();
         await scope.ServiceProvider.GetRequiredService<FitPlanDbContext>().Database.MigrateAsync();
@@ -62,6 +64,24 @@ public sealed class ApiFixture : IAsyncLifetime
     }
 
     public IServiceProvider Services => factory.Services;
+
+    // Another API host on the same database. Its exercise catalog is new, so it reads rows a test
+    // added after the shared host had loaded its list. The caller disposes it.
+    public WebApplicationFactory<Program> NewHost() =>
+        new WebApplicationFactory<Program>().WithWebHostBuilder(builder => builder
+            .UseEnvironment(TestEnvironment)
+            .ConfigureTestServices(services => services
+                .AddSingleton<IEmailSender>(Emails)
+                .AddSingleton<ITelegramNotifier>(Telegram)
+                .AddSingleton<FitPlan.Api.Services.Exercises.IGifStorage>(Gifs)));
+
+    // every email the API sends, from every host
+    public FakeEmailSender Emails { get; } = new();
+
+    public FakeGifStorage Gifs { get; } = new();
+
+    // every Telegram message the API sends, from every host
+    public FakeTelegramNotifier Telegram { get; } = new();
 
     public string UploadsRoot => uploadsRoot;
 
@@ -100,20 +120,54 @@ public sealed class ApiFixture : IAsyncLifetime
 
     public static string NewPassword() => Convert.ToBase64String(RandomNumberGenerator.GetBytes(24));
 
+    public static string NewEmail() => NewUsername() + "@example.test";
+
+    // Both sign-up steps: asks for the code, then signs up with the code from the fake inbox.
+    public async Task<HttpResponseMessage> SignUpAsync(string email, string username, string password)
+    {
+        var client = CreateClient();
+        (await client.PostAsJsonAsync("/api/auth/register/code", new { email })).EnsureSuccessStatusCode();
+
+        return await client.PostAsJsonAsync("/api/auth/register", new { email, code = Emails.LastCode(email), username, password });
+    }
+
     public async Task<TestUser> RegisterUserAsync()
     {
+        var email = NewEmail();
         var username = NewUsername();
         var password = NewPassword();
 
-        var response = await CreateClient().PostAsJsonAsync("/api/auth/register", new { username, password });
+        var response = await SignUpAsync(email, username, password);
         response.EnsureSuccessStatusCode();
 
         var auth = await response.Content.ReadFromJsonAsync<AuthResponseDto>();
 
-        return new TestUser(auth!.Id, username, password, CreateClient(auth.AccessToken));
+        return new TestUser(auth!.Id, username, email, password, CreateClient(auth.AccessToken));
     }
 
-    public async Task<string> AddExerciseAsync(string name = "Bench Press")
+    // Phase 12: a new user made Owner, signed in to the admin with a code. Returns the admin client.
+    public async Task<(TestUser Owner, HttpClient Admin)> SignInAsOwnerAsync()
+    {
+        var owner = await RegisterUserAsync();
+        var secret = FitPlan.Api.Services.Admin.Totp.NewSecret();
+        await WithDbContextAsync(async c =>
+        {
+            c.AdminAccounts.Add(new FitPlan.Api.Models.AdminAccount
+            {
+                UserId = owner.Id, Role = FitPlan.Api.Models.AdminRole.Owner, TotpSecret = secret, CreatedAt = DateTime.UtcNow
+            });
+            await c.SaveChangesAsync();
+        });
+
+        var code = FitPlan.Api.Services.Admin.Totp.Code(
+            FitPlan.Api.Services.Admin.Totp.FromBase32(secret), FitPlan.Api.Services.Admin.Totp.StepAt(DateTimeOffset.UtcNow), 6);
+        var response = await CreateClient().PostAsJsonAsync("/api/admin/auth/login", new { login = owner.Username, password = owner.Password, code });
+        response.EnsureSuccessStatusCode();
+        using var body = System.Text.Json.JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        return (owner, CreateClient(body.RootElement.GetProperty("accessToken").GetString()));
+    }
+
+    public async Task<string> AddExerciseAsync(string name = "Bench Press", string bodyPart = "chest")
     {
         var id = "test-" + Guid.NewGuid().ToString("N");
 
@@ -124,7 +178,7 @@ public sealed class ApiFixture : IAsyncLifetime
                 Id = id,
                 Name = name,
                 GifUrl = "https://example.test/exercise.gif",
-                BodyPart = "chest",
+                BodyPart = bodyPart,
                 Instructions = ["Lift", "Lower"]
             });
             await context.SaveChangesAsync();
@@ -134,7 +188,7 @@ public sealed class ApiFixture : IAsyncLifetime
     }
 }
 
-public sealed record TestUser(Guid Id, string Username, string Password, HttpClient Client);
+public sealed record TestUser(Guid Id, string Username, string Email, string Password, HttpClient Client);
 
 // The tests share one database and start real API hosts, which can't safely be built at the same moment.
 [CollectionDefinition(Name)]

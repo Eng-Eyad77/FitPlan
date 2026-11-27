@@ -214,6 +214,14 @@ repo:Eng-Eyad77@177796235/FitPlan@1408724659:environment:dev
 
 GitHub sends this immutable format for repositories created after July 15, 2026. The numbers are the account and repository IDs, which don't change if either is renamed. If sign-in fails with `AADSTS700213`, compare the subject in the error with the federated credential. Any new environment, such as Production, needs a credential in the same format.
 
+### Admin on Dev
+
+The admin web app for Dev is published to Cloudflare Pages by `deploy-admin-dev.yml`, after a merge into `develop` that changes `Frontend/fitplan_admin` or `Frontend/fitplan_shared`, or by hand from the Actions tab. It runs the CI checks first, builds the admin against the Dev API, and publishes it to the Pages project `fitplan-admin-dev`. The first run creates the project.
+
+- It's served at `https://admin-dev.fitplan-app.com`. Cloudflare Access sits in front of that address and of `fitplan-admin-dev.pages.dev`, and lets in only the emails in its policy, after a one-time code by email. The admin's own sign-in, with a password and an authenticator code, comes after that.
+- The Dev API accepts browser calls only from the address in its `Cors__AdminOrigin` setting, and from localhost, so the admin can still run from your machine.
+- `web/_headers` stops the admin from being shown inside another site and asks search engines not to index it.
+
 ### If a deploy fails
 
 The run turns red, and nothing rolls back or deploys an older version by itself. Check the failed step and the App Service logs, then decide. To go back, open a pull request that reverts the bad commit, which goes through the same checks and deploy. Undoing a schema change is a separate decision with its own plan.
@@ -294,16 +302,85 @@ If the outcome is anything else, reject the deploy and don't run the script agai
 
 If the run waits for another reason, find out why before you approve. The first deploy of `/health/live` waits this way, because the running API doesn't have that endpoint yet. To stop a deploy, reject the run. GitHub lets a run wait up to 30 days for approval.
 
+#### Loading the exercise list
+
+A new database has no exercises. The migrator loads them from the source, `oss.exercisedb.dev`, without copying Production data. The list is saved to a file outside the repository, because the source's content isn't ours to publish.
+
+```bash
+dotnet run --project Backend/FitPlan.Migrator -- fetch-exercises <new file.json>
+```
+
+`fetch-exercises` reads every page, checks the rows and prints the file's SHA-256 and the count per body part. It doesn't connect to a database.
+
+```bash
+dotnet run --project Backend/FitPlan.Migrator -- import-exercises <file.json> --sha256 <approved hash> --target dev
+```
+
+`import-exercises` checks the file and its hash again, then adds only the exercises the database doesn't have. It runs as `fitplan-migrator`, in one transaction. It never changes or deletes a row, so running it twice adds nothing. Open a temporary firewall rule first, the same as for a migration. Production takes `--target prod --confirm FitPlanDb` and needs its own approval.
+
+```bash
+dotnet run --project Backend/FitPlan.Migrator -- check-gifs <file.json>
+```
+
+`check-gifs` reads the first bytes of every GIF link and lists the ones that are missing. The host drops some connections, so each link is retried. A link that never answers is reported as `Unreachable` and the exit code is 4, so an incomplete check is never mistaken for a clean one. On 2026-11-19: 1,324 work and 176 are missing (404), the same 176 as in the audit.
+
+#### Exercise details and Arabic text (Phase 11C)
+
+Each exercise also has its equipment, main muscles and secondary muscles, and its name and steps in Arabic. Like the list, both files stay outside the repository.
+
+```bash
+dotnet run --project Backend/FitPlan.Migrator -- update-exercise-details <file.json> --sha256 <approved hash> --target dev
+```
+
+`update-exercise-details` takes a list fetched by this version of `fetch-exercises`, which includes the three detail lists. It refuses a file from before the details. It changes only the `Equipments`, `TargetMuscles` and `SecondaryMuscles` of exercises the database already has, and only where they differ. Names, steps and GIFs are never touched, and no row is added or deleted.
+
+```bash
+dotnet run --project Backend/FitPlan.Migrator -- import-translations <pack.json> --sha256 <approved hash> --target dev
+```
+
+`import-translations` reads one language's file:
+
+```json
+{ "version": 1, "language": "ar",
+  "terms": { "equipment": { "barbell": "بار" }, "muscle": { "biceps": "البايسبس" } },
+  "exercises": { "<exercise id>": { "name": "...", "instructions": ["...", "..."] } } }
+```
+
+- It adds a name and steps for each exercise that doesn't have them in that language yet.
+- It replaces a text that changed, and marks it as not reviewed again (`ExerciseTranslations.Reviewed`).
+- If the file has `"reviewed": true` at the top, a person has read the whole file: every text in it is marked reviewed, including ones that didn't change. Add it only after that review; the file then has a new hash to approve.
+- It adds or replaces the shared terms in `TermTranslations`.
+- It skips exercises that aren't in the database, and never deletes anything.
+- It reports how many exercises are still without text in that language.
+
+Both commands run as `fitplan-migrator` in one transaction, need the same firewall rule as a migration, and change nothing when run again with the same file. Production takes `--target prod --confirm FitPlanDb` and needs its own approval.
+
+**After any exercise import, refresh the API's copy.** The API keeps the exercise list, with its translations, in memory and in `Exercises__CacheFile` (`/home/data/cache/exercises.json`), and reads the database again only after 24 hours. A restart alone isn't enough, because the restarted app reads the saved file. So after `import-exercises`, `update-exercise-details` or `import-translations`:
+
+1. Delete the cache file through Kudu (`https://<app>.scm.azurewebsites.net`, **Debug console**, `/home/data/cache/`), or with the VFS API:
+
+   ```bash
+   curl -X DELETE -H "Authorization: Bearer $(az account get-access-token --query accessToken -o tsv)" -H "If-Match: *" \
+     https://<app>.scm.azurewebsites.net/api/vfs/data/cache/exercises.json
+   ```
+
+2. Restart the app (`az webapp restart -g <resource group> -n <app>`).
+3. Call `/api/exercises` once and check that the new data shows (for Arabic, send `Accept-Language: ar`). The app writes a new cache file when it reads the database.
+
+The restart wakes the database once. On 2026-11-23 Dev took about a minute before the new list was served.
+
+The API reads `Accept-Language`. For `ar` it returns the Arabic name with `englishName` beside it, plus the Arabic steps and terms. An exercise or term without Arabic text falls back to English, and the API logs a warning once per exercise. Search matches the English and the Arabic name, and treats أ/إ/آ/ا, ة/ه and ى/ي alike.
+
 ### Environment settings
 
-| Setting | `dev` | `dev-schema` | `production` |
-| --- | --- | --- | --- |
-| Deployment branches | `develop` only | `develop` only | `main` only |
-| Required reviewer | None | `Eng-Eyad77` | `Eng-Eyad77` |
-| Prevent self-review | Not applicable | Off, because there's one reviewer | Off, because there's one reviewer |
-| Allow administrators to bypass | Off | Off | Off |
-| Secrets | `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID` | None | `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID` |
-| Azure identity | `fitplan-gh-dev`, FitPlan Web Deploy on `fitplan-api-dev` only | None | `fitplan-gh-prod`, FitPlan Web Deploy on `fitplan-api-eyad` only |
+| Setting | `dev` | `dev-schema` | `production` | `admin-dev` |
+| --- | --- | --- | --- | --- |
+| Deployment branches | `develop` only | `develop` only | `main` only | `develop` only |
+| Required reviewer | None | `Eng-Eyad77` | `Eng-Eyad77` | None |
+| Prevent self-review | Not applicable | Off, because there's one reviewer | Off, because there's one reviewer | Not applicable |
+| Allow administrators to bypass | Off | Off | Off | Off |
+| Secrets | `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID` | None | `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID` | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` |
+| Azure identity | `fitplan-gh-dev`, FitPlan Web Deploy on `fitplan-api-dev` only | None | `fitplan-gh-prod`, FitPlan Web Deploy on `fitplan-api-eyad` only | None. The Cloudflare token can only edit Pages |
 
 FitPlan Web Deploy is a custom role that can only read the web app and publish to it. It can't read app settings or connection strings. [RECOVERY.md](RECOVERY.md#rebuild-dev-from-scratch) lists its permissions.
 
@@ -378,14 +455,14 @@ This covers iOS and Android app builds only. API builds in CI and Admin Web buil
 From `Frontend/fitplan_app`:
 
 ```bash
-flutter build apk --release --dart-define=API_BASE_URL=https://fitplan-api-eyad.azurewebsites.net
+flutter build apk --release --dart-define=API_BASE_URL=https://fitplan-api-dev.azurewebsites.net
 ```
 
 The APK is saved to `build/app/outputs/flutter-apk/app-release.apk`. Git ignores it, so never add it to a commit.
 
 ### Which API a build uses
 
-`API_BASE_URL` in `codemagic.yaml` and in the Android command above points to the Production API, so these test builds use real data. Dev exists, but no build points to it yet. A build for Dev needs its own manual build with `API_BASE_URL` set to `https://fitplan-api-dev.azurewebsites.net`.
+`API_BASE_URL` in `codemagic.yaml` and in the Android command above points to the Dev API, so test builds never touch Production data. A store build sets it to `https://fitplan-api-eyad.azurewebsites.net`. A phone release build without `API_BASE_URL` stops at the first API call with a clear error instead of calling `localhost`.
 
 ## Never commit
 

@@ -1,25 +1,33 @@
 import 'dart:async';
 
+import 'package:fitplan_shared/fitplan_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/app_text.dart';
+import '../../../app/router.dart';
+
 import '../../../shared/format.dart';
 import '../../../shared/widgets/feedback.dart';
+import '../../plans/presentation/add_to_plan.dart';
 import '../data/exercises_repository.dart';
 import '../domain/exercise.dart';
 import 'exercise_details_sheet.dart';
 import 'widgets/exercise_thumb.dart';
+import '../../../l10n/l10n.dart';
+import 'widgets/exercise_name.dart';
 
 /// Search the library and pick one exercise. Pops with the chosen [Exercise].
 /// [excludedIds] are already in the plan/session: shown as added, not selectable.
+///
+/// With [browse], it's the library on its own (from Plans): nothing is picked and no plan is
+/// touched while looking. Adding an exercise asks which plan, or creates one.
 class ExercisePickerScreen extends ConsumerStatefulWidget {
-  const ExercisePickerScreen({super.key, this.excludedIds = const {}});
+  const ExercisePickerScreen({super.key, this.excludedIds = const {}, this.browse = false});
 
   final Set<String> excludedIds;
+  final bool browse;
 
   @override
   ConsumerState<ExercisePickerScreen> createState() => _ExercisePickerScreenState();
@@ -110,20 +118,32 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
       name: exercise.name,
       gifUrl: exercise.gifUrl,
       bodyPart: exercise.bodyPart,
-      actionLabel: added ? null : 'Add exercise',
+      actionLabel: added ? null : (widget.browse ? l10n.addToAPlan : l10n.addExercise),
     );
     if (add == true && mounted) _pick(exercise);
   }
 
-  void _pick(Exercise exercise) {
+  Future<void> _pick(Exercise exercise) async {
     HapticFeedback.selectionClick();
-    Navigator.pop(context, exercise);
+    if (!widget.browse) {
+      Navigator.pop(context, exercise);
+      return;
+    }
+
+    final plan = await addExerciseToPlan(context, ref, exercise);
+    if (plan == null || !mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        content: Text(l10n.addedTo(plan.name)),
+        action: SnackBarAction(label: l10n.open, onPressed: () => context.push(Routes.planDetail(plan.id))),
+      ));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Add exercise', style: AppText.heading)),
+      appBar: AppBar(title: Text(widget.browse ? l10n.exercises : l10n.addExercise, style: AppText.heading)),
       body: Column(
         children: [
           Padding(
@@ -133,14 +153,14 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
               onChanged: _onSearchChanged,
               textInputAction: TextInputAction.search,
               decoration: InputDecoration(
-                hintText: 'Search exercises',
+                hintText: l10n.searchExercises,
                 prefixIcon: const Icon(Icons.search_rounded, color: AppColors.textTertiary),
                 suffixIcon: ListenableBuilder(
                   listenable: _search,
                   builder: (_, _) => _search.text.isEmpty
                       ? const SizedBox.shrink()
                       : IconButton(
-                          tooltip: 'Clear',
+                          tooltip: l10n.clear,
                           icon: const Icon(Icons.close_rounded),
                           onPressed: () {
                             _search.clear();
@@ -159,16 +179,17 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
               padding: AppSpacing.screen,
               children: [
                 _BodyPartChip(
-                  label: 'All',
+                  label: l10n.all,
                   selected: _bodyPart == null,
                   onTap: () {
                     _bodyPart = null;
                     _reload();
                   },
                 ),
-                for (final part in bodyParts)
+                // from the API, so a hidden body part (cardio) has no chip
+                for (final part in ref.watch(bodyPartsProvider).value ?? const <String>[])
                   _BodyPartChip(
-                    label: capitalize(part),
+                    label: bodyPartName(part),
                     selected: _bodyPart == part,
                     onTap: () {
                       _bodyPart = _bodyPart == part ? null : part;
@@ -188,13 +209,13 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
   Widget _buildList() {
     if (_items.isEmpty) {
       if (_error != null) {
-        return LoadError(message: errorMessage(_error!, 'Could not load exercises.'), onRetry: _reload);
+        return LoadError(message: errorMessage(_error!, l10n.couldNotLoadExercises), onRetry: _reload);
       }
       if (_loading || _hasMore) return const Center(child: CircularProgressIndicator());
-      return const EmptyState(
+      return EmptyState(
         icon: Icons.search_off_rounded,
-        title: 'No exercises found',
-        message: 'Try another word or body part.',
+        title: l10n.noExercisesFound,
+        message: l10n.noExercisesFoundBody,
       );
     }
 
@@ -208,7 +229,7 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
             padding: const EdgeInsets.all(AppSpacing.lg),
             child: Center(
               child: _error != null
-                  ? TextButton(onPressed: _loadMore, child: const Text('Load more'))
+                  ? TextButton(onPressed: _loadMore, child: Text(l10n.loadMore))
                   : const CircularProgressIndicator(),
             ),
           );
@@ -218,7 +239,10 @@ class _ExercisePickerScreenState extends ConsumerState<ExercisePickerScreen> {
         return _ExerciseRow(
           exercise: exercise,
           added: added,
-          onTap: added ? null : () => _pick(exercise),
+          // browsing: a tap shows how to do it; adding is the + button
+          onTap: added ? null : () => widget.browse ? _showDetails(exercise, added: false) : _pick(exercise),
+          onAdd: added ? null : () => _pick(exercise),
+          addTooltip: widget.browse ? l10n.addExerciseToPlanTooltip(exercise.name) : l10n.addExerciseTooltip(exercise.name),
           onDetails: () => _showDetails(exercise, added: added),
         );
       },
@@ -236,7 +260,7 @@ class _BodyPartChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(right: AppSpacing.sm),
+      padding: const EdgeInsetsDirectional.only(end: AppSpacing.sm),
       child: ChoiceChip(
         label: Text(label),
         selected: selected,
@@ -260,12 +284,16 @@ class _ExerciseRow extends StatelessWidget {
     required this.exercise,
     required this.added,
     required this.onTap,
+    required this.onAdd,
+    required this.addTooltip,
     required this.onDetails,
   });
 
   final Exercise exercise;
   final bool added;
   final VoidCallback? onTap;
+  final VoidCallback? onAdd;
+  final String addTooltip;
 
   /// The info button, and a long press anywhere on the row (phones have no hover).
   final VoidCallback onDetails;
@@ -288,15 +316,10 @@ class _ExerciseRow extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      capitalize(exercise.name),
-                      style: AppText.bodyStrong,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    ExerciseName(name: exercise.name, englishName: exercise.englishName),
                     const SizedBox(height: 2),
                     Text(
-                      added ? '${capitalize(exercise.bodyPart)} · added' : capitalize(exercise.bodyPart),
+                      added ? l10n.bodyPartAdded(bodyPartName(exercise.bodyPart)) : bodyPartName(exercise.bodyPart),
                       style: AppText.caption,
                     ),
                   ],
@@ -304,13 +327,13 @@ class _ExerciseRow extends StatelessWidget {
               ),
             ),
             IconButton(
-              tooltip: 'How to do ${exercise.name}',
+              tooltip: l10n.howToDo(exercise.name),
               onPressed: onDetails,
               icon: const Icon(Icons.info_outline_rounded, color: AppColors.textSecondary),
             ),
             IconButton(
-              tooltip: added ? 'Already added' : 'Add ${exercise.name}',
-              onPressed: onTap,
+              tooltip: added ? l10n.alreadyAdded : addTooltip,
+              onPressed: onAdd,
               icon: Icon(added ? Icons.check_circle_rounded : Icons.add_circle_outline_rounded),
               color: AppColors.accent,
               disabledColor: AppColors.textTertiary,

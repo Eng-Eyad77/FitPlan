@@ -1,3 +1,4 @@
+using FitPlan.Api.DTOs.Common;
 using System;
 using FitPlan.Api.Models;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,7 @@ public class WorkoutPlanExerciseConfiguration :IEntityTypeConfiguration<WorkoutP
     public void Configure(EntityTypeBuilder<WorkoutPlanExercise> builder)
     {
         //to link it to the table and put the condition to the tables
+        builder.Property(e => e.Note).HasMaxLength(ExerciseNoteDto.MaxLength);
         builder.ToTable("WorkoutPlanExercises", table =>
         {
                 table.HasCheckConstraint(
@@ -24,6 +26,10 @@ public class WorkoutPlanExerciseConfiguration :IEntityTypeConfiguration<WorkoutP
                  table.HasCheckConstraint(
                   "CK_WorkoutPlanExercises_Order",
                   "[Order] > 0");
+
+                table.HasCheckConstraint(
+                  "CK_WorkoutPlanExercises_RestSeconds",
+                  "[RestSeconds] IS NULL OR ([RestSeconds] >= 15 AND [RestSeconds] <= 600)");
         });
 
         //define the primary key

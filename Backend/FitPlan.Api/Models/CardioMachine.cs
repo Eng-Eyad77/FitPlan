@@ -7,5 +7,9 @@ public enum CardioMachine
     Elliptical = 3,
     StairClimber = 4,
     Rower = 5,
-    Other = 6
+
+    // Retired from new entries (it had no way to say what it was). Old entries keep it.
+    Other = 6,
+
+    Swimming = 7
 }

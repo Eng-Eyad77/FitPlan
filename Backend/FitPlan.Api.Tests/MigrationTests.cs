@@ -14,13 +14,21 @@ public sealed class MigrationTests : IAsyncLifetime
 {
     private static readonly string[] ExpectedTables =
     [
+        "AdminAccounts",
+        "AdminAuditEntries",
         "BodyWeightEntries",
         "CardioEntries",
+        "EmailCodes",
         "Exercises",
+        "ExerciseTranslations",
+        "ProblemReports",
         "RefreshTokens",
+        "ServerEvents",
         "SessionExercises",
         "SessionSets",
+        "TermTranslations",
         "Users",
+        "VolumeMilestones",
         "WorkoutPlanExercises",
         "WorkoutPlans",
         "WorkoutSessions"
@@ -79,6 +87,7 @@ public sealed class MigrationTests : IAsyncLifetime
         {
             Id = Guid.NewGuid(),
             Username = ApiFixture.NewUsername(),
+            Email = ApiFixture.NewEmail(),
             PasswordHash = "not-a-real-hash",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -91,6 +100,26 @@ public sealed class MigrationTests : IAsyncLifetime
 
         var exception = await Assert.ThrowsAsync<DbUpdateException>(() => context.SaveChangesAsync());
         Assert.True(exception.IsUniqueConstraintViolation());
+    }
+
+    // D18: accounts from before email are deleted with their workouts, which don't cascade from the user.
+    [Fact]
+    public async Task The_email_migration_deletes_the_accounts_without_an_email()
+    {
+        var migrator = context.GetService<IMigrator>();
+        await migrator.MigrateAsync("20261123102033_AddExerciseDetailsAndTranslations");
+        var userId = Guid.NewGuid();
+        await context.Database.ExecuteSqlAsync($"""
+            INSERT INTO [Users] ([Id], [Username], [PasswordHash], [CreatedAt], [UpdatedAt])
+            VALUES ({userId}, {ApiFixture.NewUsername()}, N'not-a-real-hash', SYSUTCDATETIME(), SYSUTCDATETIME());
+            INSERT INTO [WorkoutSessions] ([Id], [UserId], [Name], [StartedAt])
+            VALUES ({Guid.NewGuid()}, {userId}, N'Old session', SYSUTCDATETIME());
+            """);
+
+        await context.Database.MigrateAsync();
+
+        Assert.Equal(0, await context.Users.CountAsync());
+        Assert.Equal(0, await context.WorkoutSessions.CountAsync());
     }
 
     [Fact]

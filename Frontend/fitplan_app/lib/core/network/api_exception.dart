@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 
+import '../../l10n/l10n.dart';
+
 /// Every failed API call becomes an [ApiException].
 ///
 /// The backend always answers errors as ProblemDetails:
@@ -8,16 +10,61 @@ import 'package:dio/dio.dart';
 class ApiException implements Exception {
   const ApiException({
     required this.code,
-    required this.message,
+    required String message,
     this.statusCode,
     this.fieldErrors = const {},
-  });
+  }) : serverMessage = message;
 
   /// Stable identifier to switch on, e.g. "InvalidCredentials", "NetworkError".
   final String code;
 
-  /// Human readable text from the server (or ours for network problems).
-  final String message;
+  /// The server's own English title (or ours for network problems).
+  final String serverMessage;
+
+  /// The sentence to show, in the app's language. Known codes have the app's own text, so the
+  /// server's English never shows in Arabic (Phase 11).
+  String get message => switch (code) {
+        'UsernameAlreadyExists' => l10n.errUsernameAlreadyExists,
+        'InvalidCredentials' => l10n.errInvalidCredentials,
+        'AccountDisabled' => l10n.errAccountDisabled,
+        'InvalidRefreshToken' || 'Unauthorized' => l10n.errInvalidRefreshToken,
+        'InvalidEmailCode' => l10n.errInvalidEmailCode,
+        'EmailAlreadyExists' => l10n.errEmailAlreadyExists,
+        'EmailNotRegistered' => l10n.errEmailNotRegistered,
+        'TooManyEmails' => l10n.errTooManyEmails,
+        'EmailNotSent' => l10n.errEmailNotSent,
+        'WrongPassword' => l10n.errWrongPassword,
+        'UserNotFound' => l10n.errUserNotFound,
+        'InvalidFile' => l10n.errInvalidFile,
+        'PictureNotFound' => l10n.errPictureNotFound,
+        'FileTooLarge' => l10n.errFileTooLarge,
+        'ExerciseNotFound' => l10n.errExerciseNotFound,
+        'WorkoutPlanNotFound' => l10n.errWorkoutPlanNotFound,
+        'ExerciseAlreadyExists' => l10n.errExerciseAlreadyExists,
+        'WorkoutPlanExerciseNotFound' => l10n.errWorkoutPlanExerciseNotFound,
+        'WorkoutSessionNotFound' => l10n.errWorkoutSessionNotFound,
+        'NoActiveSession' => l10n.errNoActiveSession,
+        'ActiveSessionExists' => l10n.errActiveSessionExists,
+        'SessionNotActive' => l10n.errSessionNotActive,
+        'EmptySession' => l10n.errEmptySession,
+        'SessionExerciseNotFound' => l10n.errSessionExerciseNotFound,
+        'ExerciseAlreadyInSession' => l10n.errExerciseAlreadyInSession,
+        'SetLimitReached' => l10n.errSetLimitReached,
+        'SessionSetNotFound' => l10n.errSessionSetNotFound,
+        'CardioEntryNotFound' => l10n.errCardioEntryNotFound,
+        'CardioMachineRetired' => l10n.errCardioMachineRetired,
+        'CardioDistanceTooLong' => l10n.errCardioDistanceTooLong,
+        'SessionNotCompleted' => l10n.errSessionNotCompleted,
+        'NoExerciseHistory' => l10n.errNoExerciseHistory,
+        'BodyWeightEntryNotFound' => l10n.errBodyWeightEntryNotFound,
+        'TooManyRequests' => l10n.errTooManyRequests,
+        timeout => l10n.errTimeout,
+        networkError => l10n.errNetwork,
+        serverUnavailable || databaseUnavailable => l10n.errServerStarting,
+        // the server's validation text is English; Arabic gets one plain sentence
+        'ValidationFailed' when isArabic => l10n.errValidation,
+        _ => isArabic ? l10n.errGeneric : serverMessage,
+      };
 
   final int? statusCode;
 
@@ -103,9 +150,13 @@ class ApiException implements Exception {
   static String _lowerFirst(String value) =>
       value.isEmpty ? value : value[0].toLowerCase() + value.substring(1);
 
-  /// The first validation message for a field, if any.
-  String? fieldError(String field) => fieldErrors[field]?.first;
+  /// The first validation message for a field, if any. The server writes these in English,
+  /// so Arabic gets the general sentence instead.
+  String? fieldError(String field) {
+    final first = fieldErrors[field]?.first;
+    return first == null || !isArabic ? first : l10n.errValidation;
+  }
 
   @override
-  String toString() => 'ApiException($code, $statusCode): $message';
+  String toString() => 'ApiException($code, $statusCode): $serverMessage';
 }

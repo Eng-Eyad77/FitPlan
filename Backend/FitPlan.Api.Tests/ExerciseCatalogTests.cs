@@ -236,12 +236,25 @@ public class ExerciseCatalogTests(ApiFixture api)
         await api.AddExerciseAsync($"Incline {tag} Press");
         await api.AddExerciseAsync($"{tag} Row");
         await api.AddExerciseAsync(tag);
-        var service = new ExerciseService(NewCatalog().Catalog);
+        var service = new ExerciseService(NewCatalog().Catalog, new ConfigurationBuilder().Build());
 
         var result = await service.GetAllExercisesAsync(1, 10, bodyPart: "CHEST", search: tag.ToUpperInvariant());
 
         Assert.Equal(3, result.TotalCount);
         Assert.Equal([tag, $"{tag} Row", $"Incline {tag} Press"], result.Items.Select(e => e.Name));
+    }
+
+    [Fact]
+    public async Task Search_words_match_in_any_order_after_the_closer_matches()
+    {
+        var tag = Guid.NewGuid().ToString("N")[..10];
+        await api.AddExerciseAsync($"Incline {tag} Press");
+        await api.AddExerciseAsync($"{tag} Incline");
+        var service = new ExerciseService(NewCatalog().Catalog, new ConfigurationBuilder().Build());
+
+        var result = await service.GetAllExercisesAsync(1, 10, bodyPart: null, search: $"{tag} incline");
+
+        Assert.Equal([$"{tag} Incline", $"Incline {tag} Press"], result.Items.Select(e => e.Name));
     }
 
     [Fact]
@@ -252,7 +265,7 @@ public class ExerciseCatalogTests(ApiFixture api)
         {
             await api.AddExerciseAsync($"{tag} {i}");
         }
-        var service = new ExerciseService(NewCatalog().Catalog);
+        var service = new ExerciseService(NewCatalog().Catalog, new ConfigurationBuilder().Build());
 
         var second = await service.GetAllExercisesAsync(page: 2, pageSize: 2, bodyPart: null, search: tag);
 
@@ -264,7 +277,7 @@ public class ExerciseCatalogTests(ApiFixture api)
     public async Task An_exercise_is_found_by_id_and_a_missing_one_is_not()
     {
         var id = await api.AddExerciseAsync();
-        var service = new ExerciseService(NewCatalog().Catalog);
+        var service = new ExerciseService(NewCatalog().Catalog, new ConfigurationBuilder().Build());
 
         Assert.True((await service.GetExerciseByIdAsync(id.ToUpperInvariant())).IsSuccess);
         Assert.Equal(Errors.ExerciseNotFound, (await service.GetExerciseByIdAsync("no-such-id")).Error);

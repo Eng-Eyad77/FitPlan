@@ -1,9 +1,9 @@
+import 'package:fitplan_shared/fitplan_shared.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_text.dart';
+import '../../../../l10n/l10n.dart';
 
 /// One bar per week (oldest first, the last is this week), with the value on touch.
 /// This week is drawn with the gradient, the past weeks in the quieter accent.
@@ -29,7 +29,7 @@ class WeeklyBars extends StatelessWidget {
     final weekFormat = DateFormat('d MMM');
 
     return Semantics(
-      label: 'This week ${format(values.last)}, last week ${format(values[values.length - 2])}',
+      label: l10n.weekBarsSemantics(format(values.last), format(values[values.length - 2])),
       child: SizedBox(
         height: height,
         child: BarChart(
@@ -50,7 +50,7 @@ class WeeklyBars extends StatelessWidget {
                     final i = value.toInt();
                     // the first and this week only, the bars between speak for themselves
                     final label = i == weeks.length - 1
-                        ? 'This week'
+                        ? l10n.thisWeekLabel
                         : i == 0
                             ? weekFormat.format(weeks[i])
                             : '';
@@ -79,7 +79,7 @@ class WeeklyBars extends StatelessWidget {
                   '${format(rod.toY)}\n',
                   AppText.bodyStrong,
                   children: [
-                    TextSpan(text: 'Week of ${weekFormat.format(weeks[group.x])}', style: AppText.caption),
+                    TextSpan(text: l10n.weekOf(weekFormat.format(weeks[group.x])), style: AppText.caption),
                   ],
                 ),
               ),

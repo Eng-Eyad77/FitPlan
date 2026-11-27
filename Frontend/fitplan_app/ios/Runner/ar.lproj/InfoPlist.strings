@@ -1,0 +1,4 @@
+/* Phase 11: the permission prompts in Arabic. iOS shows them in the phone's language. */
+"NSPhotoLibraryUsageDescription" = "يحتاج FitPlan صورك عشان تختار صورتك الشخصية.";
+"NSCameraUsageDescription" = "يحتاج FitPlan الكاميرا عشان تصوّر صورتك الشخصية.";
+"NSLocalNetworkUsageDescription" = "يتصل FitPlan بسيرفر التجربة على شبكتك.";

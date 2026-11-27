@@ -22,6 +22,66 @@ namespace FitPlan.Api.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("FitPlan.Api.Models.AdminAccount", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("LastTotpStep")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TotpSecret")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("AdminAccounts", (string)null);
+                });
+
+            modelBuilder.Entity("FitPlan.Api.Models.AdminAuditEntry", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("AdminName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<Guid>("AdminUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Target")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.ToTable("AdminAuditEntries", (string)null);
+                });
+
             modelBuilder.Entity("FitPlan.Api.Models.BodyWeightEntry", b =>
                 {
                     b.Property<Guid>("Id")
@@ -54,9 +114,15 @@ namespace FitPlan.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int?>("CadenceRpm")
+                        .HasColumnType("int");
+
                     b.Property<decimal?>("DistanceKm")
                         .HasPrecision(6, 2)
                         .HasColumnType("decimal(6,2)");
+
+                    b.Property<int?>("DistanceMeters")
+                        .HasColumnType("int");
 
                     b.Property<int>("DurationSeconds")
                         .HasColumnType("int");
@@ -64,14 +130,26 @@ namespace FitPlan.Api.Migrations
                     b.Property<int?>("EstimatedCalories")
                         .HasColumnType("int");
 
+                    b.Property<int?>("Floors")
+                        .HasColumnType("int");
+
                     b.Property<decimal?>("InclinePercent")
                         .HasPrecision(5, 2)
                         .HasColumnType("decimal(5,2)");
+
+                    b.Property<int?>("Laps")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("Level")
+                        .HasColumnType("int");
 
                     b.Property<string>("Machine")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<int?>("PoolLengthMeters")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("RecordedAt")
                         .HasColumnType("datetime2");
@@ -79,6 +157,9 @@ namespace FitPlan.Api.Migrations
                     b.Property<decimal?>("SpeedKmh")
                         .HasPrecision(5, 2)
                         .HasColumnType("decimal(5,2)");
+
+                    b.Property<int?>("StrokeRate")
+                        .HasColumnType("int");
 
                     b.Property<Guid>("WorkoutSessionId")
                         .HasColumnType("uniqueidentifier");
@@ -89,16 +170,75 @@ namespace FitPlan.Api.Migrations
 
                     b.ToTable("CardioEntries", null, t =>
                         {
+                            t.HasCheckConstraint("CK_CardioEntries_CadenceRpm", "[CadenceRpm] >= 20 AND [CadenceRpm] <= 200");
+
                             t.HasCheckConstraint("CK_CardioEntries_DistanceKm", "[DistanceKm] > 0 AND [DistanceKm] <= 100");
+
+                            t.HasCheckConstraint("CK_CardioEntries_DistanceMeters", "[DistanceMeters] >= 1 AND [DistanceMeters] <= 50000");
 
                             t.HasCheckConstraint("CK_CardioEntries_DurationSeconds", "[DurationSeconds] >= 1 AND [DurationSeconds] <= 18000");
 
                             t.HasCheckConstraint("CK_CardioEntries_EstimatedCalories", "[EstimatedCalories] >= 0");
 
+                            t.HasCheckConstraint("CK_CardioEntries_Floors", "[Floors] >= 1 AND [Floors] <= 1000");
+
                             t.HasCheckConstraint("CK_CardioEntries_InclinePercent", "[InclinePercent] >= 0 AND [InclinePercent] <= 40");
 
+                            t.HasCheckConstraint("CK_CardioEntries_Laps", "[Laps] >= 1 AND [Laps] <= 2000");
+
+                            t.HasCheckConstraint("CK_CardioEntries_Level", "[Level] >= 1 AND [Level] <= 30");
+
+                            t.HasCheckConstraint("CK_CardioEntries_PoolLengthMeters", "[PoolLengthMeters] >= 10 AND [PoolLengthMeters] <= 100");
+
                             t.HasCheckConstraint("CK_CardioEntries_SpeedKmh", "[SpeedKmh] > 0 AND [SpeedKmh] <= 30");
+
+                            t.HasCheckConstraint("CK_CardioEntries_StrokeRate", "[StrokeRate] >= 10 AND [StrokeRate] <= 60");
                         });
+                });
+
+            modelBuilder.Entity("FitPlan.Api.Models.EmailCode", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CodeHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("nvarchar(254)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Purpose")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email", "CreatedAt");
+
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.ToTable("EmailCodes", (string)null);
                 });
 
             modelBuilder.Entity("FitPlan.Api.Models.Exercise", b =>
@@ -110,9 +250,25 @@ namespace FitPlan.Api.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.PrimitiveCollection<string>("Equipments")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValueSql("N'[]'");
+
+                    b.Property<DateTime?>("GifCheckedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("GifStatus")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
                     b.Property<string>("GifUrl")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Hidden")
+                        .HasColumnType("bit");
 
                     b.PrimitiveCollection<string>("Instructions")
                         .IsRequired()
@@ -123,9 +279,95 @@ namespace FitPlan.Api.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.PrimitiveCollection<string>("SecondaryMuscles")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValueSql("N'[]'");
+
+                    b.PrimitiveCollection<string>("TargetMuscles")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValueSql("N'[]'");
+
                     b.HasKey("Id");
 
                     b.ToTable("Exercises", (string)null);
+                });
+
+            modelBuilder.Entity("FitPlan.Api.Models.ExerciseTranslation", b =>
+                {
+                    b.Property<string>("ExerciseId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Language")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.PrimitiveCollection<string>("Instructions")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<bool>("Reviewed")
+                        .HasColumnType("bit");
+
+                    b.HasKey("ExerciseId", "Language");
+
+                    b.ToTable("ExerciseTranslations", (string)null);
+                });
+
+            modelBuilder.Entity("FitPlan.Api.Models.ProblemReport", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AppVersion")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DoneAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsSuggestion")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Language")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("Platform")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<bool>("SentToTelegram")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.ToTable("ProblemReports", (string)null);
                 });
 
             modelBuilder.Entity("FitPlan.Api.Models.RefreshToken", b =>
@@ -169,6 +411,43 @@ namespace FitPlan.Api.Migrations
                     b.ToTable("RefreshTokens", (string)null);
                 });
 
+            modelBuilder.Entity("FitPlan.Api.Models.ServerEvent", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Detail")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("RequestId")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Kind", "CreatedAt");
+
+                    b.ToTable("ServerEvents", (string)null);
+                });
+
             modelBuilder.Entity("FitPlan.Api.Models.SessionExercise", b =>
                 {
                     b.Property<Guid>("Id")
@@ -179,7 +458,14 @@ namespace FitPlan.Api.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("RestSeconds")
                         .HasColumnType("int");
 
                     b.Property<int?>("TargetReps")
@@ -201,6 +487,8 @@ namespace FitPlan.Api.Migrations
                     b.ToTable("SessionExercises", null, t =>
                         {
                             t.HasCheckConstraint("CK_SessionExercises_Order", "[Order] > 0");
+
+                            t.HasCheckConstraint("CK_SessionExercises_RestSeconds", "[RestSeconds] IS NULL OR ([RestSeconds] >= 15 AND [RestSeconds] <= 600)");
                         });
                 });
 
@@ -237,6 +525,30 @@ namespace FitPlan.Api.Migrations
                         });
                 });
 
+            modelBuilder.Entity("FitPlan.Api.Models.TermTranslation", b =>
+                {
+                    b.Property<string>("Kind")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Term")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Language")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.HasKey("Kind", "Term", "Language");
+
+                    b.ToTable("TermTranslations", (string)null);
+                });
+
             modelBuilder.Entity("FitPlan.Api.Models.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -249,6 +561,14 @@ namespace FitPlan.Api.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DisabledAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("nvarchar(254)");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
@@ -279,6 +599,9 @@ namespace FitPlan.Api.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Email")
+                        .IsUnique();
+
                     b.HasIndex("Username")
                         .IsUnique();
 
@@ -286,6 +609,23 @@ namespace FitPlan.Api.Migrations
                         {
                             t.HasCheckConstraint("CK_Users_WeeklyGoal", "[WeeklyGoal] IS NULL OR ([WeeklyGoal] >= 1 AND [WeeklyGoal] <= 7)");
                         });
+                });
+
+            modelBuilder.Entity("FitPlan.Api.Models.VolumeMilestone", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Key")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<DateTime>("ReachedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("UserId", "Key");
+
+                    b.ToTable("VolumeMilestones", (string)null);
                 });
 
             modelBuilder.Entity("FitPlan.Api.Models.WorkoutPlan", b =>
@@ -329,10 +669,17 @@ namespace FitPlan.Api.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<int>("Order")
                         .HasColumnType("int");
 
                     b.Property<int>("Reps")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("RestSeconds")
                         .HasColumnType("int");
 
                     b.Property<int>("Sets")
@@ -353,6 +700,8 @@ namespace FitPlan.Api.Migrations
                             t.HasCheckConstraint("CK_WorkoutPlanExercises_Order", "[Order] > 0");
 
                             t.HasCheckConstraint("CK_WorkoutPlanExercises_Reps", "[Reps] >= 1 AND [Reps] <= 20");
+
+                            t.HasCheckConstraint("CK_WorkoutPlanExercises_RestSeconds", "[RestSeconds] IS NULL OR ([RestSeconds] >= 15 AND [RestSeconds] <= 600)");
 
                             t.HasCheckConstraint("CK_WorkoutPlanExercises_Sets", "[Sets] >= 1 AND [Sets] <= 4");
                         });
@@ -398,6 +747,17 @@ namespace FitPlan.Api.Migrations
                     b.ToTable("WorkoutSessions", (string)null);
                 });
 
+            modelBuilder.Entity("FitPlan.Api.Models.AdminAccount", b =>
+                {
+                    b.HasOne("FitPlan.Api.Models.User", "User")
+                        .WithOne()
+                        .HasForeignKey("FitPlan.Api.Models.AdminAccount", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("FitPlan.Api.Models.BodyWeightEntry", b =>
                 {
                     b.HasOne("FitPlan.Api.Models.User", "User")
@@ -418,6 +778,28 @@ namespace FitPlan.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("WorkoutSession");
+                });
+
+            modelBuilder.Entity("FitPlan.Api.Models.ExerciseTranslation", b =>
+                {
+                    b.HasOne("FitPlan.Api.Models.Exercise", "Exercise")
+                        .WithMany()
+                        .HasForeignKey("ExerciseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Exercise");
+                });
+
+            modelBuilder.Entity("FitPlan.Api.Models.ProblemReport", b =>
+                {
+                    b.HasOne("FitPlan.Api.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("FitPlan.Api.Models.RefreshToken", b =>
@@ -459,6 +841,17 @@ namespace FitPlan.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("SessionExercise");
+                });
+
+            modelBuilder.Entity("FitPlan.Api.Models.VolumeMilestone", b =>
+                {
+                    b.HasOne("FitPlan.Api.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("FitPlan.Api.Models.WorkoutPlan", b =>

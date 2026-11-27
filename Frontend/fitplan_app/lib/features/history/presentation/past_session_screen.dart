@@ -1,11 +1,10 @@
+import 'package:fitplan_shared/fitplan_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/app_text.dart';
+import '../../../shared/widgets/adaptive.dart';
 import '../../../shared/format.dart';
 import '../../../shared/widgets/feedback.dart';
 import '../../exercises/presentation/exercise_details_sheet.dart';
@@ -14,6 +13,8 @@ import '../../progress/presentation/widgets/comparison_section.dart';
 import '../../session/domain/workout_session.dart';
 import '../../session/presentation/cardio_sheet.dart';
 import '../application/history_controller.dart';
+import '../../../l10n/l10n.dart';
+import '../../exercises/presentation/widgets/exercise_name.dart';
 
 /// A finished workout with every set, cardio and notes.
 class PastSessionScreen extends ConsumerWidget {
@@ -22,25 +23,17 @@ class PastSessionScreen extends ConsumerWidget {
   final String sessionId;
 
   Future<void> _delete(BuildContext context, WidgetRef ref, WorkoutSession session) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete workout?'),
-        content: Text('"${session.name}" and all its sets will be deleted. This cannot be undone.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Keep')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+    final confirmed = await confirmAction(
+      context,
+      title: l10n.deleteWorkoutTitle,
+      body: l10n.deleteWorkoutBody(session.name),
+      confirmLabel: l10n.delete,
+      cancelLabel: l10n.keep,
     );
-    if (confirmed != true || !context.mounted) return;
+    if (!confirmed || !context.mounted) return;
 
     try {
-      await ref.read(historyControllerProvider.notifier).delete(session.id);
+      await ref.read(historyControllerProvider(HistoryRange.all).notifier).delete(session.id);
       if (context.mounted) context.pop();
     } catch (error) {
       if (context.mounted) showError(context, error);
@@ -53,15 +46,17 @@ class PastSessionScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(session.value?.name ?? 'Workout', style: AppText.heading),
+        title: Text(session.value?.name ?? l10n.workout, style: AppText.heading),
         actions: [
           if (session.value != null)
-            PopupMenuButton<void>(
-              tooltip: 'Workout options',
-              itemBuilder: (_) => [
-                PopupMenuItem(
+            ActionsButton(
+              tooltip: l10n.workoutOptions,
+              actions: () => [
+                MenuAction(
+                  label: l10n.deleteWorkout,
+                  icon: Icons.delete_outline_rounded,
+                  destructive: true,
                   onTap: () => _delete(context, ref, session.value!),
-                  child: const Text('Delete workout', style: TextStyle(color: AppColors.danger)),
                 ),
               ],
             ),
@@ -70,7 +65,7 @@ class PastSessionScreen extends ConsumerWidget {
       body: session.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => LoadError(
-          message: errorMessage(error, 'Could not load this workout.'),
+          message: errorMessage(error, l10n.couldNotLoadWorkout),
           onRetry: () => ref.invalidate(pastSessionProvider(sessionId)),
         ),
         data: (session) => _Body(session: session),
@@ -99,20 +94,20 @@ class _Body extends StatelessWidget {
       padding: AppSpacing.screen.copyWith(top: AppSpacing.sm, bottom: AppSpacing.xxxl),
       children: [
         Text(
-          '${DateFormat('EEEE, d MMMM').format(started)} · ${DateFormat.jm().format(started)}',
+          '${DateFormat(isArabic ? 'EEEE، d MMMM' : 'EEEE, d MMMM').format(started)} · ${DateFormat.jm().format(started)}',
           style: AppText.secondary,
         ),
         const SizedBox(height: AppSpacing.lg),
         Row(
           children: [
-            _Stat(label: 'Time', value: formatDuration(end.difference(started).inSeconds)),
+            _Stat(label: l10n.time, value: formatDuration(end.difference(started).inSeconds)),
             const SizedBox(width: AppSpacing.sm),
-            _Stat(label: 'Volume', value: formatVolume(volume)),
+            _Stat(label: l10n.volume, value: formatVolume(volume)),
             const SizedBox(width: AppSpacing.sm),
-            _Stat(label: 'Sets', value: '${session.setCount}'),
+            _Stat(label: l10n.sets, value: '${session.setCount}'),
             if (calories > 0) ...[
               const SizedBox(width: AppSpacing.sm),
-              _Stat(label: 'kcal', value: '≈ $calories'),
+              _Stat(label: l10n.kcal, value: '≈ $calories'),
             ],
           ],
         ),
@@ -137,7 +132,7 @@ class _Body extends StatelessWidget {
         ],
         if (done.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.xxl),
-          const Text('Exercises', style: AppText.heading),
+          Text(l10n.exercises, style: AppText.heading),
           const SizedBox(height: AppSpacing.md),
           for (final exercise in done) ...[
             _ExerciseSets(exercise: exercise),
@@ -146,7 +141,7 @@ class _Body extends StatelessWidget {
         ],
         if (session.cardio.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.lg),
-          const Text('Cardio', style: AppText.heading),
+          Text(l10n.cardio, style: AppText.heading),
           const SizedBox(height: AppSpacing.md),
           for (final entry in session.cardio) ...[
             _CardioRow(entry: entry),
@@ -179,7 +174,7 @@ class _Stat extends StatelessWidget {
           children: [
             FittedBox(
               fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
+              alignment: AlignmentDirectional.centerStart,
               child: Text(value, style: AppText.bodyStrong.copyWith(fontSize: 17)),
             ),
             const SizedBox(height: 2),
@@ -230,10 +225,10 @@ class _ExerciseSets extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(capitalize(exercise.name), style: AppText.bodyStrong, maxLines: 2, overflow: TextOverflow.ellipsis),
+                    ExerciseName(name: exercise.name, englishName: exercise.englishName),
                     const SizedBox(height: 2),
                     Text(
-                      best == null ? capitalize(exercise.bodyPart) : 'Top set ${formatKg(best)} kg',
+                      best == null ? bodyPartName(exercise.bodyPart) : l10n.topSet(formatKg(best)),
                       style: AppText.caption,
                     ),
                   ],
@@ -252,7 +247,7 @@ class _ExerciseSets extends StatelessWidget {
                     child: Text('${set.setNumber}', style: AppText.secondary.copyWith(color: AppColors.textTertiary)),
                   ),
                   Text(
-                    set.weightKg == null ? 'Bodyweight' : '${formatKg(set.weightKg!)} kg',
+                    set.weightKg == null ? l10n.bodyweight : l10n.amountKg(formatKg(set.weightKg!)),
                     style: AppText.body.copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
                   ),
                   const Spacer(),
@@ -276,12 +271,7 @@ class _CardioRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final details = [
-      formatDuration(entry.durationSeconds),
-      if (entry.speedKmh != null) '${formatKg(entry.speedKmh!)} km/h',
-      if (entry.inclinePercent != null) '${formatKg(entry.inclinePercent!)}% incline',
-      if (entry.distanceKm != null) '${formatKg(entry.distanceKm!)} km',
-    ].join(' · ');
+    final details = [formatDuration(entry.durationSeconds), ...entry.details].join(' · ');
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -301,7 +291,7 @@ class _CardioRow extends StatelessWidget {
             ),
           ),
           if (entry.estimatedCalories != null)
-            Text('≈ ${entry.estimatedCalories} kcal', style: AppText.secondary.copyWith(color: AppColors.textPrimary)),
+            Text(l10n.kcalAmount(entry.estimatedCalories!), style: AppText.secondary.copyWith(color: AppColors.textPrimary)),
         ],
       ),
     );

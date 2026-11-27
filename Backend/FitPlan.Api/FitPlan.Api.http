@@ -65,18 +65,6 @@ Authorization: Bearer {{token}}
 
 
 
-### Test ExerciseDB
-GET https://oss.exercisedb.dev/api/v1/exercises
-Accept: application/json
-
-
-
-### Test ExerciseDB - Next Page
-GET https://oss.exercisedb.dev/api/v1/exercises?after=0JtKWum
-Accept: application/json
-
-
-
 
 ### Get All Exercises from database
 GET {{FitPlan.Api_HostAddress}}/api/exercises

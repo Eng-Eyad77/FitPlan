@@ -5,11 +5,12 @@ using FitPlan.Api.Data;
 using FitPlan.Api.DTOs.Common;
 using FitPlan.Api.DTOs.WorkoutSessions;
 using FitPlan.Api.Models;
+using FitPlan.Api.Services.Stats;
 using Microsoft.EntityFrameworkCore;
 
 namespace FitPlan.Api.Services.WorkoutSessions;
 
-public class WorkoutSessionService(FitPlanDbContext context) : IWorkoutSessionService
+public class WorkoutSessionService(FitPlanDbContext context, IVolumeService volume) : IWorkoutSessionService
 {
     private const string QuickWorkoutName = "Quick Workout";
 
@@ -55,7 +56,9 @@ public class WorkoutSessionService(FitPlanDbContext context) : IWorkoutSessionSe
                     ExerciseId = planExercise.ExerciseId,
                     Order = index + 1, // 1, 2, 3... even if the plan orders have gaps
                     TargetSets = planExercise.Sets,
-                    TargetReps = planExercise.Reps
+                    TargetReps = planExercise.Reps,
+                    RestSeconds = planExercise.RestSeconds,
+                    Note = planExercise.Note
                 })
                 .ToList();
         }
@@ -99,11 +102,16 @@ public class WorkoutSessionService(FitPlanDbContext context) : IWorkoutSessionSe
 
 
     // completed sessions only, newest first
-    public async Task<PagedResponseDto<WorkoutSessionSummaryDto>> GetHistoryAsync(Guid userId, int page, int pageSize)
+    public async Task<PagedResponseDto<WorkoutSessionSummaryDto>> GetHistoryAsync(Guid userId, int page, int pageSize, DateTime? since = null)
     {
         var query = context.WorkoutSessions
             .AsNoTracking()
             .Where(s => s.UserId == userId && s.CompletedAt != null);
+        if (since is { } from)
+        {
+            var utc = from.Kind == DateTimeKind.Local ? from.ToUniversalTime() : DateTime.SpecifyKind(from, DateTimeKind.Utc);
+            query = query.Where(s => s.CompletedAt >= utc);
+        }
 
         var totalCount = await query.CountAsync();
 
@@ -144,6 +152,8 @@ public class WorkoutSessionService(FitPlanDbContext context) : IWorkoutSessionSe
             return Result<WorkoutSessionSummaryDto>.Failure(Errors.SessionNotActive);
         }
 
+        await CopyNotesToPlanAsync(session);
+
         // exercises copied from the plan but skipped by the user (no sets logged)
         var skippedExercises = session.Exercises.Where(e => e.Sets.Count == 0).ToList();
 
@@ -165,6 +175,8 @@ public class WorkoutSessionService(FitPlanDbContext context) : IWorkoutSessionSe
             .Where(s => s.Id == id)
             .Select(WorkoutSessionMappings.ToSummaryDto)
             .FirstAsync();
+
+        summary.NewMilestones = await volume.SyncAsync(userId, id);
 
         return Result<WorkoutSessionSummaryDto>.Success(summary);
     }
@@ -219,5 +231,32 @@ public class WorkoutSessionService(FitPlanDbContext context) : IWorkoutSessionSe
             : [];
 
         return WorkoutSessionMappings.ToSessionDto(session, history);
+    }
+
+    // A note changed during the workout goes back to the plan's exercise, matched by exercise in plan
+    // order. Only exercises that came from the plan (they have targets); ones added in the session don't.
+    private async Task CopyNotesToPlanAsync(WorkoutSession session)
+    {
+        if (session.WorkoutPlanId is not Guid planId)
+        {
+            return;
+        }
+
+        var planExercises = await context.WorkoutPlanExercises
+            .Where(p => p.WorkoutPlanId == planId)
+            .OrderBy(p => p.Order)
+            .ToListAsync();
+
+        foreach (var exercise in session.Exercises.Where(e => e.TargetSets != null).OrderBy(e => e.Order))
+        {
+            var planExercise = planExercises.FirstOrDefault(p => p.ExerciseId == exercise.ExerciseId);
+            if (planExercise is null)
+            {
+                continue;
+            }
+
+            planExercises.Remove(planExercise);
+            planExercise.Note = exercise.Note;
+        }
     }
 }

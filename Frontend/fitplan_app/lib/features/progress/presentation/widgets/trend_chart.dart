@@ -1,10 +1,10 @@
+import 'package:fitplan_shared/fitplan_shared.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_text.dart';
 import '../../../../shared/format.dart';
+import '../../../../l10n/l10n.dart';
 
 typedef TrendPoint = ({DateTime date, double value});
 
@@ -26,7 +26,7 @@ class TrendChart extends StatelessWidget {
         height: 56,
         child: Center(
           child: Text(
-            points.isEmpty ? 'Nothing logged yet' : 'One more entry and the trend starts here',
+            points.isEmpty ? l10n.nothingLoggedYet : l10n.oneMoreEntry,
             style: AppText.caption,
           ),
         ),
@@ -49,7 +49,7 @@ class TrendChart extends StatelessWidget {
     final dateFormat = DateFormat('d MMM');
 
     return Semantics(
-      label: 'Trend from ${formatKg(points.first.value)} to ${formatKg(points.last.value)} $unit',
+      label: l10n.trendSemantics(formatKg(points.first.value), formatKg(points.last.value), unit),
       child: SizedBox(
         height: height,
         child: LineChart(

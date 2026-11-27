@@ -95,6 +95,43 @@ public class SessionExerciseService(FitPlanDbContext context) : ISessionExercise
     }
 
 
+    public async Task<Result<bool>> UpdateExerciseAsync(Guid userId, Guid sessionId, Guid sessionExerciseId, UpdateSessionExerciseDto dto)
+    {
+        if (await context.CheckActiveSessionAsync(userId, sessionId) is { } error)
+        {
+            return Result<bool>.Failure(error);
+        }
+
+        var sessionExercise = await context.SessionExercises
+            .FirstOrDefaultAsync(e => e.Id == sessionExerciseId && e.WorkoutSessionId == sessionId);
+
+        if (sessionExercise is null)
+        {
+            return Result<bool>.Failure(Errors.SessionExerciseNotFound);
+        }
+
+        // only this session: the plan keeps its own rest
+        sessionExercise.RestSeconds = dto.RestSeconds;
+        await context.SaveChangesAsync();
+
+        return Result<bool>.Success(true);
+    }
+
+
+    public async Task<Result<bool>> UpdateNoteAsync(Guid userId, Guid sessionId, Guid sessionExerciseId, string? note)
+    {
+        if (await context.CheckActiveSessionAsync(userId, sessionId) is { } error)
+        {
+            return Result<bool>.Failure(error);
+        }
+
+        var updated = await context.SessionExercises
+            .Where(e => e.Id == sessionExerciseId && e.WorkoutSessionId == sessionId)
+            .ExecuteUpdateAsync(s => s.SetProperty(e => e.Note, note));
+
+        return updated == 1 ? Result<bool>.Success(true) : Result<bool>.Failure(Errors.SessionExerciseNotFound);
+    }
+
     public async Task<Result<SessionSetResponseDto>> AddSetAsync(Guid userId, Guid sessionId, Guid sessionExerciseId, SessionSetRequestDto dto)
     {
         if (await context.CheckActiveSessionAsync(userId, sessionId) is { } error)

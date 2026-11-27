@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../shared/widgets/adaptive.dart';
 import '../../../app/router.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../shared/widgets/feedback.dart';
 import '../application/active_session_controller.dart';
+import '../../../l10n/l10n.dart';
 
 /// Starts a workout (from a plan, or empty when [planId] is null) and opens it.
 /// If one is already in progress, offers to resume it instead.
@@ -35,15 +37,12 @@ Future<void> startWorkout(BuildContext context, WidgetRef ref, {String? planId})
 }
 
 Future<bool?> _askResume(BuildContext context, String name) {
-  return showDialog<bool>(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: const Text('Workout in progress'),
-      content: Text('You have "$name" running. Finish or cancel it before starting a new one.'),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Not now')),
-        TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Resume')),
-      ],
-    ),
+  return confirmAction(
+    context,
+    title: l10n.workoutInProgressTitle,
+    body: l10n.workoutInProgressBody(name),
+    confirmLabel: l10n.resume,
+    cancelLabel: l10n.notNow,
+    destructive: false,
   );
 }

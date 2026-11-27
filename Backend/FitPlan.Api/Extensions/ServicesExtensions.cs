@@ -9,6 +9,8 @@ using FitPlan.Api.Services.CardioEntries;
 using FitPlan.Api.Services.BodyWeight;
 using FitPlan.Api.Services.Stats;
 using FitPlan.Api.Services.Pictures;
+using FitPlan.Api.Services.Email;
+using FitPlan.Api.Services.Reports;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace FitPlan.Api.Extensions;
@@ -16,17 +18,43 @@ namespace FitPlan.Api.Extensions;
 public static class ServicesExtensions
 {
     public static IServiceCollection AddApplicationServices(
-        this IServiceCollection services)
+        this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
         // Authentication & Profile
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IProfileService, ProfileService>();
         services.AddSingleton<ProfilePictureStorage>();
 
+        // Email (D18): Resend when a key is set. Without one, only local runs may continue, with emails in the log.
+        services.AddScoped<EmailCodeService>();
+        if (!string.IsNullOrWhiteSpace(configuration["Email:ResendApiKey"]))
+        {
+            if (string.IsNullOrWhiteSpace(configuration["Email:From"]))
+            {
+                throw new InvalidOperationException("Email:From is missing.");
+            }
+
+            services.AddHttpClient<IEmailSender, ResendEmailSender>(client =>
+            {
+                client.BaseAddress = new Uri("https://api.resend.com/");
+                client.Timeout = TimeSpan.FromSeconds(15);
+            });
+        }
+        else if (environment.IsDevelopment() || environment.IsEnvironment("Testing"))
+        {
+            services.AddSingleton<IEmailSender, LogEmailSender>();
+        }
+        else
+        {
+            throw new InvalidOperationException("Email:ResendApiKey is missing.");
+        }
+
         // Exercises
-        services.AddScoped<IExerciseImportService, ExerciseImportService>();
         services.AddScoped<IExerciseService, ExerciseService>();
         services.AddSingleton<ExerciseCatalog>();
+        services.AddMemoryCache();
+        services.AddSingleton<FitPlan.Api.Services.Exercises.IGifStorage, FitPlan.Api.Services.Exercises.R2GifStorage>();
+        services.AddSingleton<FitPlan.Api.Services.Admin.ServerEventLog>();
         services.TryAddSingleton(TimeProvider.System);
 
         // Workout Plans
@@ -43,13 +71,20 @@ public static class ServicesExtensions
 
         // Stats
         services.AddScoped<IStatsService, StatsService>();
+        services.AddScoped<IVolumeService, VolumeService>();
+
+        // Problem reports (D14)
+        services.AddScoped<IProblemReportService, ProblemReportService>();
+        services.AddHttpClient<ITelegramNotifier, TelegramNotifier>(client =>
+        {
+            client.BaseAddress = new Uri("https://api.telegram.org/");
+            client.Timeout = TimeSpan.FromSeconds(10);
+        });
 
         // External HTTP Client
-        services.AddHttpClient("ExerciseDB", client =>
-        {
-            client.BaseAddress = new Uri("https://oss.exercisedb.dev/");
-            client.Timeout = TimeSpan.FromSeconds(30);
-        });
+        // 12C: the admin's GIF link check
+        services.AddHttpClient(FitPlan.Api.Controllers.AdminExercisesController.GifCheckClient, client =>
+            client.Timeout = TimeSpan.FromSeconds(10));
 
         return services;
     }

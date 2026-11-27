@@ -4,6 +4,9 @@ using FitPlan.Api.Common.Results;
 using FitPlan.Api.Data;
 using FitPlan.Api.DTOs.Auth;
 using FitPlan.Api.Models;
+using FitPlan.Api.Services.Admin;
+using FitPlan.Api.Services.Email;
+using FitPlan.Api.DTOs.Admin;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -12,21 +15,28 @@ using System.Security.Claims;
 
 namespace FitPlan.Api.Services.Auth;
 
-public class AuthService(FitPlanDbContext context, IConfiguration configuration, TimeProvider time) : IAuthService
+public class AuthService(FitPlanDbContext context, IConfiguration configuration, TimeProvider time, EmailCodeService emailCodes, ServerEventLog events) : IAuthService
 {
     // A phone can lose the response to a refresh and send the same token again. Inside this window
     // that isn't treated as theft: a second new token is issued and the family stays valid.
+    public const string AdminClaim = "fitplan_admin";
+
     public static readonly TimeSpan ReuseGrace = TimeSpan.FromSeconds(30);
 
     private TimeSpan RefreshLifetime =>
         TimeSpan.FromDays(configuration.GetValue<int?>("Jwt:RefreshTokenDays") is > 0 and var days ? days : 30);
 
-    private string GenerateAccessToken(User user)
+    // Admin sessions are short and can't be refreshed: after an hour the admin signs in again with a new code.
+    public static readonly TimeSpan AdminSessionLifetime = TimeSpan.FromHours(1);
+
+    private string GenerateAccessToken(User user, AdminRole? adminRole = null)
     {
         var issuer = configuration["Jwt:Issuer"];
         var audience = configuration["Jwt:Audience"];
         var key = configuration["Jwt:Key"];
-        var expirationInMinutes = configuration.GetValue<int>("Jwt:ExpirationInMinutes");
+        var expirationInMinutes = adminRole is null
+            ? configuration.GetValue<int>("Jwt:ExpirationInMinutes")
+            : (int)AdminSessionLifetime.TotalMinutes;
 
         if (string.IsNullOrWhiteSpace(issuer) || string.IsNullOrWhiteSpace(audience) || string.IsNullOrWhiteSpace(key) || expirationInMinutes <= 0)
         {
@@ -42,6 +52,12 @@ public class AuthService(FitPlanDbContext context, IConfiguration configuration,
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
         };
 
+        // only tokens from the admin sign-in carry it, so the phone app's tokens never open /api/admin
+        if (adminRole is { } role)
+        {
+            claims.Add(new Claim(AdminClaim, role.ToString()));
+        }
+
         var tokenDescriptor = new JwtSecurityToken
         (
             issuer: issuer,
@@ -55,58 +71,106 @@ public class AuthService(FitPlanDbContext context, IConfiguration configuration,
     }
 
 
+    public async Task<Result<bool>> SendSignUpCodeAsync(string email, string language)
+    {
+        email = EmailCodeService.Normalize(email);
+        if (await context.Users.AnyAsync(u => u.Email == email))
+        {
+            return Result<bool>.Failure(Errors.EmailAlreadyExists);
+        }
+
+        return await emailCodes.SendAsync(email, EmailCodePurpose.SignUp, null, language);
+    }
+
     public async Task<Result<AuthResponseDto>> RegisterAsync(RegisterRequestDto request)
     {
+        var email = EmailCodeService.Normalize(request.Email);
+
+        // checked before the code, so a taken username doesn't use the code up
         if (await context.Users.AnyAsync(u => u.Username == request.Username))
         {
             return Result<AuthResponseDto>.Failure(Errors.UsernameAlreadyExists);
         }
 
+        if (await emailCodes.UseAsync(EmailCodePurpose.SignUp, email, null, request.Code) is null)
+        {
+            return Result<AuthResponseDto>.Failure(Errors.InvalidEmailCode);
+        }
+
+        var now = time.GetUtcNow().UtcDateTime;
         var user = new User
         {
             Id = Guid.NewGuid(),
             Username = request.Username,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
+            Email = email,
+            CreatedAt = now,
+            UpdatedAt = now,
             PasswordHash = string.Empty
         };
 
         user.PasswordHash = new PasswordHasher<User>().HashPassword(user, request.Password);
 
-        // every account starts with a recovery code, shown once in the sign-up answer
-        var recoveryCode = RecoveryCodes.Generate();
-        RecoveryCodes.Assign(user, recoveryCode, user.CreatedAt);
-
         context.Users.Add(user);
 
-        // Handle two concurrent registrations with the same username (unique index on Username).
+        // Handles a registered email and two concurrent sign-ups (unique indexes on Username and Email).
         try
         {
             await context.SaveChangesAsync();
         }
         catch (DbUpdateException ex) when (ex.IsUniqueConstraintViolation())
         {
-            return Result<AuthResponseDto>.Failure(Errors.UsernameAlreadyExists);
+            context.ChangeTracker.Clear();
+            return Result<AuthResponseDto>.Failure(await context.Users.AnyAsync(u => u.Email == email)
+                ? Errors.EmailAlreadyExists
+                : Errors.UsernameAlreadyExists);
         }
 
-        return Result<AuthResponseDto>.Success((await IssueAsync(user, Guid.NewGuid())) with { RecoveryCode = recoveryCode });
+        return Result<AuthResponseDto>.Success(await IssueAsync(user, Guid.NewGuid()));
     }
 
-    // A forgotten password: the recovery code proves who it is. The code is used up and a new one is
-    // returned, every other login of the user ends, and the user is signed in with the new password.
+    public async Task<Result<bool>> SendPasswordResetCodeAsync(string email, string language)
+    {
+        email = EmailCodeService.Normalize(email);
+        var userId = await context.Users.Where(u => u.Email == email).Select(u => (Guid?)u.Id).FirstOrDefaultAsync();
+        if (userId is null)
+        {
+            return Result<bool>.Failure(Errors.EmailNotRegistered);
+        }
+
+        return await emailCodes.SendAsync(email, EmailCodePurpose.ResetPassword, userId, language);
+    }
+
+    // Checks the emailed code without using it up, so the app can ask for the new password next.
+    // Each check counts as an attempt, like the reset itself.
+    public async Task<Result<bool>> CheckPasswordResetCodeAsync(ResetCodeCheckDto request)
+    {
+        var email = EmailCodeService.Normalize(request.Email);
+        var valid = await context.Users.AnyAsync(u => u.Email == email) &&
+            await emailCodes.UseAsync(EmailCodePurpose.ResetPassword, email, null, request.Code, consume: false) is not null;
+
+        return valid ? Result<bool>.Success(true) : Result<bool>.Failure(Errors.InvalidEmailCode);
+    }
+
+    // A forgotten password: the emailed code proves who it is. Every other login of the user ends,
+    // and the user is signed in with the new password.
     public async Task<Result<AuthResponseDto>> ResetPasswordAsync(ResetPasswordRequestDto request)
     {
-        var user = await context.Users.FirstOrDefaultAsync(u => u.Username == request.Username);
+        var email = EmailCodeService.Normalize(request.Email);
+        var user = await context.Users.FirstOrDefaultAsync(u => u.Email == email);
 
-        if (user is null || !RecoveryCodes.Matches(user, request.RecoveryCode))
+        if (user is null || await emailCodes.UseAsync(EmailCodePurpose.ResetPassword, email, null, request.Code) is null)
         {
-            return Result<AuthResponseDto>.Failure(Errors.InvalidRecoveryCode);
+            return Result<AuthResponseDto>.Failure(Errors.InvalidEmailCode);
+        }
+
+        // a new password doesn't bring a disabled account back
+        if (user.DisabledAt is not null)
+        {
+            return Result<AuthResponseDto>.Failure(Errors.AccountDisabled);
         }
 
         var now = time.GetUtcNow().UtcDateTime;
         user.PasswordHash = new PasswordHasher<User>().HashPassword(user, request.NewPassword);
-        var recoveryCode = RecoveryCodes.Generate();
-        RecoveryCodes.Assign(user, recoveryCode, now);
         user.UpdatedAt = now;
         await context.SaveChangesAsync();
 
@@ -114,20 +178,70 @@ public class AuthService(FitPlanDbContext context, IConfiguration configuration,
             .Where(t => t.UserId == user.Id && t.RevokedAt == null)
             .ExecuteUpdateAsync(s => s.SetProperty(t => t.RevokedAt, now));
 
-        return Result<AuthResponseDto>.Success((await IssueAsync(user, Guid.NewGuid())) with { RecoveryCode = recoveryCode });
+        return Result<AuthResponseDto>.Success(await IssueAsync(user, Guid.NewGuid()));
     }
 
+    // Usernames can't contain "@", so an "@" means an email.
     public async Task<Result<AuthResponseDto>> LoginAsync(LoginRequestDto request)
     {
-        var user = await context.Users.FirstOrDefaultAsync(u => u.Username == request.Username);
+        var login = request.Login.Trim();
+        var email = EmailCodeService.Normalize(login);
+        var user = login.Contains('@')
+            ? await context.Users.FirstOrDefaultAsync(u => u.Email == email)
+            : await context.Users.FirstOrDefaultAsync(u => u.Username == login);
 
         if (user is null ||
             new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, request.Password) == PasswordVerificationResult.Failed)
         {
+            // what was typed is never stored: it could be someone's email or a password in the wrong box
+            await events.RecordAsync(ServerEventKind.FailedSignIn, user?.Username ?? "Unknown account", user is null ? "No such account" : "Wrong password");
             return Result<AuthResponseDto>.Failure(Errors.InvalidCredentials);
         }
 
+        if (user.DisabledAt is not null)
+        {
+            await events.RecordAsync(ServerEventKind.FailedSignIn, user.Username, "Disabled account");
+            return Result<AuthResponseDto>.Failure(Errors.AccountDisabled);
+        }
+
         return Result<AuthResponseDto>.Success(await IssueAsync(user, Guid.NewGuid()));
+    }
+
+    // Phase 12: the password and the authenticator code, both checked before anything is said.
+    public async Task<Result<AdminSignInResponseDto>> AdminLoginAsync(AdminLoginRequestDto request)
+    {
+        var login = request.Login.Trim();
+        var email = EmailCodeService.Normalize(login);
+        var user = login.Contains('@')
+            ? await context.Users.FirstOrDefaultAsync(u => u.Email == email)
+            : await context.Users.FirstOrDefaultAsync(u => u.Username == login);
+        var admin = user is null ? null : await context.AdminAccounts.FirstOrDefaultAsync(a => a.UserId == user.Id);
+
+        var now = time.GetUtcNow();
+        if (user is null || admin is null ||
+            new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, request.Password) == PasswordVerificationResult.Failed ||
+            Totp.Match(admin.TotpSecret, request.Code.Trim(), now, admin.LastTotpStep) is not { } step)
+        {
+            // which part was wrong isn't recorded either, like the answer to the caller
+            await events.RecordAsync(ServerEventKind.FailedSignIn, user?.Username ?? "Unknown account", "Admin sign-in refused");
+            return Result<AdminSignInResponseDto>.Failure(Errors.InvalidAdminSignIn);
+        }
+
+        admin.LastTotpStep = step;
+        AdminAudit.Add(context, user, "Signed in", null, now.UtcDateTime);
+
+        // two sign-ins racing with the same code: only the first one saves
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return Result<AdminSignInResponseDto>.Failure(Errors.InvalidAdminSignIn);
+        }
+
+        return Result<AdminSignInResponseDto>.Success(new AdminSignInResponseDto(
+            user.Username, admin.Role, GenerateAccessToken(user, admin.Role), now.UtcDateTime + AdminSessionLifetime));
     }
 
     public async Task<Result<AuthResponseDto>> RefreshAsync(string refreshToken)
@@ -137,7 +251,7 @@ public class AuthService(FitPlanDbContext context, IConfiguration configuration,
             .Include(t => t.User)
             .FirstOrDefaultAsync(t => t.TokenHash == Hash(refreshToken));
 
-        if (stored is null || stored.RevokedAt is not null || stored.ExpiresAt <= now)
+        if (stored is null || stored.RevokedAt is not null || stored.ExpiresAt <= now || stored.User.DisabledAt is not null)
         {
             return Result<AuthResponseDto>.Failure(Errors.InvalidRefreshToken);
         }

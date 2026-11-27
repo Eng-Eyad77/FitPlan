@@ -1,12 +1,12 @@
+import 'package:fitplan_shared/fitplan_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/app_text.dart';
 import '../../../shared/widgets/feedback.dart';
 import '../../../shared/widgets/loading_button.dart';
 import '../application/plans_controller.dart';
 import '../domain/workout_plan.dart';
+import '../../../l10n/l10n.dart';
 
 /// Create a plan ([plan] null) or rename it. Returns the created plan, or null.
 Future<WorkoutPlan?> showPlanFormSheet(BuildContext context, {WorkoutPlan? plan}) {
@@ -78,7 +78,7 @@ class _PlanFormSheetState extends ConsumerState<_PlanFormSheet> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(_isNew ? 'New plan' : 'Edit plan', style: AppText.heading),
+              Text(_isNew ? l10n.newPlan : l10n.editPlan, style: AppText.heading),
               const SizedBox(height: AppSpacing.lg),
               TextFormField(
                 controller: _name,
@@ -86,9 +86,9 @@ class _PlanFormSheetState extends ConsumerState<_PlanFormSheet> {
                 maxLength: PlanLimits.nameLength,
                 textCapitalization: TextCapitalization.sentences,
                 textInputAction: TextInputAction.next,
-                decoration: const InputDecoration(labelText: 'Name', hintText: 'Push day', counterText: ''),
+                decoration: InputDecoration(labelText: l10n.name, hintText: l10n.planNameHint, counterText: ''),
                 validator: (value) =>
-                    (value == null || value.trim().isEmpty) ? 'Give your plan a name' : null,
+                    (value == null || value.trim().isEmpty) ? l10n.planNameRequired : null,
               ),
               const SizedBox(height: AppSpacing.md),
               TextFormField(
@@ -97,14 +97,14 @@ class _PlanFormSheetState extends ConsumerState<_PlanFormSheet> {
                 maxLines: 3,
                 minLines: 1,
                 textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(
-                  labelText: 'Description (optional)',
-                  hintText: 'Chest, shoulders and triceps',
+                decoration: InputDecoration(
+                  labelText: l10n.descriptionOptional,
+                  hintText: l10n.planDescriptionHint,
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
               LoadingButton(
-                label: _isNew ? 'Create plan' : 'Save',
+                label: _isNew ? l10n.createPlan : l10n.save,
                 loading: _saving,
                 onPressed: _save,
               ),

@@ -1,6 +1,6 @@
+import 'package:fitplan_shared/fitplan_shared.dart';
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_colors.dart';
 
 /// The primary FilledButton, with a spinner while [loading] (and disabled meanwhile).
 class LoadingButton extends StatelessWidget {

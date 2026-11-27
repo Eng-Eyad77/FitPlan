@@ -15,6 +15,18 @@ public static class Scripts
     public const string AddUserWeeklyGoal = "20261103111630_AddUserWeeklyGoal";
     public const string AddRefreshTokens = "20261118210358_AddRefreshTokens";
     public const string AddRecoveryCode = "20261119064155_AddRecoveryCode";
+    public const string AddRestSeconds = "20261119113833_AddRestSeconds";
+    public const string AddCardioMachineDetails = "20261119122349_AddCardioMachineDetails";
+    public const string AddVolumeMilestones = "20261122085940_AddVolumeMilestones";
+    public const string AddExerciseDetailsAndTranslations = "20261123102033_AddExerciseDetailsAndTranslations";
+    public const string AddEmailAccounts = "20261124081623_AddEmailAccounts";
+    public const string AddProblemReports = "20261124103130_AddProblemReports";
+    public const string AddExerciseNotes = "20261125080705_AddExerciseNotes";
+    public const string AddReportSuggestions = "20261125100447_AddReportSuggestions";
+    public const string AddAdminAccounts = "20261125111341_AddAdminAccounts";
+    public const string AddUserDisabledAt = "20261125115809_AddUserDisabledAt";
+    public const string AddExerciseAdminFields = "20261125121402_AddExerciseAdminFields";
+    public const string AddReportStatusAndServerEvents = "20261125174304_AddReportStatusAndServerEvents";
 
     public static readonly KnownMigrations Known = KnownMigrations.FromApi();
 

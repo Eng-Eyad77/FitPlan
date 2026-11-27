@@ -1,22 +1,24 @@
+import 'package:fitplan_shared/fitplan_shared.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 
+import '../../../app/router.dart';
 import '../../../core/network/api_exception.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/app_text.dart';
 import '../../../shared/format.dart';
 import '../../../shared/widgets/feedback.dart';
 import '../../../shared/widgets/loading_button.dart';
 import '../../auth/application/auth_controller.dart';
+import '../../auth/presentation/widgets/email_code.dart';
 import '../application/profile_controller.dart';
 import '../domain/profile.dart';
 import 'widgets/profile_avatar.dart';
+import '../../../l10n/l10n.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -26,13 +28,13 @@ class ProfileScreen extends ConsumerWidget {
     final profile = ref.watch(profileControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile', style: AppText.heading)),
+      appBar: AppBar(title: Text(l10n.profile, style: AppText.heading)),
       body: SafeArea(
         child: profile.when(
           data: (profile) => _ProfileBody(profile: profile),
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) => LoadError(
-            message: error is ApiException ? error.message : 'Could not load your profile.',
+            message: error is ApiException ? error.message : l10n.couldNotLoadProfile,
             onRetry: () => ref.invalidate(profileControllerProvider),
           ),
         ),
@@ -57,15 +59,29 @@ class _ProfileBody extends ConsumerWidget {
         const SizedBox(height: AppSpacing.lg),
         _BioCard(bio: profile.bio),
         const SizedBox(height: AppSpacing.lg),
-        _RecoveryCodeCard(hasCode: profile.hasRecoveryCode),
+        _EmailCard(email: profile.email),
+        const SizedBox(height: AppSpacing.lg),
+        const _LanguageCard(),
+        const SizedBox(height: AppSpacing.lg),
+        _Card(
+          child: Column(
+            children: [
+              _LinkRow(label: l10n.reportProblem, onTap: () => context.push(Routes.report)),
+              const Divider(height: AppSpacing.xxl),
+              _LinkRow(label: l10n.suggestIdea, onTap: () => context.push(Routes.suggest)),
+            ],
+          ),
+        ),
         const SizedBox(height: AppSpacing.xxxl),
         OutlinedButton.icon(
           onPressed: () => ref.read(authControllerProvider.notifier).logout(),
           icon: const Icon(Icons.logout_rounded, color: AppColors.danger),
-          label: const Text('Log out'),
+          label: Text(l10n.logOut),
         ),
         const SizedBox(height: AppSpacing.md),
         const _DeleteAccountButton(),
+        // Required by the ExerciseDB terms (D21)
+        Text(l10n.exerciseDataCredit, textAlign: TextAlign.center, style: AppText.caption),
       ].animate(interval: 50.ms).fadeIn(duration: 260.ms).slideY(begin: 0.05, end: 0),
     );
   }
@@ -125,7 +141,7 @@ class _HeaderState extends ConsumerState<_Header> {
               children: [
                 ListTile(
                   leading: const Icon(Icons.photo_library_outlined, color: AppColors.accent),
-                  title: const Text('Choose from gallery', style: AppText.body),
+                  title: Text(l10n.chooseFromGallery, style: AppText.body),
                   onTap: () {
                     close();
                     _pick(ImageSource.gallery);
@@ -134,7 +150,7 @@ class _HeaderState extends ConsumerState<_Header> {
                 if (!kIsWeb)
                   ListTile(
                     leading: const Icon(Icons.photo_camera_outlined, color: AppColors.accent),
-                    title: const Text('Take a photo', style: AppText.body),
+                    title: Text(l10n.takePhoto, style: AppText.body),
                     onTap: () {
                       close();
                       _pick(ImageSource.camera);
@@ -143,7 +159,7 @@ class _HeaderState extends ConsumerState<_Header> {
                 if (hasPicture)
                   ListTile(
                     leading: const Icon(Icons.delete_outline_rounded, color: AppColors.danger),
-                    title: Text('Remove photo', style: AppText.body.copyWith(color: AppColors.danger)),
+                    title: Text(l10n.removePhoto, style: AppText.body.copyWith(color: AppColors.danger)),
                     onTap: () {
                       close();
                       _run(() => ref.read(profileControllerProvider.notifier).removePicture());
@@ -165,7 +181,7 @@ class _HeaderState extends ConsumerState<_Header> {
       children: [
         Semantics(
           button: true,
-          label: profile.profilePictureUrl == null ? 'Change profile photo' : 'View profile photo',
+          label: profile.profilePictureUrl == null ? l10n.changeProfilePhoto : l10n.viewProfilePhoto,
           child: GestureDetector(
             onTap: _busy
                 ? null
@@ -210,7 +226,7 @@ class _HeaderState extends ConsumerState<_Header> {
                   bottom: 0,
                   child: Semantics(
                     button: true,
-                    label: 'Change profile photo',
+                    label: l10n.changeProfilePhoto,
                     child: GestureDetector(
                       onTap: _busy ? null : _openPhotoSheet,
                       child: Container(
@@ -234,13 +250,13 @@ class _HeaderState extends ConsumerState<_Header> {
         Text(profile.username, style: AppText.title),
         const SizedBox(height: AppSpacing.xs),
         Text(
-          'Member since ${DateFormat.yMMMM().format(profile.createdAt.toLocal())}',
+          l10n.memberSince(DateFormat.yMMMM().format(profile.createdAt.toLocal())),
           style: AppText.secondary,
         ),
         TextButton.icon(
           onPressed: _busy ? null : _openPhotoSheet,
           icon: const Icon(Icons.photo_camera_outlined, size: 18),
-          label: Text(profile.profilePictureUrl == null ? 'Add photo' : 'Change photo'),
+          label: Text(profile.profilePictureUrl == null ? l10n.addPhoto : l10n.changePhoto),
         ),
       ],
     );
@@ -299,7 +315,7 @@ class _PicturePreviewState extends ConsumerState<_PicturePreview> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         leading: IconButton(
-          tooltip: 'Close',
+          tooltip: l10n.close,
           icon: const Icon(Icons.close_rounded),
           onPressed: () => Navigator.of(context).pop(),
         ),
@@ -316,7 +332,7 @@ class _PicturePreviewState extends ConsumerState<_PicturePreview> {
                   maxScale: 5,
                   child: Hero(
                     tag: _pictureHero,
-                    child: Image.memory(bytes, fit: BoxFit.contain, semanticLabel: 'Profile photo'),
+                    child: Image.memory(bytes, fit: BoxFit.contain, semanticLabel: l10n.profilePhoto),
                   ),
                 ),
               ),
@@ -325,7 +341,7 @@ class _PicturePreviewState extends ConsumerState<_PicturePreview> {
   }
 }
 
-// ---------------------------------------------------------------- recovery code and account
+// ---------------------------------------------------------------- email and account
 
 /// Asks for the password again before something that matters. Returns null when cancelled.
 Future<String?> _askPassword(
@@ -351,13 +367,13 @@ Future<String?> _askPassword(
             obscureText: true,
             autofocus: true,
             autofillHints: const [AutofillHints.password],
-            decoration: const InputDecoration(labelText: 'Password'),
+            decoration: InputDecoration(labelText: l10n.password),
             onSubmitted: (value) => Navigator.of(dialogContext).pop(value),
           ),
         ],
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Cancel')),
+        TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(l10n.cancel)),
         FilledButton(
           style: danger ? FilledButton.styleFrom(backgroundColor: AppColors.danger, foregroundColor: Colors.black) : null,
           onPressed: () => Navigator.of(dialogContext).pop(controller.text),
@@ -368,35 +384,32 @@ Future<String?> _askPassword(
   ).whenComplete(controller.dispose);
 }
 
-class _RecoveryCodeCard extends ConsumerStatefulWidget {
-  const _RecoveryCodeCard({required this.hasCode});
+/// The account's email, and changing it (D18): the new address and the password, then the code
+/// sent to the new address. The old address is told by the server.
+class _EmailCard extends ConsumerStatefulWidget {
+  const _EmailCard({required this.email});
 
-  final bool hasCode;
+  final String email;
 
   @override
-  ConsumerState<_RecoveryCodeCard> createState() => _RecoveryCodeCardState();
+  ConsumerState<_EmailCard> createState() => _EmailCardState();
 }
 
-class _RecoveryCodeCardState extends ConsumerState<_RecoveryCodeCard> {
-  bool _busy = false;
-
-  Future<void> _create() async {
-    final password = await _askPassword(
-      context,
-      title: 'New recovery code',
-      message: 'Your old code will stop working. Enter your password to continue.',
-      action: 'Create code',
+class _EmailCardState extends ConsumerState<_EmailCard> {
+  Future<void> _change() async {
+    // the dialog sends the code itself and stays open on a wrong password or a taken email
+    final email = await showDialog<String>(
+      context: context,
+      builder: (_) => const _NewEmailDialog(),
     );
-    if (password == null || password.isEmpty || !mounted) return;
+    if (email == null || !mounted) return;
 
-    setState(() => _busy = true);
-    try {
-      await ref.read(profileControllerProvider.notifier).createRecoveryCode(password);
-    } catch (error) {
-      if (mounted) showError(context, error);
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
+    final changed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _EmailCodeDialog(email: email),
+    );
+    if (changed == true && mounted) showMessage(context, l10n.emailChanged);
   }
 
   @override
@@ -405,22 +418,158 @@ class _RecoveryCodeCardState extends ConsumerState<_RecoveryCodeCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Recovery code', style: AppText.secondary),
+          Text(l10n.email, style: AppText.secondary),
           const SizedBox(height: AppSpacing.sm),
-          Text(
-            widget.hasCode
-                ? 'You can reset a forgotten password with your recovery code. Lost it? Create a new one.'
-                : "You don't have a recovery code yet. Without one, a forgotten password means a lost account.",
-            style: AppText.body.copyWith(color: widget.hasCode ? AppColors.textSecondary : AppColors.danger),
-          ),
+          Text(widget.email, style: AppText.body, textDirection: TextDirection.ltr),
           const SizedBox(height: AppSpacing.md),
-          LoadingButton(
-            label: widget.hasCode ? 'Create a new code' : 'Create a recovery code',
-            loading: _busy,
-            onPressed: _create,
-          ),
+          LoadingButton(label: l10n.changeEmail, loading: false, onPressed: _change),
         ],
       ),
+    );
+  }
+}
+
+/// Sends the code to the new email. Stays open on an error, with what was typed, and pops the email
+/// once the code is on its way.
+class _NewEmailDialog extends ConsumerStatefulWidget {
+  const _NewEmailDialog();
+
+  @override
+  ConsumerState<_NewEmailDialog> createState() => _NewEmailDialogState();
+}
+
+class _NewEmailDialogState extends ConsumerState<_NewEmailDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _email = TextEditingController();
+  final _password = TextEditingController();
+  bool _busy = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _email.dispose();
+    _password.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (_busy || !_formKey.currentState!.validate()) return;
+    final email = _email.text.trim();
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await ref.read(profileControllerProvider.notifier).sendEmailChangeCode(email, _password.text);
+      if (mounted) Navigator.of(context).pop(email);
+    } catch (error) {
+      if (mounted) setState(() => _error = errorMessage(error));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(l10n.changeEmail, style: AppText.heading),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(l10n.changeEmailBody, style: AppText.secondary),
+            const SizedBox(height: AppSpacing.lg),
+            EmailField(controller: _email, label: l10n.newEmail, newEmail: true),
+            const SizedBox(height: AppSpacing.md),
+            TextFormField(
+              controller: _password,
+              obscureText: true,
+              autofillHints: const [AutofillHints.password],
+              decoration: InputDecoration(labelText: l10n.password),
+              validator: (value) => (value == null || value.isEmpty) ? l10n.enterPassword : null,
+              onFieldSubmitted: (_) => _submit(),
+            ),
+            if (_error != null) ...[
+              const SizedBox(height: AppSpacing.md),
+              Text(_error!, style: AppText.secondary.copyWith(color: AppColors.danger)),
+            ],
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(onPressed: _busy ? null : () => Navigator.of(context).pop(), child: Text(l10n.cancel)),
+        FilledButton(onPressed: _busy ? null : _submit, child: Text(l10n.sendCode)),
+      ],
+    );
+  }
+}
+
+/// Stays open on a wrong code, so the user can try again without asking for a new one.
+class _EmailCodeDialog extends ConsumerStatefulWidget {
+  const _EmailCodeDialog({required this.email});
+
+  final String email;
+
+  @override
+  ConsumerState<_EmailCodeDialog> createState() => _EmailCodeDialogState();
+}
+
+class _EmailCodeDialogState extends ConsumerState<_EmailCodeDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _code = TextEditingController();
+  bool _busy = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _code.dispose();
+    super.dispose();
+  }
+
+  Future<void> _confirm() async {
+    if (_busy || !_formKey.currentState!.validate()) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await ref.read(profileControllerProvider.notifier).confirmEmailChange(_code.text);
+      if (mounted) Navigator.of(context).pop(true);
+    } catch (error) {
+      if (mounted) setState(() => _error = errorMessage(error));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(l10n.enterCodeTitle, style: AppText.heading),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(l10n.codeSentTo(signed(widget.email)), style: AppText.secondary),
+            const SizedBox(height: AppSpacing.xs),
+            Text(l10n.checkSpam, style: AppText.caption),
+            const SizedBox(height: AppSpacing.lg),
+            EmailCodeField(controller: _code, onSubmitted: (_) => _confirm()),
+            if (_error != null) ...[
+              const SizedBox(height: AppSpacing.md),
+              Text(_error!, style: AppText.secondary.copyWith(color: AppColors.danger)),
+            ],
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(onPressed: _busy ? null : () => Navigator.of(context).pop(false), child: Text(l10n.cancel)),
+        FilledButton(onPressed: _busy ? null : _confirm, child: Text(l10n.confirm)),
+      ],
     );
   }
 }
@@ -438,10 +587,9 @@ class _DeleteAccountButtonState extends ConsumerState<_DeleteAccountButton> {
   Future<void> _delete() async {
     final password = await _askPassword(
       context,
-      title: 'Delete your account?',
-      message: 'This deletes your plans, workouts, weights and photo for good. It can\'t be undone. '
-          'Enter your password to confirm.',
-      action: 'Delete',
+      title: l10n.deleteAccountTitle,
+      message: l10n.deleteAccountBody,
+      action: l10n.delete,
       danger: true,
     );
     if (password == null || password.isEmpty || !mounted) return;
@@ -451,7 +599,7 @@ class _DeleteAccountButtonState extends ConsumerState<_DeleteAccountButton> {
     try {
       await ref.read(profileControllerProvider.notifier).deleteAccount(password);
       // the router is on the login screen now
-      messenger.showSnackBar(const SnackBar(content: Text('Your account was deleted.')));
+      messenger.showSnackBar(SnackBar(content: Text(l10n.accountDeleted)));
     } catch (error) {
       if (mounted) showError(context, error);
     } finally {
@@ -466,7 +614,7 @@ class _DeleteAccountButtonState extends ConsumerState<_DeleteAccountButton> {
       icon: _busy
           ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
           : const Icon(Icons.delete_forever_outlined, color: AppColors.danger),
-      label: Text('Delete account', style: AppText.body.copyWith(color: AppColors.danger)),
+      label: Text(l10n.deleteAccount, style: AppText.body.copyWith(color: AppColors.danger)),
     );
   }
 }
@@ -487,7 +635,7 @@ class _WeightCard extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Body weight', style: AppText.secondary),
+                Text(l10n.bodyWeight, style: AppText.secondary),
                 const SizedBox(height: AppSpacing.sm),
                 if (weightKg != null)
                   Row(
@@ -496,12 +644,12 @@ class _WeightCard extends ConsumerWidget {
                     children: [
                       Text(formatKg(weightKg!), style: AppText.display.copyWith(fontSize: 40)),
                       const SizedBox(width: AppSpacing.sm),
-                      const Text('kg', style: AppText.secondary),
+                      Text(l10n.kg, style: AppText.secondary),
                     ],
                   )
                 else
                   Text(
-                    'Add your weight so we can estimate the calories you burn.',
+                    l10n.addWeightHint,
                     style: AppText.body.copyWith(color: AppColors.textSecondary),
                   ),
               ],
@@ -511,7 +659,7 @@ class _WeightCard extends ConsumerWidget {
           FilledButton(
             style: FilledButton.styleFrom(minimumSize: const Size(96, 48)),
             onPressed: () => showWeightSheet(context, current: weightKg),
-            child: Text(weightKg == null ? 'Add' : 'Update'),
+            child: Text(weightKg == null ? l10n.add : l10n.update),
           ),
         ],
       ),
@@ -557,8 +705,8 @@ class _WeightSheetState extends ConsumerState<_WeightSheet> {
 
   String? _validate(String? value) {
     final weight = double.tryParse((value ?? '').replaceAll(',', '.'));
-    if (weight == null) return 'Enter a number, e.g. 78.5';
-    if (weight < _min || weight > _max) return 'Between ${_min.toInt()} and ${_max.toInt()} kg';
+    if (weight == null) return l10n.enterNumber;
+    if (weight < _min || weight > _max) return l10n.weightRange(_min.toInt(), _max.toInt());
     return null;
   }
 
@@ -591,9 +739,9 @@ class _WeightSheetState extends ConsumerState<_WeightSheet> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text("Today's weight", style: AppText.heading),
+                Text(l10n.todaysWeight, style: AppText.heading),
                 const SizedBox(height: AppSpacing.xs),
-                const Text('We keep every entry, so you can follow the trend.', style: AppText.secondary),
+                Text(l10n.weightTrendNote, style: AppText.secondary),
                 const SizedBox(height: AppSpacing.xl),
                 TextFormField(
                   controller: _controller,
@@ -603,10 +751,10 @@ class _WeightSheetState extends ConsumerState<_WeightSheet> {
                   style: AppText.number,
                   validator: _validate,
                   onFieldSubmitted: (_) => _save(),
-                  decoration: const InputDecoration(labelText: 'Weight', suffixText: 'kg'),
+                  decoration: InputDecoration(labelText: l10n.weight, suffixText: l10n.kg),
                 ),
                 const SizedBox(height: AppSpacing.xl),
-                LoadingButton(label: 'Save', loading: _saving, onPressed: _save),
+                LoadingButton(label: l10n.save, loading: _saving, onPressed: _save),
               ],
             ),
           ),
@@ -655,7 +803,7 @@ class _BioCardState extends ConsumerState<_BioCard> {
       if (mounted) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(const SnackBar(content: Text('Bio saved')));
+          ..showSnackBar(SnackBar(content: Text(l10n.bioSaved)));
       }
     } catch (error) {
       if (mounted) showError(context, error);
@@ -670,7 +818,7 @@ class _BioCardState extends ConsumerState<_BioCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Bio', style: AppText.secondary),
+          Text(l10n.bio, style: AppText.secondary),
           const SizedBox(height: AppSpacing.md),
           TextField(
             controller: _controller,
@@ -679,8 +827,8 @@ class _BioCardState extends ConsumerState<_BioCard> {
             maxLength: _maxLength,
             style: AppText.body,
             textCapitalization: TextCapitalization.sentences,
-            decoration: const InputDecoration(
-              hintText: 'Your goals, your favorite lift, anything…',
+            decoration: InputDecoration(
+              hintText: l10n.bioHint,
               fillColor: AppColors.surface2,
             ),
           ),
@@ -691,7 +839,7 @@ class _BioCardState extends ConsumerState<_BioCard> {
             child: _changed
                 ? Padding(
                     padding: const EdgeInsets.only(top: AppSpacing.sm),
-                    child: LoadingButton(label: 'Save bio', loading: _saving, onPressed: _save),
+                    child: LoadingButton(label: l10n.saveBio, loading: _saving, onPressed: _save),
                   )
                 : const SizedBox(width: double.infinity),
           ),
@@ -702,6 +850,61 @@ class _BioCardState extends ConsumerState<_BioCard> {
 }
 
 // ---------------------------------------------------------------- shared bits
+
+// ---------------------------------------------------------------- language
+
+/// Arabic, English, or whatever the phone uses. Changes the whole app right away.
+class _LanguageCard extends ConsumerWidget {
+  const _LanguageCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final current = ref.watch(languageProvider);
+    return _Card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l10n.language, style: AppText.secondary),
+          const SizedBox(height: AppSpacing.md),
+          SizedBox(
+            width: double.infinity,
+            child: SegmentedButton<AppLanguage>(
+              showSelectedIcon: false,
+              segments: [
+                ButtonSegment(value: AppLanguage.system, label: Text(l10n.languageSystem)),
+                ButtonSegment(value: AppLanguage.arabic, label: Text(l10n.languageArabic)),
+                ButtonSegment(value: AppLanguage.english, label: Text(l10n.languageEnglish)),
+              ],
+              selected: {current},
+              onSelectionChanged: (choice) => ref.read(languageProvider.notifier).choose(choice.first),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A row of a card that opens another screen.
+class _LinkRow extends StatelessWidget {
+  const _LinkRow({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Expanded(child: Text(label, style: AppText.body)),
+          const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+        ],
+      ),
+    );
+  }
+}
 
 class _Card extends StatelessWidget {
   const _Card({required this.child});

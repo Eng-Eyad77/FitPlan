@@ -9,21 +9,55 @@ public static class Errors
         new("UsernameAlreadyExists", "Username is already taken.", ErrorType.Conflict);
 
     public static readonly Error InvalidCredentials =
-        new("InvalidCredentials", "Invalid username or password.", ErrorType.Unauthorized);
+        new("InvalidCredentials", "Invalid email, username or password.", ErrorType.Unauthorized);
+
+    // Wrong, expired, used up or locked after too many tries. One message, so it reveals nothing.
+    public static readonly Error InvalidEmailCode =
+        new("InvalidEmailCode", "The code is wrong or has expired. Ask for a new one.", ErrorType.Validation);
+
+    // Before a sign-up or email-change code is sent, and on a race between two sign-ups.
+    public static readonly Error EmailAlreadyExists =
+        new("EmailAlreadyExists", "This email already has an account.", ErrorType.Conflict);
+
+    // A forgotten password for an address with no account.
+    public static readonly Error EmailNotRegistered =
+        new("EmailNotRegistered", "There's no account with this email.", ErrorType.NotFound);
+
+    // Per address, on top of the per-IP limit, so nobody can use up the daily email allowance.
+    public static readonly Error TooManyEmails =
+        new("TooManyEmails", "Too many codes for this email. Wait a little and try again.", ErrorType.TooManyRequests);
+
+    public static readonly Error EmailNotSent =
+        new("EmailNotSent", "We couldn't send the email. Try again later.", ErrorType.ServiceUnavailable);
 
     // The refresh token is unknown, expired, revoked or was already used: the user must log in again.
     public static readonly Error InvalidRefreshToken =
         new("InvalidRefreshToken", "Your session has ended. Log in again.", ErrorType.Unauthorized);
 
-    // Wrong recovery code, or a username without one. One message, so it reveals nothing.
-    public static readonly Error InvalidRecoveryCode =
-        new("InvalidRecoveryCode", "The username or recovery code is wrong.", ErrorType.Validation);
-
     // Asked again while signed in. Not 401: that would end the session in the app.
     public static readonly Error WrongPassword =
         new("WrongPassword", "Your password is wrong.", ErrorType.Validation);
 
+    // Admin sign-in (Phase 12). One error for a wrong password, a wrong code and a non-admin, so it reveals nothing.
+    public static readonly Error InvalidAdminSignIn =
+        new("InvalidAdminSignIn", "The sign-in details or the code are wrong.", ErrorType.Unauthorized);
+
+    // Phase 12B: only shown after the right password, so it reveals nothing to a guesser.
+    public static readonly Error AccountDisabled =
+        new("AccountDisabled", "This account is disabled. Contact support.", ErrorType.Unauthorized);
+
+    // An admin's own account can't be disabled or deleted from the admin.
+    public static readonly Error AdminAccountProtected =
+        new("AdminAccountProtected", "Admin accounts can't be disabled or deleted here.", ErrorType.Conflict);
+
+    // Deleting needs the username typed out, so a slip can't delete the wrong account.
+    public static readonly Error ConfirmationMismatch =
+        new("ConfirmationMismatch", "The username you typed doesn't match.", ErrorType.Validation);
+
     // Users & Profile
+    public static readonly Error ReportNotFound =
+        new("ReportNotFound", "Report not found.", ErrorType.NotFound);
+
     public static readonly Error UserNotFound =
         new("UserNotFound", "User not found.", ErrorType.NotFound);
 
@@ -39,6 +73,19 @@ public static class Errors
     // Exercises
     public static readonly Error ExerciseNotFound =
         new("ExerciseNotFound", "Exercise not found.", ErrorType.NotFound);
+
+    // 12C: both languages need a name and at least one step before an exercise is saved.
+    public static readonly Error GifNotValid =
+        new("GifNotValid", "Upload a GIF file of up to 5 MB.", ErrorType.Validation);
+
+    public static readonly Error GifTooLarge =
+        new("GifTooLarge", "The GIF is over 5 MB. Make it smaller and try again.", ErrorType.PayloadTooLarge);
+
+    public static readonly Error GifUploadNotSetUp =
+        new("GifUploadNotSetUp", "GIF upload isn't set up on this server yet.", ErrorType.ServiceUnavailable);
+
+    public static readonly Error ExerciseTextIncomplete =
+        new("ExerciseTextIncomplete", "Fill in the name and at least one step in both English and Arabic.", ErrorType.Validation);
 
     // Workout Plans
     public static readonly Error WorkoutPlanNotFound =
@@ -83,6 +130,13 @@ public static class Errors
     // Cardio
     public static readonly Error CardioEntryNotFound =
         new("CardioEntryNotFound", "Cardio entry not found.", ErrorType.NotFound);
+
+    // Other is kept for old entries only.
+    public static readonly Error CardioMachineRetired =
+        new("CardioMachineRetired", "Other can't be chosen any more. Pick the machine, or Swimming.", ErrorType.Validation);
+
+    public static readonly Error CardioDistanceTooLong =
+        new("CardioDistanceTooLong", "The distance can be at most 50,000 metres.", ErrorType.Validation);
 
     // Body Weight
     public static readonly Error SessionNotCompleted =

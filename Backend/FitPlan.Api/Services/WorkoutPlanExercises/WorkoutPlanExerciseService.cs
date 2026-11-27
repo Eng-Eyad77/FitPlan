@@ -43,7 +43,8 @@ public class WorkoutPlanExerciseService(FitPlanDbContext context) : IWorkoutPlan
             ExerciseId = dto.ExerciseId,
             Sets = dto.Sets,
             Reps = dto.Reps,
-            Order = dto.Order
+            Order = dto.Order,
+            RestSeconds = dto.RestSeconds
         };
 
         context.WorkoutPlanExercises.Add(newWorkoutPlanExercise);
@@ -72,7 +73,9 @@ public class WorkoutPlanExerciseService(FitPlanDbContext context) : IWorkoutPlan
             BodyPart = exercise.BodyPart,
             Sets = newWorkoutPlanExercise.Sets,
             Reps = newWorkoutPlanExercise.Reps,
-            Order = newWorkoutPlanExercise.Order
+            Order = newWorkoutPlanExercise.Order,
+            RestSeconds = newWorkoutPlanExercise.RestSeconds,
+            Note = newWorkoutPlanExercise.Note
         };
 
         return Result<WorkoutPlanExerciseResponseDto>.Success(response);
@@ -104,7 +107,9 @@ public class WorkoutPlanExerciseService(FitPlanDbContext context) : IWorkoutPlan
                 Instructions = item.Exercise.Instructions,
                 Sets = item.Sets,
                 Reps = item.Reps,
-                Order = item.Order
+                Order = item.Order,
+                RestSeconds = item.RestSeconds,
+                Note = item.Note
             })
             .ToArrayAsync();
 
@@ -133,6 +138,7 @@ public class WorkoutPlanExerciseService(FitPlanDbContext context) : IWorkoutPlan
         planExercise.Sets = dto.Sets;
         planExercise.Reps = dto.Reps;
         planExercise.Order = dto.Order;
+        planExercise.RestSeconds = dto.RestSeconds;
         plan.UpdatedAt = DateTime.UtcNow;
 
         await context.SaveChangesAsync();
@@ -147,7 +153,9 @@ public class WorkoutPlanExerciseService(FitPlanDbContext context) : IWorkoutPlan
             BodyPart = planExercise.Exercise.BodyPart,
             Sets = planExercise.Sets,
             Reps = planExercise.Reps,
-            Order = planExercise.Order
+            Order = planExercise.Order,
+            RestSeconds = planExercise.RestSeconds,
+            Note = planExercise.Note
         };
 
         return Result<WorkoutPlanExerciseResponseDto>.Success(response);
@@ -180,6 +188,20 @@ public class WorkoutPlanExerciseService(FitPlanDbContext context) : IWorkoutPlan
 
     // Ownership check: the plan must exist AND belong to the authenticated user.
     // Returned as a tracked entity so the caller can update its UpdatedAt.
+    public async Task<Result<bool>> UpdateNoteAsync(Guid userId, Guid planId, Guid id, string? note)
+    {
+        if (await FindUserPlanAsync(userId, planId) is null)
+        {
+            return Result<bool>.Failure(Errors.WorkoutPlanNotFound);
+        }
+
+        var updated = await context.WorkoutPlanExercises
+            .Where(p => p.WorkoutPlanId == planId && p.Id == id)
+            .ExecuteUpdateAsync(s => s.SetProperty(p => p.Note, note));
+
+        return updated == 1 ? Result<bool>.Success(true) : Result<bool>.Failure(Errors.WorkoutPlanExerciseNotFound);
+    }
+
     private Task<WorkoutPlan?> FindUserPlanAsync(Guid userId, Guid planId) =>
         context.WorkoutPlans.FirstOrDefaultAsync(p => p.Id == planId && p.UserId == userId);
 }

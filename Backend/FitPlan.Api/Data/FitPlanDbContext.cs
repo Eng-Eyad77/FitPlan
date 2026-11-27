@@ -17,6 +17,10 @@ public class FitPlanDbContext : DbContext
 
     public DbSet<Exercise> Exercises => Set<Exercise>();
 
+    public DbSet<ExerciseTranslation> ExerciseTranslations => Set<ExerciseTranslation>();
+
+    public DbSet<TermTranslation> TermTranslations => Set<TermTranslation>();
+
     public DbSet<WorkoutPlanExercise> WorkoutPlanExercises => Set<WorkoutPlanExercise>();
 
     public DbSet<WorkoutSession> WorkoutSessions => Set<WorkoutSession>();
@@ -30,6 +34,18 @@ public class FitPlanDbContext : DbContext
     public DbSet<BodyWeightEntry> BodyWeightEntries => Set<BodyWeightEntry>();
 
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+
+    public DbSet<EmailCode> EmailCodes => Set<EmailCode>();
+
+    public DbSet<ProblemReport> ProblemReports => Set<ProblemReport>();
+
+    public DbSet<VolumeMilestone> VolumeMilestones => Set<VolumeMilestone>();
+
+    public DbSet<AdminAccount> AdminAccounts => Set<AdminAccount>();
+
+    public DbSet<AdminAuditEntry> AdminAuditEntries => Set<AdminAuditEntry>();
+
+    public DbSet<ServerEvent> ServerEvents => Set<ServerEvent>();
 
 
     // Applies to every DateTime property in every entity, including ones we add later.

@@ -25,12 +25,20 @@ abstract class PlanExercise with _$PlanExercise {
     required String id,
     required String exerciseId,
     required String name,
+    /// The English name when [name] is in Arabic (Phase 11C), shown small under it.
+    String? englishName,
     required String gifUrl,
     required String bodyPart,
     @Default([]) List<String> instructions,
     required int sets,
     required int reps,
     required int order,
+
+    /// Rest after each set, in seconds. Null = the default (90 s).
+    int? restSeconds,
+
+    /// The user's own reminder ("seat on 4"). Shown and changeable in a workout.
+    String? note,
   }) = _PlanExercise;
 
   factory PlanExercise.fromJson(Map<String, dynamic> json) => _$PlanExerciseFromJson(json);
@@ -42,4 +50,5 @@ abstract final class PlanLimits {
   static const maxReps = 20;
   static const nameLength = 100;
   static const descriptionLength = 500;
+  static const noteLength = 500;
 }

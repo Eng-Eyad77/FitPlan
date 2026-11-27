@@ -41,6 +41,8 @@ public static class WorkoutSessionMappings
         Order = sessionExercise.Order,
         TargetSets = sessionExercise.TargetSets,
         TargetReps = sessionExercise.TargetReps,
+        RestSeconds = sessionExercise.RestSeconds,
+        Note = sessionExercise.Note,
         Sets = sessionExercise.Sets
             .OrderBy(s => s.SetNumber)
             .Select(ToSetDto)
@@ -73,6 +75,13 @@ public static class WorkoutSessionMappings
         SpeedKmh = cardio.SpeedKmh,
         InclinePercent = cardio.InclinePercent,
         DistanceKm = cardio.DistanceKm,
+        Level = cardio.Level,
+        Floors = cardio.Floors,
+        CadenceRpm = cardio.CadenceRpm,
+        StrokeRate = cardio.StrokeRate,
+        DistanceMeters = cardio.DistanceMeters,
+        PoolLengthMeters = cardio.PoolLengthMeters,
+        Laps = cardio.Laps,
         EstimatedCalories = cardio.EstimatedCalories
     };
 

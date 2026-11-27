@@ -1,16 +1,15 @@
+import 'package:fitplan_shared/fitplan_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/app_text.dart';
 import '../../../shared/widgets/feedback.dart';
 import '../../../shared/widgets/loading_button.dart';
 import '../../profile/application/profile_controller.dart';
 import '../application/active_session_controller.dart';
 import '../data/sessions_repository.dart';
 import '../domain/workout_session.dart';
+import '../../../l10n/l10n.dart';
 
 IconData cardioIcon(CardioMachine machine) => switch (machine) {
       CardioMachine.treadmill => Icons.directions_run_rounded,
@@ -18,10 +17,11 @@ IconData cardioIcon(CardioMachine machine) => switch (machine) {
       CardioMachine.elliptical => Icons.sync_rounded,
       CardioMachine.stairClimber => Icons.stairs_rounded,
       CardioMachine.rower => Icons.rowing_rounded,
-      CardioMachine.other => Icons.favorite_rounded,
+      CardioMachine.swimming => Icons.pool_rounded,
+      CardioMachine.other || CardioMachine.unknown => Icons.favorite_rounded,
     };
 
-/// Machine + minutes. Speed, incline and distance are optional, behind "More details".
+/// Machine + minutes. The machine's own details (what its display shows) are optional, behind "More details".
 Future<void> showCardioSheet(BuildContext context) {
   return showModalBottomSheet<void>(
     context: context,
@@ -40,9 +40,9 @@ class _CardioSheet extends ConsumerStatefulWidget {
 class _CardioSheetState extends ConsumerState<_CardioSheet> {
   CardioMachine _machine = CardioMachine.treadmill;
   final _minutes = TextEditingController(text: '15');
-  final _speed = TextEditingController();
-  final _incline = TextEditingController();
-  final _distance = TextEditingController();
+
+  /// One per detail, kept while switching machines; only the chosen machine's are sent.
+  final _fields = {for (final f in CardioField.values) f: TextEditingController()};
   bool _showDetails = false;
   bool _saving = false;
   String? _error;
@@ -52,31 +52,31 @@ class _CardioSheetState extends ConsumerState<_CardioSheet> {
   @override
   void dispose() {
     _minutes.dispose();
-    _speed.dispose();
-    _incline.dispose();
-    _distance.dispose();
+    for (final c in _fields.values) {
+      c.dispose();
+    }
     super.dispose();
   }
 
-  double? _decimal(TextEditingController c) {
-    final text = c.text.trim().replaceAll(',', '.');
-    return text.isEmpty ? null : double.tryParse(text);
+  /// The typed value of [field], null when empty. Throws FormatException when it doesn't parse.
+  num? _value(CardioField field) {
+    final text = _fields[field]!.text.trim().replaceAll(',', '.');
+    if (text.isEmpty) return null;
+    final value = field.decimal ? double.tryParse(text) : int.tryParse(text);
+    if (value == null) throw const FormatException();
+    return value;
   }
 
   String? _validate() {
     final minutes = int.tryParse(_minutes.text.trim());
-    if (minutes == null || minutes < 1 || minutes > 300) return 'Duration: 1 to 300 minutes';
-    final speed = _decimal(_speed);
-    if (_speed.text.trim().isNotEmpty && (speed == null || speed < 0.1 || speed > 30)) {
-      return 'Speed: 0.1 to 30 km/h';
-    }
-    final incline = _decimal(_incline);
-    if (_incline.text.trim().isNotEmpty && (incline == null || incline < 0 || incline > 40)) {
-      return 'Incline: 0 to 40%';
-    }
-    final distance = _decimal(_distance);
-    if (_distance.text.trim().isNotEmpty && (distance == null || distance < 0.01 || distance > 100)) {
-      return 'Distance: up to 100 km';
+    if (minutes == null || minutes < 1 || minutes > 300) return l10n.durationRange;
+    for (final field in _machine.fields) {
+      try {
+        final value = _value(field);
+        if (value != null && (value < field.min || value > field.max)) return field.rangeText;
+      } on FormatException {
+        return field.rangeText;
+      }
     }
     return null;
   }
@@ -97,9 +97,10 @@ class _CardioSheetState extends ConsumerState<_CardioSheet> {
             CardioInput(
               machine: _machine,
               durationSeconds: int.parse(_minutes.text.trim()) * 60,
-              speedKmh: _decimal(_speed),
-              inclinePercent: _machine.supportsIncline ? _decimal(_incline) : null,
-              distanceKm: _decimal(_distance),
+              values: {
+                for (final field in _machine.fields)
+                  field: ?_value(field),
+              },
             ),
           );
       HapticFeedback.mediumImpact();
@@ -122,7 +123,7 @@ class _CardioSheetState extends ConsumerState<_CardioSheet> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('Add cardio', style: AppText.heading),
+            Text(l10n.addCardio, style: AppText.heading),
             const SizedBox(height: AppSpacing.lg),
             GridView.count(
               crossAxisCount: 3,
@@ -132,16 +133,19 @@ class _CardioSheetState extends ConsumerState<_CardioSheet> {
               crossAxisSpacing: AppSpacing.sm,
               childAspectRatio: 1.35,
               children: [
-                for (final machine in CardioMachine.values)
+                for (final machine in CardioMachine.choices)
                   _MachineTile(
                     machine: machine,
                     selected: machine == _machine,
-                    onTap: () => setState(() => _machine = machine),
+                    onTap: () => setState(() {
+                      _machine = machine;
+                      _error = null;
+                    }),
                   ),
               ],
             ),
             const SizedBox(height: AppSpacing.xl),
-            const Text('How long?', style: AppText.bodyStrong),
+            Text(l10n.howLong, style: AppText.bodyStrong),
             const SizedBox(height: AppSpacing.sm),
             Row(
               children: [
@@ -156,7 +160,7 @@ class _CardioSheetState extends ConsumerState<_CardioSheet> {
                     ],
                     textAlign: TextAlign.center,
                     style: AppText.number.copyWith(fontSize: 22),
-                    decoration: const InputDecoration(suffixText: 'min', isDense: true),
+                    decoration: InputDecoration(suffixText: l10n.minUnit, isDense: true),
                     onChanged: (_) => setState(() {}),
                   ),
                 ),
@@ -168,7 +172,7 @@ class _CardioSheetState extends ConsumerState<_CardioSheet> {
                       children: [
                         for (final m in _quickMinutes)
                           Padding(
-                            padding: const EdgeInsets.only(right: AppSpacing.sm),
+                            padding: const EdgeInsetsDirectional.only(end: AppSpacing.sm),
                             child: ChoiceChip(
                               label: Text('$m'),
                               selected: _minutes.text == '$m',
@@ -191,11 +195,11 @@ class _CardioSheetState extends ConsumerState<_CardioSheet> {
             ),
             const SizedBox(height: AppSpacing.md),
             Align(
-              alignment: Alignment.centerLeft,
+              alignment: AlignmentDirectional.centerStart,
               child: TextButton.icon(
                 onPressed: () => setState(() => _showDetails = !_showDetails),
                 icon: Icon(_showDetails ? Icons.expand_less_rounded : Icons.expand_more_rounded),
-                label: const Text('More details (optional)'),
+                label: Text(l10n.moreDetails),
               ),
             ),
             AnimatedSize(
@@ -204,32 +208,47 @@ class _CardioSheetState extends ConsumerState<_CardioSheet> {
                   ? const SizedBox(width: double.infinity)
                   : Padding(
                       padding: const EdgeInsets.only(top: AppSpacing.sm),
-                      child: Row(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Expanded(child: _DecimalField(controller: _speed, label: 'Speed', suffix: 'km/h')),
-                          if (_machine.supportsIncline) ...[
-                            const SizedBox(width: AppSpacing.sm),
-                            Expanded(child: _DecimalField(controller: _incline, label: 'Incline', suffix: '%')),
+                          Row(
+                            children: [
+                              for (final (i, field) in _machine.fields.indexed) ...[
+                                if (i > 0) const SizedBox(width: AppSpacing.sm),
+                                Expanded(
+                                  child: _NumberField(
+                                    key: ValueKey(field),
+                                    controller: _fields[field]!,
+                                    field: field,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                          if (_machine == CardioMachine.swimming) ...[
+                            const SizedBox(height: AppSpacing.sm),
+                            Text(
+                              l10n.swimDistanceNote,
+                              style: AppText.caption.copyWith(color: AppColors.textSecondary),
+                            ),
                           ],
-                          const SizedBox(width: AppSpacing.sm),
-                          Expanded(child: _DecimalField(controller: _distance, label: 'Distance', suffix: 'km')),
                         ],
                       ),
                     ),
             ),
-            if (!hasWeight) ...[
-              const SizedBox(height: AppSpacing.md),
-              Text(
-                'Add your weight in Profile to see the calories you burn.',
-                style: AppText.caption.copyWith(color: AppColors.textSecondary),
-              ),
-            ],
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              hasWeight
+                  ? (_machine == CardioMachine.treadmill ? l10n.caloriesRough : l10n.caloriesRoughMachine)
+                  : l10n.addWeightForCalories,
+              style: AppText.caption.copyWith(color: AppColors.textSecondary),
+            ),
             if (_error != null) ...[
               const SizedBox(height: AppSpacing.md),
               Text(_error!, style: AppText.caption.copyWith(color: AppColors.danger)),
             ],
             const SizedBox(height: AppSpacing.xl),
-            LoadingButton(label: 'Add cardio', loading: _saving, onPressed: _save),
+            LoadingButton(label: l10n.addCardio, loading: _saving, onPressed: _save),
           ],
         ),
       ),
@@ -278,23 +297,26 @@ class _MachineTile extends StatelessWidget {
   }
 }
 
-class _DecimalField extends StatelessWidget {
-  const _DecimalField({required this.controller, required this.label, required this.suffix});
+class _NumberField extends StatelessWidget {
+  const _NumberField({super.key, required this.controller, required this.field});
 
   final TextEditingController controller;
-  final String label;
-  final String suffix;
+  final CardioField field;
 
   @override
   Widget build(BuildContext context) {
     return TextField(
       controller: controller,
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      keyboardType: TextInputType.numberWithOptions(decimal: field.decimal),
       inputFormatters: [
-        FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
-        LengthLimitingTextInputFormatter(5),
+        FilteringTextInputFormatter.allow(field.decimal ? RegExp(r'[0-9.,]') : RegExp(r'[0-9]')),
+        LengthLimitingTextInputFormatter(field.decimal ? 5 : 5),
       ],
-      decoration: InputDecoration(labelText: label, suffixText: suffix, isDense: true),
+      decoration: InputDecoration(
+        labelText: field.label,
+        suffixText: field.unit.isEmpty ? null : field.unit,
+        isDense: true,
+      ),
     );
   }
 }

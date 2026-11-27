@@ -1,5 +1,4 @@
 
-using Microsoft.Extensions.FileProviders;
 
 namespace FitPlan.Api.Extensions;
 
@@ -20,10 +19,18 @@ public static class ApplicationBuilderExtensions
             app.UseSwaggerUI();
             app.MapOpenApi();
 
-            // Flutter Web runs on another localhost port, so the browser needs CORS to call the API.
-            // Development only: the mobile apps do not use CORS at all.
+        }
+
+        // Browsers need CORS for Flutter Web; the phone apps don't use it at all. Only the hosted admin
+        // site in Cors:AdminOrigin may call, and locally and on Dev also localhost, where the admin can
+        // run from your machine (D10, revised: the admin is hosted on Dev too).
+        var adminOrigin = app.Configuration["Cors:AdminOrigin"]?.TrimEnd('/');
+        var allowLocalhost = app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Dev");
+        if (allowLocalhost || !string.IsNullOrWhiteSpace(adminOrigin))
+        {
             app.UseCors(policy => policy
-                .SetIsOriginAllowed(origin => new Uri(origin).IsLoopback)
+                .SetIsOriginAllowed(origin => string.Equals(origin, adminOrigin, StringComparison.OrdinalIgnoreCase) ||
+                    (allowLocalhost && Uri.TryCreate(origin, UriKind.Absolute, out var uri) && uri.IsLoopback))
                 .AllowAnyHeader()
                 .AllowAnyMethod());
         }
@@ -36,14 +43,8 @@ public static class ApplicationBuilderExtensions
         // after authentication, so a signed-in user is limited by account rather than IP
         app.UseRateLimiter();
 
-        // profile pictures, served from the uploads folder (outside the app folder in production)
-        var uploadsRoot = app.Configuration.GetUploadsRoot(app.Environment);
-        Directory.CreateDirectory(uploadsRoot);
-        app.UseStaticFiles(new StaticFileOptions
-        {
-            FileProvider = new PhysicalFileProvider(uploadsRoot),
-            RequestPath = "/uploads"
-        });
+        // Profile pictures are no longer public files under /uploads (F-04, closed in Phase 6): only
+        // GET api/profile/me/picture serves them, to their signed-in owner.
 
         app.MapControllers();
         app.MapHealthEndpoints();

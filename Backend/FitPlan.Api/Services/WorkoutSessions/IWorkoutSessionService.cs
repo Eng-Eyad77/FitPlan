@@ -13,7 +13,7 @@ public interface IWorkoutSessionService
 
     Task<Result<WorkoutSessionResponseDto>> GetSessionByIdAsync(Guid userId, Guid id);
 
-    Task<PagedResponseDto<WorkoutSessionSummaryDto>> GetHistoryAsync(Guid userId, int page, int pageSize);
+    Task<PagedResponseDto<WorkoutSessionSummaryDto>> GetHistoryAsync(Guid userId, int page, int pageSize, DateTime? since = null);
 
     Task<Result<WorkoutSessionSummaryDto>> CompleteSessionAsync(Guid userId, Guid id, CompleteWorkoutSessionDto dto);
 

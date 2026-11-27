@@ -1,12 +1,11 @@
+import 'package:fitplan_shared/fitplan_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_text.dart';
 import '../../../../shared/format.dart';
 import '../../domain/workout_session.dart';
 import 'set_rows.dart';
+import '../../../../l10n/l10n.dart';
 
 sealed class SetEdit {
   const SetEdit();
@@ -78,7 +77,7 @@ class _SetEditSheetState extends State<_SetEditSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('Set ${widget.set.setNumber}', style: AppText.heading),
+              Text(l10n.setNumber(widget.set.setNumber), style: AppText.heading),
               const SizedBox(height: AppSpacing.lg),
               Row(
                 children: [
@@ -88,9 +87,9 @@ class _SetEditSheetState extends State<_SetEditSheet> {
                       autofocus: true,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))],
-                      decoration: const InputDecoration(
-                        labelText: 'Weight (kg)',
-                        helperText: 'Empty = bodyweight',
+                      decoration: InputDecoration(
+                        labelText: l10n.weightKgLabel,
+                        helperText: l10n.emptyIsBodyweight,
                       ),
                     ),
                   ),
@@ -100,7 +99,7 @@ class _SetEditSheetState extends State<_SetEditSheet> {
                       controller: _reps,
                       keyboardType: TextInputType.number,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      decoration: const InputDecoration(labelText: 'Reps', helperText: ' '),
+                      decoration: InputDecoration(labelText: l10n.reps, helperText: ' '),
                       onSubmitted: (_) => _save(),
                     ),
                   ),
@@ -111,12 +110,12 @@ class _SetEditSheetState extends State<_SetEditSheet> {
                 Text(_error!, style: AppText.caption.copyWith(color: AppColors.danger)),
               ],
               const SizedBox(height: AppSpacing.lg),
-              FilledButton(onPressed: _save, child: const Text('Save')),
+              FilledButton(onPressed: _save, child: Text(l10n.save)),
               const SizedBox(height: AppSpacing.sm),
               TextButton(
                 onPressed: () => Navigator.pop(context, const SetDeleted()),
                 style: TextButton.styleFrom(foregroundColor: AppColors.danger),
-                child: const Text('Delete set'),
+                child: Text(l10n.deleteSet),
               ),
             ],
           ),

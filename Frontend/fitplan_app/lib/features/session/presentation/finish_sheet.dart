@@ -1,13 +1,12 @@
+import 'package:fitplan_shared/fitplan_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/app_text.dart';
 import '../../../shared/widgets/feedback.dart';
 import '../../../shared/widgets/loading_button.dart';
 import '../application/active_session_controller.dart';
 import '../domain/workout_session.dart';
+import '../../../l10n/l10n.dart';
 
 /// Confirms finishing, with optional notes. Returns the summary when finished.
 Future<SessionSummary?> showFinishSheet(BuildContext context, WorkoutSession session) {
@@ -64,13 +63,12 @@ class _FinishSheetState extends ConsumerState<_FinishSheet> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('Finish workout?', style: AppText.heading),
+            Text(l10n.finishWorkoutTitle, style: AppText.heading),
             const SizedBox(height: AppSpacing.xs),
             Text(
               unfinished == 0
-                  ? 'Nice, you did everything you planned.'
-                  : '$unfinished ${unfinished == 1 ? 'exercise is' : 'exercises are'} not complete. '
-                      'You can still finish, what you logged is saved.',
+                  ? l10n.finishAllDone
+                  : l10n.finishUnfinished(unfinished),
               style: AppText.secondary,
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -80,18 +78,18 @@ class _FinishSheetState extends ConsumerState<_FinishSheet> {
               maxLines: 3,
               minLines: 1,
               textCapitalization: TextCapitalization.sentences,
-              decoration: const InputDecoration(
-                labelText: 'Notes (optional)',
-                hintText: 'How did it feel?',
+              decoration: InputDecoration(
+                labelText: l10n.notesOptional,
+                hintText: l10n.howDidItFeel,
               ),
             ),
             const SizedBox(height: AppSpacing.md),
-            LoadingButton(label: 'Finish workout', loading: _saving, onPressed: _finish),
+            LoadingButton(label: l10n.finishWorkout, loading: _saving, onPressed: _finish),
             const SizedBox(height: AppSpacing.sm),
             TextButton(
               onPressed: _saving ? null : () => Navigator.pop(context),
               style: TextButton.styleFrom(foregroundColor: AppColors.textSecondary),
-              child: const Text('Keep training'),
+              child: Text(l10n.keepTraining),
             ),
           ],
         ),

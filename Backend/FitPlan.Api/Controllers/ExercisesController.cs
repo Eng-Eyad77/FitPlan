@@ -22,14 +22,18 @@ public class ExercisesController(IExerciseService exerciseService) : ApiControll
         string? search = null // to search with exercise name
     )
     {
-        return Ok(await exerciseService.GetAllExercisesAsync(page, pageSize, bodyPart, search));
+        return Ok(await exerciseService.GetAllExercisesAsync(page, pageSize, bodyPart, search, ContentLanguage.From(Request)));
     }
 
+
+    // the filter chips: body parts that have exercises, without the hidden ones
+    [HttpGet("body-parts")]
+    public async Task<IActionResult> GetBodyParts() => Ok(await exerciseService.GetBodyPartsAsync());
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetExerciseById(string id)
     {
-        var result = await exerciseService.GetExerciseByIdAsync(id);
+        var result = await exerciseService.GetExerciseByIdAsync(id, ContentLanguage.From(Request));
 
         return result.IsSuccess ? Ok(result.Data) : Problem(result.Error);
     }

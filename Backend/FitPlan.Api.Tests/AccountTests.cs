@@ -3,15 +3,15 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using FitPlan.Api.DTOs.Auth;
 using FitPlan.Api.DTOs.Profile;
+using FitPlan.Api.Extensions;
 using FitPlan.Api.Models;
-using FitPlan.Api.Services.Auth;
 using FitPlan.Api.Tests.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace FitPlan.Api.Tests;
 
-// Phase 5B and 5C: pictures only for their owner, real image checks, recovery codes and account deletion.
+// Phase 5B and 5C: pictures only for their owner, real image checks, and account deletion.
 [Collection(ApiCollection.Name)]
 public class AccountTests(ApiFixture api)
 {
@@ -111,126 +111,6 @@ public class AccountTests(ApiFixture api)
         Assert.True(File.Exists(PictureFile(second.ProfilePictureUrl!)));
     }
 
-    // ---------------------------------------------------------------- recovery codes
-
-    [Fact]
-    public async Task Sign_up_returns_a_recovery_code_stored_only_as_a_hash()
-    {
-        var response = await api.CreateClient().PostAsJsonAsync(
-            "/api/auth/register", new { username = ApiFixture.NewUsername(), password = ApiFixture.NewPassword() });
-        var auth = (await response.Content.ReadFromJsonAsync<AuthResponseDto>())!;
-
-        Assert.Matches("^[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}$", auth.RecoveryCode);
-        var hash = await api.WithDbContextAsync(c => c.Users.Where(u => u.Id == auth.Id).Select(u => u.RecoveryCodeHash).SingleAsync());
-        Assert.NotNull(hash);
-        Assert.DoesNotContain(RecoveryCodes.Normalize(auth.RecoveryCode!), hash);
-    }
-
-    [Fact]
-    public async Task Login_and_refresh_never_return_a_recovery_code()
-    {
-        var user = await api.RegisterUserAsync();
-
-        var login = await (await api.CreateClient().PostAsJsonAsync("/api/auth/login", new { user.Username, user.Password }))
-            .Content.ReadFromJsonAsync<AuthResponseDto>();
-
-        Assert.Null(login!.RecoveryCode);
-    }
-
-    private async Task<(TestUser User, string Code)> RegisterWithCodeAsync()
-    {
-        var username = ApiFixture.NewUsername();
-        var password = ApiFixture.NewPassword();
-        var auth = (await (await api.CreateClient().PostAsJsonAsync("/api/auth/register", new { username, password }))
-            .Content.ReadFromJsonAsync<AuthResponseDto>())!;
-        return (new TestUser(auth.Id, username, password, api.CreateClient(auth.AccessToken)), auth.RecoveryCode!);
-    }
-
-    private Task<HttpResponseMessage> ResetAsync(string username, string code, string newPassword) =>
-        api.CreateClient().PostAsJsonAsync("/api/auth/reset-password", new { username, recoveryCode = code, newPassword });
-
-    [Fact]
-    public async Task A_recovery_code_resets_the_password_and_ends_the_other_logins()
-    {
-        var (user, code) = await RegisterWithCodeAsync();
-        var oldLogin = (await (await api.CreateClient().PostAsJsonAsync("/api/auth/login", new { user.Username, user.Password }))
-            .Content.ReadFromJsonAsync<AuthResponseDto>())!;
-        var newPassword = ApiFixture.NewPassword();
-
-        // typed the way people do: lower case and spaces
-        var reset = await ResetAsync(user.Username, code.ToLowerInvariant().Replace("-", " "), newPassword);
-
-        Assert.Equal(HttpStatusCode.OK, reset.StatusCode);
-        var auth = (await reset.Content.ReadFromJsonAsync<AuthResponseDto>())!;
-        Assert.NotNull(auth.RecoveryCode);
-        Assert.NotEqual(code, auth.RecoveryCode);
-        Assert.Equal(HttpStatusCode.OK, (await api.CreateClient(auth.AccessToken).GetAsync("/api/profile/me")).StatusCode);
-
-        var oldPassword = await api.CreateClient().PostAsJsonAsync("/api/auth/login", new { user.Username, user.Password });
-        await oldPassword.AssertProblemAsync(HttpStatusCode.Unauthorized, "InvalidCredentials");
-        var newLogin = await api.CreateClient().PostAsJsonAsync("/api/auth/login", new { user.Username, password = newPassword });
-        Assert.Equal(HttpStatusCode.OK, newLogin.StatusCode);
-
-        var oldRefresh = await api.CreateClient().PostAsJsonAsync("/api/auth/refresh", new { refreshToken = oldLogin.RefreshToken });
-        await oldRefresh.AssertProblemAsync(HttpStatusCode.Unauthorized, "InvalidRefreshToken");
-    }
-
-    [Fact]
-    public async Task A_recovery_code_works_only_once()
-    {
-        var (user, code) = await RegisterWithCodeAsync();
-        (await ResetAsync(user.Username, code, ApiFixture.NewPassword())).EnsureSuccessStatusCode();
-
-        var again = await ResetAsync(user.Username, code, ApiFixture.NewPassword());
-
-        await again.AssertProblemAsync(HttpStatusCode.BadRequest, "InvalidRecoveryCode");
-    }
-
-    [Fact]
-    public async Task A_wrong_code_and_an_unknown_user_get_the_same_answer()
-    {
-        var (user, _) = await RegisterWithCodeAsync();
-
-        var wrongCode = await ResetAsync(user.Username, "AAAA-BBBB-CCCC-DDDD", ApiFixture.NewPassword());
-        var unknownUser = await ResetAsync(ApiFixture.NewUsername(), "AAAA-BBBB-CCCC-DDDD", ApiFixture.NewPassword());
-
-        await wrongCode.AssertProblemAsync(HttpStatusCode.BadRequest, "InvalidRecoveryCode");
-        await unknownUser.AssertProblemAsync(HttpStatusCode.BadRequest, "InvalidRecoveryCode");
-        Assert.Equal(HttpStatusCode.OK, (await api.CreateClient().PostAsJsonAsync("/api/auth/login", new { user.Username, user.Password })).StatusCode);
-    }
-
-    [Fact]
-    public async Task A_new_code_needs_the_password_and_replaces_the_old_one()
-    {
-        var (user, oldCode) = await RegisterWithCodeAsync();
-
-        var wrong = await user.Client.PostAsJsonAsync("/api/profile/me/recovery-code", new { password = "not-my-password" });
-        var created = await user.Client.PostAsJsonAsync("/api/profile/me/recovery-code", new { password = user.Password });
-
-        // a wrong password while signed in must not be 401, or the app would end the session
-        await wrong.AssertProblemAsync(HttpStatusCode.BadRequest, "WrongPassword");
-        Assert.Equal(HttpStatusCode.OK, created.StatusCode);
-        var newCode = (await created.Content.ReadFromJsonAsync<RecoveryCodeDto>())!.RecoveryCode;
-
-        await (await ResetAsync(user.Username, oldCode, ApiFixture.NewPassword())).AssertProblemAsync(HttpStatusCode.BadRequest, "InvalidRecoveryCode");
-        Assert.Equal(HttpStatusCode.OK, (await ResetAsync(user.Username, newCode, ApiFixture.NewPassword())).StatusCode);
-    }
-
-    [Fact]
-    public async Task The_profile_says_whether_a_recovery_code_exists()
-    {
-        var user = await api.RegisterUserAsync();
-        await api.WithDbContextAsync(c => c.Users.Where(u => u.Id == user.Id)
-            .ExecuteUpdateAsync(s => s.SetProperty(u => u.RecoveryCodeHash, (string?)null)));
-
-        var before = await user.Client.GetFromJsonAsync<ProfileDto>("/api/profile/me");
-        await user.Client.PostAsJsonAsync("/api/profile/me/recovery-code", new { password = user.Password });
-        var after = await user.Client.GetFromJsonAsync<ProfileDto>("/api/profile/me");
-
-        Assert.False(before!.HasRecoveryCode);
-        Assert.True(after!.HasRecoveryCode);
-    }
-
     // ---------------------------------------------------------------- account deletion
 
     private async Task GiveFullDataAsync(Guid userId)
@@ -286,7 +166,7 @@ public class AccountTests(ApiFixture api)
     public async Task After_deletion_the_old_tokens_stop_working()
     {
         var user = await api.RegisterUserAsync();
-        var login = (await (await api.CreateClient().PostAsJsonAsync("/api/auth/login", new { user.Username, user.Password }))
+        var login = (await (await api.CreateClient().PostAsJsonAsync("/api/auth/login", new { login = user.Username, user.Password }))
             .Content.ReadFromJsonAsync<AuthResponseDto>())!;
 
         (await user.Client.PostAsJsonAsync("/api/profile/me/delete", new { password = user.Password })).EnsureSuccessStatusCode();
@@ -294,7 +174,7 @@ public class AccountTests(ApiFixture api)
         Assert.Equal(HttpStatusCode.Unauthorized, (await user.Client.GetAsync("/api/profile/me")).StatusCode);
         await (await api.CreateClient().PostAsJsonAsync("/api/auth/refresh", new { refreshToken = login.RefreshToken }))
             .AssertProblemAsync(HttpStatusCode.Unauthorized, "InvalidRefreshToken");
-        await (await api.CreateClient().PostAsJsonAsync("/api/auth/login", new { user.Username, user.Password }))
+        await (await api.CreateClient().PostAsJsonAsync("/api/auth/login", new { login = user.Username, user.Password }))
             .AssertProblemAsync(HttpStatusCode.Unauthorized, "InvalidCredentials");
     }
 
@@ -309,6 +189,20 @@ public class AccountTests(ApiFixture api)
 
         await response.AssertProblemAsync(HttpStatusCode.BadRequest, "WrongPassword");
         Assert.Equal(before, await RowsOwnedByAsync(user.Id));
+    }
+
+    [Fact]
+    public async Task Delete_password_guesses_share_the_sign_in_limit()
+    {
+        var user = await api.RegisterUserAsync();
+
+        HttpResponseMessage response = null!;
+        for (var i = 0; i <= RateLimitingExtensions.SignInPermitPerMinute; i++)
+        {
+            response = await user.Client.PostAsJsonAsync("/api/profile/me/delete", new { password = "not-my-password" });
+        }
+
+        await response.AssertProblemAsync(HttpStatusCode.TooManyRequests, "TooManyRequests");
     }
 
     [Fact]

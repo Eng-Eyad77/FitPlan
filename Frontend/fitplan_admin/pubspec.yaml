@@ -1,0 +1,38 @@
+name: fitplan_admin
+description: "FitPlan admin dashboard (Flutter Web, Phase 12)."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.13.7
+
+dependencies:
+  dio: ^5.11.1
+  fitplan_shared:
+    path: ../fitplan_shared
+  flutter:
+    sdk: flutter
+  go_router: ^18.1.2
+  intl: ^0.20.3
+  web: ^1.1.2
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+
+  # Readex Pro (SIL Open Font License): the files live in fitplan_shared
+  fonts:
+    - family: ReadexPro
+      fonts:
+        - asset: packages/fitplan_shared/fonts/ReadexPro-Regular.ttf
+          weight: 400
+        - asset: packages/fitplan_shared/fonts/ReadexPro-Medium.ttf
+          weight: 500
+        - asset: packages/fitplan_shared/fonts/ReadexPro-SemiBold.ttf
+          weight: 600
+        - asset: packages/fitplan_shared/fonts/ReadexPro-Bold.ttf
+          weight: 700

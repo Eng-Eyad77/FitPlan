@@ -1,0 +1,1388 @@
+{
+  "@@locale": "en",
+  "errUsernameAlreadyExists": "Username is already taken.",
+  "errInvalidCredentials": "Invalid email, username or password.",
+  "errAccountDisabled": "This account is disabled. Contact support@fitplan-app.com.",
+  "errInvalidRefreshToken": "Your session has ended. Log in again.",
+  "errWrongPassword": "Your password is wrong.",
+  "errUserNotFound": "User not found.",
+  "errInvalidFile": "The uploaded file is invalid. Only JPG and PNG images are allowed.",
+  "errPictureNotFound": "There is no profile picture.",
+  "errFileTooLarge": "The file size exceeds the 5 MB limit.",
+  "errExerciseNotFound": "Exercise not found.",
+  "errWorkoutPlanNotFound": "Workout plan not found.",
+  "errExerciseAlreadyExists": "Exercise already exists in this workout plan.",
+  "errWorkoutPlanExerciseNotFound": "Workout plan exercise not found.",
+  "errWorkoutSessionNotFound": "Workout session not found.",
+  "errNoActiveSession": "There is no workout session in progress.",
+  "errActiveSessionExists": "You already have a workout session in progress.",
+  "errSessionNotActive": "This workout session is already completed and cannot be changed.",
+  "errEmptySession": "Log at least one set or cardio entry before finishing, or cancel the session.",
+  "errSessionExerciseNotFound": "Exercise not found in this workout session.",
+  "errExerciseAlreadyInSession": "Exercise already exists in this workout session.",
+  "errSetLimitReached": "An exercise can have at most 10 sets in one session.",
+  "errSessionSetNotFound": "Set not found.",
+  "errCardioEntryNotFound": "Cardio entry not found.",
+  "errCardioMachineRetired": "Other can't be chosen any more. Pick the machine, or Swimming.",
+  "errCardioDistanceTooLong": "The distance can be at most 50,000 metres.",
+  "errSessionNotCompleted": "This workout session is still in progress.",
+  "errNoExerciseHistory": "You have not done this exercise in a finished workout yet.",
+  "errBodyWeightEntryNotFound": "Body weight entry not found.",
+  "errTooManyRequests": "Too many attempts. Wait a minute and try again.",
+  "errValidation": "Check what you typed and try again.",
+  "errTimeout": "The server took too long to answer. Try again in a moment.",
+  "errNetwork": "Can't reach the server. Check your connection and try again.",
+  "errServerStarting": "The server is starting up. Try again in a moment.",
+  "errSomethingWrong": "Something went wrong.",
+  "errGeneric": "Something went wrong. Please try again.",
+  "tryAgain": "Try again",
+  "amountKg": "{amount} kg",
+  "@amountKg": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "volumeThousandsKg": "{amount}k kg",
+  "@volumeThousandsKg": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "volumeThousands": "{amount}k",
+  "@volumeThousands": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "repsCount": "{count, plural, other{{count} reps}}",
+  "@repsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "setWeightReps": "{kg} kg × {reps}",
+  "@setWeightReps": {
+    "placeholders": {
+      "kg": {
+        "type": "String"
+      },
+      "reps": {
+        "type": "int"
+      }
+    }
+  },
+  "durationUnderMinute": "< 1 min",
+  "durationMinutes": "{minutes} min",
+  "@durationMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "durationHours": "{hours} h",
+  "@durationHours": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "durationHoursMinutes": "{hours} h {minutes} min",
+  "@durationHoursMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "today": "today",
+  "yesterday": "yesterday",
+  "daysAgo": "{days} days ago",
+  "@daysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "kg": "kg",
+  "authWrongLogin": "Wrong email, username or password.",
+  "authUsernameTaken": "This username is already taken. Try another one.",
+  "loginTitle": "Welcome back!",
+  "loginSubtitle": "Good to see you again. Log in and pick up where you left off.",
+  "username": "Username",
+  "enterUsername": "Enter your username",
+  "password": "Password",
+  "enterPassword": "Enter your password",
+  "forgotPassword": "Forgot password?",
+  "logIn": "Log in",
+  "newToFitPlan": "First time here?",
+  "createAnAccount": "Join now",
+  "copyCode": "Copy code",
+  "savedIt": "I've saved it",
+  "atLeastChars": "At least {count} characters",
+  "@atLeastChars": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "atMostChars": "At most {count} characters",
+  "@atMostChars": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "registerTitle": "Welcome to FitPlan",
+  "registerSubtitle": "Plan your workouts, log every set, and watch yourself get stronger.",
+  "confirmPassword": "Confirm password",
+  "passwordsDontMatch": "Passwords don't match",
+  "passwordHint": "Use at least {count} characters.",
+  "@passwordHint": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "createAccount": "Let's go",
+  "haveAccount": "Already one of us?",
+  "resetTitle": "No worries, we'll get you back in",
+  "resetSubtitle": "Enter your account's email. We'll send you a code to pick a new password.",
+  "newPassword": "New password",
+  "passwordLengthRange": "Use 8 to 100 characters",
+  "confirmNewPassword": "Confirm new password",
+  "thePasswordsDontMatch": "The passwords don't match",
+  "resetPassword": "Reset password",
+  "rememberedIt": "Remembered it?",
+  "showPassword": "Show password",
+  "hidePassword": "Hide password",
+  "tabHome": "Home",
+  "tabPlans": "Plans",
+  "tabHistory": "History",
+  "tabProgress": "Progress",
+  "decrease": "Decrease {label}",
+  "@decrease": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "increase": "Increase {label}",
+  "@increase": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "exerciseCount": "{count, plural, =1{1 exercise} other{{count} exercises}}",
+  "@exerciseCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "workoutCount": "{count, plural, =1{1 workout} other{{count} workouts}}",
+  "@workoutCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "setCount": "{count, plural, =1{1 set} other{{count} sets}}",
+  "@setCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "addToWhichPlan": "Add to which plan?",
+  "newPlan": "New plan",
+  "newPlanSubtitle": "Create a plan and add it there",
+  "couldNotLoadPlans": "Could not load your plans.",
+  "noPlansYetShort": "You have no plans yet.",
+  "alreadyInPlan": "Already in this plan",
+  "deletePlanTitle": "Delete plan?",
+  "deletePlanBody": "\"{name}\" will be deleted. Your past workouts stay in your history.",
+  "@deletePlanBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "keep": "Keep",
+  "delete": "Delete",
+  "plan": "Plan",
+  "planOptions": "Plan options",
+  "editName": "Edit name",
+  "deletePlan": "Delete plan",
+  "couldNotLoadPlan": "Could not load this plan.",
+  "addFirstExercise": "Add your first exercise",
+  "addFirstExerciseBody": "Pick from 1,500 exercises and set your target sets and reps.",
+  "addExercise": "Add exercise",
+  "add": "Add",
+  "startWorkout": "Start workout",
+  "editPlan": "Edit plan",
+  "name": "Name",
+  "planNameHint": "Push day",
+  "planNameRequired": "Give your plan a name",
+  "descriptionOptional": "Description (optional)",
+  "planDescriptionHint": "Chest, shoulders and triceps",
+  "createPlan": "Create plan",
+  "save": "Save",
+  "plansTitle": "Plans",
+  "browseExercises": "Browse exercises",
+  "plansSubtitle": "Your routines. Start one and log as you go.",
+  "noPlansYet": "No plans yet",
+  "noPlansYetBody": "Make a plan like \"Push day\" and add the exercises you do.",
+  "createAPlan": "Create a plan",
+  "quickWorkoutNoPlan": "Quick workout, no plan",
+  "noExercisesYet": "No exercises yet",
+  "startPlan": "Start {name}",
+  "@startPlan": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "targetSubtitle": "Your target for each workout",
+  "sets": "Sets",
+  "reps": "Reps",
+  "restBetweenSets": "Rest between sets",
+  "addToPlan": "Add to plan",
+  "removeFromPlan": "Remove from plan",
+  "goodMorning": "Good morning",
+  "goodAfternoon": "Good afternoon",
+  "goodEvening": "Good evening",
+  "greeting": "{greeting}, {name}",
+  "@greeting": {
+    "placeholders": {
+      "greeting": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "readyToTrain": "Ready to train?",
+  "profile": "Profile",
+  "openProfile": "Open profile",
+  "inProgress": "IN PROGRESS",
+  "setsLoggedSoFar": "{count, plural, =1{1 set logged so far} other{{count} sets logged so far}}",
+  "@setsLoggedSoFar": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "resumeWorkout": "Resume workout",
+  "upNext": "UP NEXT",
+  "chooseAnotherPlan": "Choose another plan",
+  "getStarted": "GET STARTED",
+  "makeFirstPlan": "Make your first plan",
+  "makeFirstPlanBody": "Pick your exercises once, then start it with one tap every time you train.",
+  "goToPlans": "Go to plans",
+  "quickWorkout": "Quick workout",
+  "thisWeek": "This week",
+  "weekGoalMet": "{count} workouts · goal met",
+  "@weekGoalMet": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "weekOfGoal": "{count} of {goal} workouts",
+  "@weekOfGoal": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "goal": {
+        "type": "int"
+      }
+    }
+  },
+  "noWorkoutsYet": "No workouts yet",
+  "trainedDaysSemantics": "Trained on {days} of 7 days this week",
+  "@trainedDaysSemantics": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "lastSession": "Last session",
+  "bodyChest": "Chest",
+  "bodyBack": "Back",
+  "bodyShoulders": "Shoulders",
+  "bodyUpperArms": "Upper arms",
+  "bodyLowerArms": "Lower arms",
+  "bodyUpperLegs": "Upper legs",
+  "bodyLowerLegs": "Lower legs",
+  "bodyWaist": "Waist",
+  "bodyNeck": "Neck",
+  "bodyCardio": "Cardio",
+  "howToDoIt": "How to do it",
+  "couldNotLoadInstructions": "Could not load the instructions.",
+  "noInstructions": "No instructions for this exercise yet.",
+  "addToAPlan": "Add to a plan",
+  "addedTo": "Added to {name}",
+  "@addedTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "open": "Open",
+  "exercises": "Exercises",
+  "searchExercises": "Search exercises",
+  "clear": "Clear",
+  "all": "All",
+  "couldNotLoadExercises": "Could not load exercises.",
+  "noExercisesFound": "No exercises found",
+  "noExercisesFoundBody": "Try another word or body part.",
+  "loadMore": "Load more",
+  "addExerciseToPlanTooltip": "Add {name} to a plan",
+  "@addExerciseToPlanTooltip": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "addExerciseTooltip": "Add {name}",
+  "@addExerciseTooltip": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "bodyPartAdded": "{part} · added",
+  "@bodyPartAdded": {
+    "placeholders": {
+      "part": {
+        "type": "String"
+      }
+    }
+  },
+  "howToDo": "How to do {name}",
+  "@howToDo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "alreadyAdded": "Already added",
+  "showHowToDoIt": "Show how to do it",
+  "demoNotAvailableFull": "Demo not available. Follow the steps below.",
+  "demoNotAvailable": "Demo not available",
+  "followStepsBelow": "Follow the steps below.",
+  "couldNotLoadHistory": "Could not load your history.",
+  "historyTitle": "History",
+  "historySubtitle": "Every workout you finished.",
+  "noHistoryBody": "Finish your first workout and it will show up here.",
+  "time": "Time",
+  "volume": "Volume",
+  "kcal": "kcal",
+  "cardio": "Cardio",
+  "deleteWorkoutTitle": "Delete workout?",
+  "deleteWorkoutBody": "\"{name}\" and all its sets will be deleted. This cannot be undone.",
+  "@deleteWorkoutBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "workout": "Workout",
+  "workoutOptions": "Workout options",
+  "deleteWorkout": "Delete workout",
+  "couldNotLoadWorkout": "Could not load this workout.",
+  "topSet": "Top set {kg} kg",
+  "@topSet": {
+    "placeholders": {
+      "kg": {
+        "type": "String"
+      }
+    }
+  },
+  "bodyweight": "Bodyweight",
+  "kcalAmount": "≈ {amount} kcal",
+  "@kcalAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
+  "couldNotLoadProfile": "Could not load your profile.",
+  "logOut": "Log out",
+  "chooseFromGallery": "Choose from gallery",
+  "takePhoto": "Take a photo",
+  "removePhoto": "Remove photo",
+  "changeProfilePhoto": "Change profile photo",
+  "viewProfilePhoto": "View profile photo",
+  "memberSince": "Member since {date}",
+  "@memberSince": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "addPhoto": "Add photo",
+  "changePhoto": "Change photo",
+  "close": "Close",
+  "profilePhoto": "Profile photo",
+  "cancel": "Cancel",
+  "deleteAccountTitle": "Delete your account?",
+  "deleteAccountBody": "This deletes your plans, workouts, weights and photo for good. It can't be undone. Enter your password to confirm.",
+  "accountDeleted": "Your account was deleted.",
+  "deleteAccount": "Delete account",
+  "exerciseDataCredit": "Exercise data: AscendAPI",
+  "bodyWeight": "Body weight",
+  "addWeightHint": "Add your weight so we can estimate the calories you burn.",
+  "update": "Update",
+  "enterNumber": "Enter a number, e.g. 78.5",
+  "weightRange": "Between {min} and {max} kg",
+  "@weightRange": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "todaysWeight": "Today's weight",
+  "weightTrendNote": "We keep every entry, so you can follow the trend.",
+  "weight": "Weight",
+  "bioSaved": "Bio saved",
+  "bio": "Bio",
+  "bioHint": "Your goals, your favorite lift, anything…",
+  "saveBio": "Save bio",
+  "language": "Language",
+  "languageSystem": "Auto",
+  "languageEnglish": "English",
+  "languageArabic": "العربية",
+  "tonnes": "{count, plural, =1{ton} other{tons}}",
+  "@tonnes": {"description": "Unit after a weight in tonnes, e.g. 12.4 tons. Not t, which reads like a cross.", "placeholders": {"count": {"type": "num"}}},
+  "msPiano": "a grand piano",
+  "msPianoPlural": "grand pianos",
+  "msCar": "a small car",
+  "msCarPlural": "small cars",
+  "msElephant": "an elephant",
+  "msElephantPlural": "elephants",
+  "msBus": "a city bus",
+  "msBusPlural": "city buses",
+  "msTruck": "a loaded truck",
+  "msTruckPlural": "loaded trucks",
+  "msWhale": "a blue whale",
+  "msWhalePlural": "blue whales",
+  "msJet": "an airplane",
+  "msJetPlural": "airplanes",
+  "aboutOne": "About {name}",
+  "@aboutOne": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "aboutMany": "About {count} {name}",
+  "@aboutMany": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "couldNotLoadProgress": "Could not load your progress.",
+  "progressTitle": "Progress",
+  "progressSubtitle": "What your training adds up to.",
+  "streakNoGoal": "A week counts when you train at least once. Set a goal to aim higher.",
+  "streakGoalReached": "{done} workouts this week, goal of {goal} reached. Nice.",
+  "@streakGoalReached": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "goal": {
+        "type": "int"
+      }
+    }
+  },
+  "streakToGo": "{done} of {goal} this week, {left} to go.",
+  "@streakToGo": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "goal": {
+        "type": "int"
+      },
+      "left": {
+        "type": "int"
+      }
+    }
+  },
+  "noStreakYet": "No streak yet",
+  "weekStreak": "{count}-week streak",
+  "@weekStreak": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "setGoal": "Set goal",
+  "aWeek": "a week",
+  "vsLastWeek": "▲ vs last week",
+  "workouts": "Workouts",
+  "kgLifted": "Kg lifted",
+  "minutesShort": "{minutes}m",
+  "@minutesShort": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "same": "same",
+  "strength": "Strength",
+  "body": "Body",
+  "chooseExercise": "Choose an exercise",
+  "strengthEmpty": "Finish a workout and your strength trend shows up here.",
+  "fromLastWorkouts": "{count, plural, =1{From your last workout} other{From your last {count} workouts}}",
+  "@fromLastWorkouts": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "latestBest": "Latest workout · best {kg} kg from {set}",
+  "@latestBest": {
+    "placeholders": {
+      "kg": {
+        "type": "String"
+      },
+      "set": {
+        "type": "String"
+      }
+    }
+  },
+  "estimated1rm": "estimated 1RM",
+  "topSetLabel": "top set",
+  "bestReps": "best reps",
+  "repsUnit": "reps",
+  "logWeightTrend": "Log your weight to see its trend.",
+  "logWeight": "Log weight",
+  "latestWeighIn": "Latest weigh-in, {when}",
+  "@latestWeighIn": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "recentRecords": "Recent records",
+  "weeklyVolume": "Weekly volume",
+  "kgLiftedLower": "kg lifted",
+  "weighIns": "Weigh-ins",
+  "logTodaysWeight": "Log today's weight",
+  "recordsMeta": "{count, plural, =1{1 workout} other{{count} workouts}} · last {when}",
+  "@recordsMeta": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "recordHeaviest": "Heaviest weight",
+  "recordEstimated1rm": "Estimated 1RM",
+  "recordMostReps": "Most reps",
+  "recordBestSetVolume": "Best set volume",
+  "finishWithWeights": "Finish a workout with weights to start",
+  "keepGoing": "Keep going",
+  "lifetimeVolume": "LIFETIME VOLUME",
+  "nextMilestone": "Next: {name}",
+  "@nextMilestone": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "toGo": "{amount} to go",
+  "@toGo": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "allMilestones": "Every milestone reached. Legendary.",
+  "milestones": "Milestones",
+  "liftedSoFar": "{amount} lifted so far",
+  "@liftedSoFar": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "milestonesNote": "Weights are approximate. Volume is reps × weight from finished workouts. Bodyweight sets and cardio aren't counted.",
+  "reachedOn": "Reached {date}",
+  "@reachedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "weeklyGoal": "Weekly goal",
+  "weeklyGoalBody": "Workouts per week. Hit it and your streak grows.",
+  "noGoal": "No goal",
+  "goalPerWeek": "{count, plural, =1{1 workout a week} other{{count} workouts a week}}",
+  "@goalPerWeek": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "firstTimeWith": "First time with \"{name}\". Next time you will see how you compare.",
+  "@firstTimeWith": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "personalRecords": "{count, plural, =1{1 personal record} other{{count} personal records}}",
+  "@personalRecords": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "volumeVsLast": "Volume vs last {name}",
+  "@volumeVsLast": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "lastTimeWas": "Last time was {when}",
+  "@lastTimeWas": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "todayLabel": "Today",
+  "lastLabel": "Last",
+  "setWeightRepsShort": "{kg} × {reps}",
+  "@setWeightRepsShort": {
+    "placeholders": {
+      "kg": {
+        "type": "String"
+      },
+      "reps": {
+        "type": "int"
+      }
+    }
+  },
+  "nothingLoggedYet": "Nothing logged yet",
+  "oneMoreEntry": "One more entry and the trend starts here",
+  "trendSemantics": "Trend from {from} to {to} {unit}",
+  "@trendSemantics": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "weekBarsSemantics": "This week {now}, last week {last}",
+  "@weekBarsSemantics": {
+    "placeholders": {
+      "now": {
+        "type": "String"
+      },
+      "last": {
+        "type": "String"
+      }
+    }
+  },
+  "weekOf": "Week of {date}",
+  "@weekOf": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "thisWeekLabel": "This week",
+  "cfSpeed": "Speed",
+  "cfIncline": "Incline",
+  "cfDistance": "Distance",
+  "cfLevel": "Level",
+  "cfDamper": "Damper",
+  "cfFloors": "Floors",
+  "cfCadence": "Cadence",
+  "cfStrokeRate": "Stroke rate",
+  "cfPoolLength": "Pool length",
+  "cfLaps": "Laps",
+  "unitKmh": "km/h",
+  "unitKm": "km",
+  "unitM": "m",
+  "cardioRange": "{label}: {min} to {max}{unit}",
+  "@cardioRange": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "cmTreadmill": "Treadmill",
+  "cmStairs": "Stairs",
+  "cmBike": "Bike",
+  "cmElliptical": "Elliptical",
+  "cmRower": "Rower",
+  "cmSwimming": "Swimming",
+  "cmOther": "Other",
+  "whyIncrease": "you hit every rep last time",
+  "whyRepeat": "same weight, beat the reps",
+  "whyDeload": "lighter to recover after two tough workouts",
+  "whyMoreReps": "one more rep than your best",
+  "cdSpeed": "{value} km/h",
+  "@cdSpeed": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "cdIncline": "{value}% incline",
+  "@cdIncline": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "cdKm": "{value} km",
+  "@cdKm": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "cdMeters": "{value} m",
+  "@cdMeters": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "cdDamper": "Damper {value}",
+  "@cdDamper": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "cdLevel": "Level {value}",
+  "@cdLevel": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "cdFloors": "{count, plural, =1{1 floor} other{{count} floors}}",
+  "@cdFloors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cdLapsOf": "{count, plural, =1{1 lap of {pool} m} other{{count} laps of {pool} m}}",
+  "@cdLapsOf": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "pool": {
+        "type": "int"
+      }
+    }
+  },
+  "cdLaps": "{count, plural, =1{1 lap} other{{count} laps}}",
+  "@cdLaps": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cdPool": "{value} m pool",
+  "@cdPool": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "secondsShort": "{seconds} s",
+  "@secondsShort": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "durationRange": "Duration: 1 to 300 minutes",
+  "addCardio": "Add cardio",
+  "howLong": "How long?",
+  "minUnit": "min",
+  "moreDetails": "More details (optional)",
+  "swimDistanceNote": "Laps and pool length are enough: the distance is worked out for you.",
+  "caloriesRough": "Calories are a rough estimate.",
+  "caloriesRoughMachine": "Calories are a rough estimate, since machines measure effort differently.",
+  "addWeightForCalories": "Add your weight in Profile to see the calories you burn.",
+  "finishWorkoutTitle": "Finish workout?",
+  "finishAllDone": "Nice, you did everything you planned.",
+  "finishUnfinished": "{count, plural, =1{1 exercise is not complete. You can still finish, what you logged is saved.} other{{count} exercises are not complete. You can still finish, what you logged is saved.}}",
+  "@finishUnfinished": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notesOptional": "Notes (optional)",
+  "howDidItFeel": "How did it feel?",
+  "finishWorkout": "Finish workout",
+  "keepTraining": "Keep training",
+  "addedToPlan": "Added {what} to {name}",
+  "@addedToPlan": {
+    "placeholders": {
+      "what": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "addToPlanQuestion": "Add to {name}?",
+  "@addToPlanQuestion": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "planAdditionsBody": "You added these during this workout. Choose which to keep in your plan.",
+  "addCountToPlan": "Add {count} to plan",
+  "@addCountToPlan": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notNow": "Not now",
+  "addName": "Add {name}",
+  "@addName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "targetForSemantics": "Target for {name}: {target}. Tap to change.",
+  "@targetForSemantics": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "discardWorkoutTitle": "Discard workout?",
+  "discardWorkoutBody": "Everything you logged in this workout will be deleted.",
+  "keepGoingButton": "Continue workout",
+  "discard": "Discard",
+  "noCardioToday": "No cardio today?",
+  "cardioReminderBody": "A few minutes of cardio is a good way to finish. It is up to you.",
+  "finishWithoutCardio": "Finish without cardio",
+  "logSomethingFirst": "Log at least one set or some cardio first, or discard the workout.",
+  "couldNotLoadSession": "Could not load your workout.",
+  "noWorkoutInProgress": "No workout in progress",
+  "noWorkoutInProgressBody": "Start one from a plan, or a quick workout.",
+  "back": "Back",
+  "minimise": "Minimise",
+  "discardWorkout": "Discard workout",
+  "finish": "Finish",
+  "doneOfTotal": "{done} OF {total} DONE",
+  "@doneOfTotal": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "quickWorkoutOverline": "QUICK WORKOUT",
+  "whatTraining": "What are you training?",
+  "quickWorkoutBody": "Add exercises as you go, or just log some cardio.",
+  "setsLoggedOfTarget": "{logged} / {target} sets",
+  "@setsLoggedOfTarget": {
+    "placeholders": {
+      "logged": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "exerciseRowSemantics": "{number}. {name}, {progress}{done}{active}. Tap to open.",
+  "@exerciseRowSemantics": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      },
+      "progress": {
+        "type": "String"
+      },
+      "done": {
+        "type": "String"
+      },
+      "active": {
+        "type": "String"
+      }
+    }
+  },
+  "semDone": ", done",
+  "semDoThisNow": ", do this now",
+  "progressWithTarget": "{progress} · target {sets} × {reps}",
+  "@progressWithTarget": {
+    "placeholders": {
+      "progress": {
+        "type": "String"
+      },
+      "sets": {
+        "type": "int"
+      },
+      "reps": {
+        "type": "int"
+      }
+    }
+  },
+  "cardioFinishPrompt": "Finish with some cardio? Pick the machine and how long.",
+  "noKcal": "— kcal",
+  "deleteCardio": "Delete cardio",
+  "workoutInProgressTitle": "Workout in progress",
+  "workoutInProgressBody": "You have \"{name}\" running. Finish or cancel it before starting a new one.",
+  "@workoutInProgressBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "resume": "Resume",
+  "duration": "Duration",
+  "caloriesEstimated": "Calories (estimated)",
+  "calories": "Calories",
+  "addWeightInProfile": "Add weight in Profile",
+  "workoutComplete": "Workout complete",
+  "thisWorkoutCompare": "This workout: {comparison}",
+  "@thisWorkoutCompare": {
+    "placeholders": {
+      "comparison": {
+        "type": "String"
+      }
+    }
+  },
+  "done": "Done",
+  "newMilestone": "NEW MILESTONE",
+  "youLifted": "You've lifted {name}",
+  "@youLifted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "totalPassed": "Your total passed {amount}, about the weight of {name}",
+  "@totalPassed": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "passedOnTheWay": "And passed {names} on the way",
+  "@passedOnTheWay": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "and": " and ",
+  "removeExerciseTitle": "Remove exercise?",
+  "removeExerciseBody": "{count, plural, =1{The 1 logged set of this exercise will be deleted.} other{The {count} logged sets of this exercise will be deleted.}}",
+  "@removeExerciseBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "remove": "Remove",
+  "targetSetsReps": "Target {sets} × {reps}",
+  "@targetSetsReps": {
+    "placeholders": {
+      "sets": {
+        "type": "int"
+      },
+      "reps": {
+        "type": "int"
+      }
+    }
+  },
+  "closeName": "Close {name}",
+  "@closeName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "exerciseOptions": "Exercise options",
+  "removeFromWorkout": "Remove from workout",
+  "addSet": "Add set",
+  "nextExercise": "Next exercise",
+  "now": "NOW",
+  "restChipSemantics": "Rest {time} between sets. Tap to change.",
+  "@restChipSemantics": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "restChip": "Rest {time}",
+  "@restChip": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "suggestedToday": "Suggested today: {target}, {why}",
+  "@suggestedToday": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      },
+      "why": {
+        "type": "String"
+      }
+    }
+  },
+  "todayPrefix": "Today  ",
+  "firstTimeExercise": "First time doing this one. Today sets your baseline.",
+  "lastTimeWhen": "Last time · {when}",
+  "@lastTimeWhen": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "bodyweightShort": "BW",
+  "weightHint": "kg",
+  "@weightHint": {"description": "Empty weight field in a set row. Left empty, the set counts as bodyweight."},
+  "restSheetBody": "Rest after each set, for this workout. Your plan stays as it is.",
+  "restDone": "REST DONE",
+  "rest": "REST",
+  "go": "Go!",
+  "skip": "Skip",
+  "setNumber": "Set {number}",
+  "@setNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "weightKgLabel": "Weight (kg)",
+  "emptyIsBodyweight": "Empty = bodyweight",
+  "deleteSet": "Delete set",
+  "repsRange": "Reps: 1 to {max}",
+  "@repsRange": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "weightRangeSet": "Weight: 0 to {max} kg",
+  "@weightRangeSet": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "colSet": "SET",
+  "colKg": "KG",
+  "colReps": "REPS",
+  "setDoneSemantics": "Set {number}: {weight}, {reps} reps, done. Tap to edit.",
+  "@setDoneSemantics": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "weight": {
+        "type": "String"
+      },
+      "reps": {
+        "type": "int"
+      }
+    }
+  },
+  "semBodyweight": "bodyweight",
+  "semKilograms": "{kg} kilograms",
+  "@semKilograms": {
+    "placeholders": {
+      "kg": {
+        "type": "String"
+      }
+    }
+  },
+  "setWeightSemantics": "Set {number} weight in kilograms",
+  "@setWeightSemantics": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "setRepsSemantics": "Set {number} reps",
+  "@setRepsSemantics": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "logSetNumber": "Log set {number}",
+  "@logSetNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "nextSetLabel": "{name} · set {number}",
+  "@nextSetLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "restOverTitle": "Rest is over",
+  "restingTitle": "Resting",
+  "timeNextExercise": "Time for your next exercise",
+  "timeNextSet": "Time for your next set",
+  "nextColon": "Next: {what}",
+  "@nextColon": {
+    "placeholders": {
+      "what": {
+        "type": "String"
+      }
+    }
+  },
+  "logValues": "Log {values}",
+  "@logValues": {
+    "placeholders": {
+      "values": {
+        "type": "String"
+      }
+    }
+  },
+  "channelRestTimer": "Rest timer",
+  "channelRestTimerDesc": "Tells you when your rest between sets is over.",
+  "channelRestCountdown": "Rest countdown",
+  "channelRestCountdownDesc": "Shows the rest counting down while you are outside the app.",
+  "skipRest": "Skip rest",
+  "logSet": "Log set",
+  "restAdd15": "{value}s",
+  "restAdd15Notification": "{value} s",
+  "gainReps": "{value} reps",
+  "@gainReps": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "@restAdd15": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "@restAdd15Notification": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "switchLanguage": "Switch to Arabic",
+  "equipmentLabel": "Equipment",
+  "@equipmentLabel": {
+    "description": "Exercise details sheet (Phase 11C): heading of a row of chips"
+  },
+  "targetMusclesLabel": "Main muscle",
+  "@targetMusclesLabel": {
+    "description": "Exercise details sheet (Phase 11C): heading of a row of chips"
+  },
+  "secondaryMusclesLabel": "Also works",
+  "@secondaryMusclesLabel": {
+    "description": "Exercise details sheet (Phase 11C): heading of a row of chips"
+  },
+  "errInvalidEmailCode": "The code is wrong or has expired. Ask for a new one.",
+  "errEmailAlreadyExists": "This email already has an account.",
+  "errEmailNotRegistered": "There's no account with this email.",
+  "errTooManyEmails": "Too many codes for this email. Wait a little and try again.",
+  "errEmailNotSent": "We couldn't send the email. Try again later.",
+  "email": "Email",
+  "enterValidEmail": "Enter a valid email",
+  "emailOrUsername": "Email or username",
+  "enterEmailOrUsername": "Enter your email or username",
+  "usernameNoAt": "Username can't contain @",
+  "sendCode": "Send code",
+  "codeSentTo": "We sent a 6-digit code to {email}. It works for 10 minutes.",
+  "checkSpam": "Can't find it? Check your spam folder.",
+  "emailCode": "Code from the email",
+  "codeLength": "The code has 6 digits",
+  "resendCode": "Send a new code",
+  "codeResent": "We sent a new code.",
+  "useAnotherEmail": "Use another email",
+  "changeEmail": "Change email",
+  "changeEmailBody": "Enter your new email and your password. We'll send a code to the new email.",
+  "newEmail": "New email",
+  "enterCodeTitle": "Enter the code",
+  "confirm": "Confirm",
+  "emailChanged": "Your email was changed.",
+  "@codeSentTo": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "reportProblem": "Report a problem",
+  "reportIntro": "What went wrong? We read every report and reply to your email.",
+  "reportHint": "Describe what happened and what you were doing.",
+  "send": "Send",
+  "reportSent": "We got your report. Thank you 🙏",
+  "reportTooMany": "You've sent a lot in a short time. Try again a little later.",
+  "suggestIdea": "Share a suggestion",
+  "suggestIntro": "Have an idea that would make FitPlan better? We read every suggestion.",
+  "suggestHint": "Write your idea and how it would help you.",
+  "suggestSent": "We got your suggestion. Thank you 🙏",
+  "rangeAll": "All",
+  "rangeWeek": "This week",
+  "rangeMonth": "This month",
+  "rangeYear": "This year",
+  "noWorkoutsInRange": "No workouts in this period",
+  "noWorkoutsInRangeBody": "Pick a longer period, or All.",
+  "addNote": "Add a note",
+  "exerciseNote": "Exercise note",
+  "exerciseNoteBody": "Just for you, like where you set the seat. It shows every time you do this exercise.",
+  "exerciseNoteHint": "e.g. Seat on 4",
+  "removeNote": "Remove note"
+}

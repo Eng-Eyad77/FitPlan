@@ -45,11 +45,14 @@ _SessionExercise _$SessionExerciseFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       exerciseId: json['exerciseId'] as String,
       name: json['name'] as String,
+      englishName: json['englishName'] as String?,
       gifUrl: json['gifUrl'] as String,
       bodyPart: json['bodyPart'] as String,
       order: (json['order'] as num).toInt(),
       targetSets: (json['targetSets'] as num?)?.toInt(),
       targetReps: (json['targetReps'] as num?)?.toInt(),
+      restSeconds: (json['restSeconds'] as num?)?.toInt(),
+      note: json['note'] as String?,
       sets:
           (json['sets'] as List<dynamic>?)
               ?.map((e) => SessionSet.fromJson(e as Map<String, dynamic>))
@@ -70,11 +73,14 @@ Map<String, dynamic> _$SessionExerciseToJson(_SessionExercise instance) =>
       'id': instance.id,
       'exerciseId': instance.exerciseId,
       'name': instance.name,
+      'englishName': instance.englishName,
       'gifUrl': instance.gifUrl,
       'bodyPart': instance.bodyPart,
       'order': instance.order,
       'targetSets': instance.targetSets,
       'targetReps': instance.targetReps,
+      'restSeconds': instance.restSeconds,
+      'note': instance.note,
       'sets': instance.sets,
       'lastPerformance': instance.lastPerformance,
       'suggestion': instance.suggestion,
@@ -133,11 +139,22 @@ const _$SuggestionReasonEnumMap = {
 
 _CardioEntry _$CardioEntryFromJson(Map<String, dynamic> json) => _CardioEntry(
   id: json['id'] as String,
-  machine: $enumDecode(_$CardioMachineEnumMap, json['machine']),
+  machine: $enumDecode(
+    _$CardioMachineEnumMap,
+    json['machine'],
+    unknownValue: CardioMachine.unknown,
+  ),
   durationSeconds: (json['durationSeconds'] as num).toInt(),
   speedKmh: (json['speedKmh'] as num?)?.toDouble(),
   inclinePercent: (json['inclinePercent'] as num?)?.toDouble(),
   distanceKm: (json['distanceKm'] as num?)?.toDouble(),
+  level: (json['level'] as num?)?.toInt(),
+  floors: (json['floors'] as num?)?.toInt(),
+  cadenceRpm: (json['cadenceRpm'] as num?)?.toInt(),
+  strokeRate: (json['strokeRate'] as num?)?.toInt(),
+  distanceMeters: (json['distanceMeters'] as num?)?.toInt(),
+  poolLengthMeters: (json['poolLengthMeters'] as num?)?.toInt(),
+  laps: (json['laps'] as num?)?.toInt(),
   estimatedCalories: (json['estimatedCalories'] as num?)?.toInt(),
 );
 
@@ -149,16 +166,25 @@ Map<String, dynamic> _$CardioEntryToJson(_CardioEntry instance) =>
       'speedKmh': instance.speedKmh,
       'inclinePercent': instance.inclinePercent,
       'distanceKm': instance.distanceKm,
+      'level': instance.level,
+      'floors': instance.floors,
+      'cadenceRpm': instance.cadenceRpm,
+      'strokeRate': instance.strokeRate,
+      'distanceMeters': instance.distanceMeters,
+      'poolLengthMeters': instance.poolLengthMeters,
+      'laps': instance.laps,
       'estimatedCalories': instance.estimatedCalories,
     };
 
 const _$CardioMachineEnumMap = {
   CardioMachine.treadmill: 'Treadmill',
+  CardioMachine.stairClimber: 'StairClimber',
   CardioMachine.stationaryBike: 'StationaryBike',
   CardioMachine.elliptical: 'Elliptical',
-  CardioMachine.stairClimber: 'StairClimber',
   CardioMachine.rower: 'Rower',
+  CardioMachine.swimming: 'Swimming',
   CardioMachine.other: 'Other',
+  CardioMachine.unknown: 'unknown',
 };
 
 _SessionSummary _$SessionSummaryFromJson(Map<String, dynamic> json) =>
@@ -173,6 +199,11 @@ _SessionSummary _$SessionSummaryFromJson(Map<String, dynamic> json) =>
       totalVolumeKg: (json['totalVolumeKg'] as num).toDouble(),
       cardioDurationSeconds: (json['cardioDurationSeconds'] as num).toInt(),
       estimatedCalories: (json['estimatedCalories'] as num).toInt(),
+      newMilestones:
+          (json['newMilestones'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$SessionSummaryToJson(_SessionSummary instance) =>
@@ -187,4 +218,5 @@ Map<String, dynamic> _$SessionSummaryToJson(_SessionSummary instance) =>
       'totalVolumeKg': instance.totalVolumeKg,
       'cardioDurationSeconds': instance.cardioDurationSeconds,
       'estimatedCalories': instance.estimatedCalories,
+      'newMilestones': instance.newMilestones,
     };

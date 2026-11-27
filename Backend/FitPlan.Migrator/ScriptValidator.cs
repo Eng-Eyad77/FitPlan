@@ -34,6 +34,14 @@ public sealed partial class ScriptValidator(KnownMigrations known)
         nameof(DropTableStatement)
     ];
 
+    // Data changes a migration may run, as exact statements. D18 deletes every account without an email,
+    // which at that point is every account. Each one needs a test before it is added.
+    private static readonly HashSet<string> AllowedDataStatements =
+    [
+        "DELETE FROM [WorkoutSessions]",
+        "DELETE FROM [Users]"
+    ];
+
     // Rejected anywhere, including inside EXEC(N'...'). These could change who the script runs as,
     // change permissions, leave the database, or commit a failed migration (RAISERROR).
     private static readonly HashSet<string> ForbiddenNodes =
@@ -185,6 +193,11 @@ public sealed partial class ScriptValidator(KnownMigrations known)
             }
 
             RequireSchemaStatement(inner.Batches[0].Statements[0], number, allowExec: false);
+            return;
+        }
+
+        if (statement is DeleteStatement && AllowedDataStatements.Contains(TrimSemicolon(Normalize(statement))))
+        {
             return;
         }
 

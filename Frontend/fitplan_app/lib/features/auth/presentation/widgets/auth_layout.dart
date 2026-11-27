@@ -1,10 +1,9 @@
+import 'package:fitplan_shared/fitplan_shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_text.dart';
-import '../../../../shared/widgets/brand_mark.dart';
+import '../../../../shared/widgets/language_toggle.dart';
+import '../../../../l10n/l10n.dart';
 
 /// Shared frame of the login and register screens.
 class AuthLayout extends StatelessWidget {
@@ -33,7 +32,11 @@ class AuthLayout extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Align(alignment: Alignment.centerLeft, child: BrandMark()),
+                  // the language can be changed before signing in
+                  const Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [BrandMark(), LanguageToggle()],
+                  ),
                   const SizedBox(height: AppSpacing.xxl),
                   Text(title, style: AppText.title),
                   const SizedBox(height: AppSpacing.sm),
@@ -93,6 +96,7 @@ class PasswordField extends StatefulWidget {
     this.textInputAction = TextInputAction.done,
     this.onSubmitted,
     this.autofillHints = const [AutofillHints.password],
+    this.live = false,
   });
 
   final TextEditingController controller;
@@ -101,6 +105,9 @@ class PasswordField extends StatefulWidget {
   final TextInputAction textInputAction;
   final ValueChanged<String>? onSubmitted;
   final Iterable<String> autofillHints;
+
+  /// Checks this field as soon as it's typed in, without marking the other fields.
+  final bool live;
 
   @override
   State<PasswordField> createState() => _PasswordFieldState();
@@ -118,14 +125,16 @@ class _PasswordFieldState extends State<PasswordField> {
       onFieldSubmitted: widget.onSubmitted,
       autofillHints: widget.autofillHints,
       validator: widget.validator,
+      autovalidateMode: widget.live ? AutovalidateMode.onUserInteraction : null,
       style: AppText.body,
       decoration: InputDecoration(
         labelText: widget.label,
         suffixIcon: IconButton(
-          tooltip: _hidden ? 'Show password' : 'Hide password',
+          tooltip: _hidden ? l10n.showPassword : l10n.hidePassword,
           onPressed: () => setState(() => _hidden = !_hidden),
           icon: Icon(
-            _hidden ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+            // the eye shows the current state: open while the password can be read (Eyad's call)
+            _hidden ? Icons.visibility_off_outlined : Icons.visibility_outlined,
             color: AppColors.textTertiary,
           ),
         ),

@@ -9,9 +9,16 @@ abstract class Exercise with _$Exercise {
   const factory Exercise({
     required String id,
     required String name,
+    /// The English name when [name] is in Arabic (Phase 11C), shown small under it.
+    String? englishName,
     required String gifUrl,
     required String bodyPart,
     @Default([]) List<String> instructions,
+
+    /// In the app's language; empty until the details are on the server.
+    @Default([]) List<String> equipments,
+    @Default([]) List<String> targetMuscles,
+    @Default([]) List<String> secondaryMuscles,
   }) = _Exercise;
 
   factory Exercise.fromJson(Map<String, dynamic> json) => _$ExerciseFromJson(json);
@@ -33,17 +40,3 @@ abstract class ExercisePage with _$ExercisePage {
 
   bool get hasMore => page < totalPages;
 }
-
-/// The body parts the library uses, in the order the filter chips show them.
-const bodyParts = [
-  'chest',
-  'back',
-  'shoulders',
-  'upper arms',
-  'lower arms',
-  'upper legs',
-  'lower legs',
-  'waist',
-  'neck',
-  'cardio',
-];

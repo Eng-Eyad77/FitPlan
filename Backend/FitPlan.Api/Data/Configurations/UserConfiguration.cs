@@ -34,9 +34,17 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(p => p.PasswordHash)
                                 .IsRequired();
 
-        // the recovery code hash (PasswordHasher output is about 84 characters)
-        builder.Property(p => p.RecoveryCodeHash)
-                                .HasMaxLength(200);
+        // shortcut: the D11 recovery-code columns stay, unused and empty, because the migrator can't drop columns yet; drop them when it can
+        builder.Property<string?>("RecoveryCodeHash").HasMaxLength(200);
+        builder.Property<DateTime?>("RecoveryCodeCreatedAt");
+
+        // the email (254 is the longest an address can be)
+        builder.HasIndex(p => p.Email)
+                .IsUnique();
+
+        builder.Property(p => p.Email)
+                            .IsRequired()
+                            .HasMaxLength(254);
 
         //the bio Configurations
         builder.Property(p => p.Bio)

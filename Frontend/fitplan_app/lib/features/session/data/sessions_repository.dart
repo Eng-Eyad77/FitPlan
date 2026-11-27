@@ -41,12 +41,16 @@ class SessionsRepository {
     return WorkoutSession.fromJson(response.data!);
   }
 
-  /// Completed sessions, newest first.
-  Future<HistoryPage> getHistory({int page = 1, int pageSize = 20}) async {
+  /// Completed sessions, newest first; with [since], only the ones finished from then on.
+  Future<HistoryPage> getHistory({int page = 1, int pageSize = 20, DateTime? since}) async {
     final response = await apiCall(
       () => _dio.get<Map<String, dynamic>>(
         _base,
-        queryParameters: {'page': page, 'pageSize': pageSize},
+        queryParameters: {
+          'page': page,
+          'pageSize': pageSize,
+          if (since != null) 'since': since.toUtc().toIso8601String(),
+        },
       ),
     );
     final data = response.data!;
@@ -86,6 +90,19 @@ class SessionsRepository {
 
   Future<void> removeExercise(String sessionId, String sessionExerciseId) async {
     await apiCall(() => _dio.delete<void>('$_base/$sessionId/exercises/$sessionExerciseId'));
+  }
+
+  /// Changes the rest for this session only; the plan keeps its own.
+  /// The exercise's note for this workout; it goes back to the plan when the workout is finished.
+  Future<void> updateNote(String sessionId, String sessionExerciseId, String? note) async {
+    await apiCall(() => _dio.put<void>('$_base/$sessionId/exercises/$sessionExerciseId/note', data: {'note': note}));
+  }
+
+  Future<void> updateRest(String sessionId, String sessionExerciseId, int? restSeconds) async {
+    await apiCall(() => _dio.patch<void>(
+          '$_base/$sessionId/exercises/$sessionExerciseId',
+          data: {'restSeconds': restSeconds},
+        ));
   }
 
   // ---- sets ----
@@ -152,26 +169,18 @@ class HistoryPage {
 }
 
 /// What the cardio sheet sends. Only machine and duration are required.
+/// A cardio entry to save. Only the details of [machine] are sent; the API refuses the others.
 class CardioInput {
-  const CardioInput({
-    required this.machine,
-    required this.durationSeconds,
-    this.speedKmh,
-    this.inclinePercent,
-    this.distanceKm,
-  });
+  const CardioInput({required this.machine, required this.durationSeconds, this.values = const {}});
 
   final CardioMachine machine;
   final int durationSeconds;
-  final double? speedKmh;
-  final double? inclinePercent;
-  final double? distanceKm;
+  final Map<CardioField, num> values;
 
   Map<String, dynamic> toJson() => {
         'machine': machine.apiValue,
         'durationSeconds': durationSeconds,
-        'speedKmh': speedKmh,
-        'inclinePercent': inclinePercent,
-        'distanceKm': distanceKm,
+        for (final field in machine.fields)
+          if (values[field] case final value?) field.jsonKey: field.decimal ? value.toDouble() : value.toInt(),
       };
 }

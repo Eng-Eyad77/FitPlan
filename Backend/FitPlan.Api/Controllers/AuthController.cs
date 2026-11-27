@@ -1,6 +1,7 @@
 using FitPlan.Api.DTOs.Auth;
 using FitPlan.Api.Services.Auth;
 using FitPlan.Api.Extensions;
+using FitPlan.Api.Services.Exercises;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 
@@ -9,6 +10,17 @@ namespace FitPlan.Api.Controllers;
 [Route("api/auth")]
 public class AuthController(IAuthService authService) : ApiControllerBase
 {
+    // Step 1 of sign-up (D18). 202 when the code went out; 409 if the email already has an account.
+    [HttpPost("register/code")]
+    [EnableRateLimiting(RateLimitingExtensions.SignInPolicy)]
+    public async Task<IActionResult> SendSignUpCode(EmailRequestDto request)
+    {
+        var result = await authService.SendSignUpCodeAsync(request.Email, ContentLanguage.From(Request));
+
+        return result.IsSuccess ? Accepted() : Problem(result.Error);
+    }
+
+    // Step 2: the code with the username and password creates the account.
     [HttpPost("register")]
     [EnableRateLimiting(RateLimitingExtensions.SignInPolicy)]
     public async Task<IActionResult> CreateUser(RegisterRequestDto newRegister)
@@ -43,7 +55,27 @@ public class AuthController(IAuthService authService) : ApiControllerBase
         return result.IsSuccess ? Ok(result.Data) : Problem(result.Error);
     }
 
-    // A forgotten password, proved with the recovery code. Shares the sign-in limit against guessing.
+    // A forgotten password, step 1. 202 when the code went out; 404 if no account has this email.
+    [HttpPost("password-reset/code")]
+    [EnableRateLimiting(RateLimitingExtensions.SignInPolicy)]
+    public async Task<IActionResult> SendPasswordResetCode(EmailRequestDto request)
+    {
+        var result = await authService.SendPasswordResetCodeAsync(request.Email, ContentLanguage.From(Request));
+
+        return result.IsSuccess ? Accepted() : Problem(result.Error);
+    }
+
+    // Step 2: is the emailed code right? 204 if so. Nothing changes, but it counts as an attempt.
+    [HttpPost("password-reset/check")]
+    [EnableRateLimiting(RateLimitingExtensions.SignInPolicy)]
+    public async Task<IActionResult> CheckPasswordResetCode(ResetCodeCheckDto request)
+    {
+        var result = await authService.CheckPasswordResetCodeAsync(request);
+
+        return result.IsSuccess ? NoContent() : Problem(result.Error);
+    }
+
+    // Step 3: the emailed code and the new password. Shares the sign-in limit against guessing.
     [HttpPost("reset-password")]
     [EnableRateLimiting(RateLimitingExtensions.SignInPolicy)]
     public async Task<IActionResult> ResetPassword(ResetPasswordRequestDto request)

@@ -2,6 +2,7 @@ using FitPlan.Api.Common.Results;
 using FitPlan.Api.Data;
 using FitPlan.Api.DTOs.BodyWeight;
 using FitPlan.Api.Models;
+using FitPlan.Api.Services.CardioEntries;
 using Microsoft.EntityFrameworkCore;
 
 namespace FitPlan.Api.Services.BodyWeight;
@@ -26,6 +27,19 @@ public class BodyWeightService(FitPlanDbContext context) : IBodyWeightService
         };
 
         context.BodyWeightEntries.Add(entry);
+
+        // cardio logged in the workout in progress before any weight existed has no calories yet
+        var withoutCalories = await context.CardioEntries
+            .Where(c => c.EstimatedCalories == null
+                        && c.WorkoutSession.UserId == userId
+                        && c.WorkoutSession.CompletedAt == null)
+            .ToListAsync();
+
+        foreach (var cardio in withoutCalories)
+        {
+            cardio.EstimatedCalories = CalorieEstimator.Estimate(cardio, entry.WeightKg);
+        }
+
         await context.SaveChangesAsync();
 
         return Result<BodyWeightEntryResponseDto>.Success(new BodyWeightEntryResponseDto

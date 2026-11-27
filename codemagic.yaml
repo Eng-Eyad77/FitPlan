@@ -1,8 +1,9 @@
 # Codemagic builds the iPhone app on a Mac in the cloud (this project is developed on Windows).
 #
 # ios-test: an UNSIGNED .ipa for installing on your own iPhone with Sideloadly and a free Apple ID.
-# API_BASE_URL is the production API on Azure; change it in the workflow environment on codemagic.io to test against another server.
-# (e.g. http://<your PC IP>:5264 to use the API running on your PC on the same Wi-Fi)
+# API_BASE_URL is the Dev API on Azure. Until the launch release (D17) Production runs an older version,
+# so test builds must use Dev. Switch it back to https://fitplan-api-eyad.azurewebsites.net for the launch build.
+# (or http://<your PC IP>:5264 to use the API running on your PC on the same Wi-Fi)
 workflows:
   ios-test:
     name: iPhone test build (unsigned)
@@ -12,12 +13,20 @@ workflows:
       flutter: stable
       xcode: latest
       vars:
-        API_BASE_URL: https://fitplan-api-eyad.azurewebsites.net
+        API_BASE_URL: https://fitplan-api-dev.azurewebsites.net
     working_directory: Frontend/fitplan_app
     scripts:
       # the generated .freezed.dart / .g.dart files are committed, so no build_runner step
       - name: Get packages
         script: flutter pub get
+      # Phase 9C/9D: adds the Lock Screen countdown (a widget extension) to the Xcode project on the Mac
+      - name: Add the rest Live Activity extension
+        script: |
+          gem list -i xcodeproj >/dev/null || gem install xcodeproj --no-document
+          ruby ios/scripts/add_rest_activity.rb
+      # Phase 11: the permission prompts in Arabic
+      - name: Add Arabic to the Xcode project
+        script: ruby ios/scripts/add_arabic.rb
       - name: Build the app without signing (Sideloadly signs it with your Apple ID)
         script: flutter build ios --release --no-codesign --dart-define=API_BASE_URL=$API_BASE_URL
       - name: Package as .ipa

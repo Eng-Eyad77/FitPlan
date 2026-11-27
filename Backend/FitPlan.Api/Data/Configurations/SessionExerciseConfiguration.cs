@@ -1,3 +1,4 @@
+using FitPlan.Api.DTOs.Common;
 using FitPlan.Api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -9,11 +10,16 @@ public class SessionExerciseConfiguration : IEntityTypeConfiguration<SessionExer
     public void Configure(EntityTypeBuilder<SessionExercise> builder)
     {
         //to link it to the table and put the condition to the table
+        builder.Property(e => e.Note).HasMaxLength(ExerciseNoteDto.MaxLength);
         builder.ToTable("SessionExercises", table =>
         {
             table.HasCheckConstraint(
                 "CK_SessionExercises_Order",
                 "[Order] > 0");
+
+            table.HasCheckConstraint(
+                "CK_SessionExercises_RestSeconds",
+                "[RestSeconds] IS NULL OR ([RestSeconds] >= 15 AND [RestSeconds] <= 600)");
         });
 
         //define the primary key
