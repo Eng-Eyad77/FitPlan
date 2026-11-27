@@ -123,6 +123,7 @@ public class ProfileController(IProfileService profileService) : ApiControllerBa
 
     // F-02. POST, not DELETE, because it carries the password in its body.
     [HttpPost("me/delete")]
+    [EnableRateLimiting(RateLimitingExtensions.SignInPolicy)]
     public async Task<IActionResult> DeleteAccount(PasswordConfirmationDto request)
     {
         if (!TryGetUserId(out var userId))

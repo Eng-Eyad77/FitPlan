@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Caching.Memory;
 using FitPlan.Api.Models;
 using FitPlan.Api.Services.Admin;
 
@@ -62,7 +63,9 @@ public static class RateLimitingExtensions
                     : 60;
                 context.HttpContext.Response.Headers.RetryAfter = retryAfter.ToString(CultureInfo.InvariantCulture);
 
-                if (context.HttpContext.GetEndpoint()?.Metadata.GetMetadata<EnableRateLimitingAttribute>()?.PolicyName == SignInPolicy)
+                // One event per caller a minute: a flood of 429s must not keep the free database awake.
+                if (context.HttpContext.GetEndpoint()?.Metadata.GetMetadata<EnableRateLimitingAttribute>()?.PolicyName == SignInPolicy
+                    && FirstRejectionThisMinute(context.HttpContext))
                 {
                     await context.HttpContext.RequestServices.GetRequiredService<ServerEventLog>().RecordAsync(
                         ServerEventKind.FailedSignIn, "Rate limited", "Too many tries: " + ServerEventLog.Endpoint(context.HttpContext));
@@ -83,6 +86,19 @@ public static class RateLimitingExtensions
         });
 
         return services;
+    }
+
+    private static bool FirstRejectionThisMinute(HttpContext http)
+    {
+        var cache = http.RequestServices.GetRequiredService<IMemoryCache>();
+        var key = "sign-in-429:" + ClientIp(http);
+        if (cache.TryGetValue(key, out _))
+        {
+            return false;
+        }
+
+        cache.Set(key, true, TimeSpan.FromMinutes(1));
+        return true;
     }
 
     private static RateLimitPartition<string> PerIp(HttpContext context, int permitPerMinute) =>
